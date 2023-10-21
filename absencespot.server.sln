@@ -1,0 +1,41 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.1.32319.34
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Absencespot.ApiFunctions", "Absencespot.ApiFunctions\Absencespot.ApiFunctions.csproj", "{AFDC50CA-2425-4B33-81A3-E8EA5D811E2E}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Application", "Application", "{1569CD9D-C9A4-4D4B-87A1-C96E320ED604}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Business", "Business", "{57D30755-EF93-47BE-B336-AE207D0CFA2A}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Infrastructure", "Infrastructure", "{195F7C41-985C-4D89-9470-1244AA298FB0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Absencespot.Domain", "Absencespot.Domain\Absencespot.Domain.csproj", "{64796D59-AD0F-494A-97FE-46743B8989AE}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{AFDC50CA-2425-4B33-81A3-E8EA5D811E2E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AFDC50CA-2425-4B33-81A3-E8EA5D811E2E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AFDC50CA-2425-4B33-81A3-E8EA5D811E2E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AFDC50CA-2425-4B33-81A3-E8EA5D811E2E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{64796D59-AD0F-494A-97FE-46743B8989AE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{64796D59-AD0F-494A-97FE-46743B8989AE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{64796D59-AD0F-494A-97FE-46743B8989AE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{64796D59-AD0F-494A-97FE-46743B8989AE}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{AFDC50CA-2425-4B33-81A3-E8EA5D811E2E} = {1569CD9D-C9A4-4D4B-87A1-C96E320ED604}
+		{64796D59-AD0F-494A-97FE-46743B8989AE} = {57D30755-EF93-47BE-B336-AE207D0CFA2A}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {BAC3B733-E434-4134-953C-E665F74933BD}
+	EndGlobalSection
+EndGlobal
