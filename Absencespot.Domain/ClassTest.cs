@@ -1,6 +1,6 @@
 ﻿namespace Absencespot.Domain
 {
-    public class Class1
+    public class ClassTest
     {
 
     }
