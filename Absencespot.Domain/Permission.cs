@@ -1,0 +1,16 @@
+﻿using Absencespot.Domain.Seedwork;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Absencespot.Domain
+{
+    public class Permission : Entity
+    {
+        //REQUEST = ["UPDATE, DELETE, READ, UPDATE"]
+        //OFFICE = ["UPDATE, DELETE, READ, UPDATE"]
+
+    }
+}
