@@ -9,5 +9,7 @@ namespace Absencespot.Domain
 {
     public class Integration : Entity
     {
+        public string Platform { get; set; }
+        public bool IsActive { get; set; }
     }
 }

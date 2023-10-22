@@ -9,5 +9,8 @@ namespace Absencespot.Domain
 {
     public class WorkSchedule : Entity
     {
+        public string Name { get; set; }
+        public string Description { get; set; }
+
     }
 }
