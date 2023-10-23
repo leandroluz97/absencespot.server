@@ -7,10 +7,11 @@ using System.Threading.Tasks;
 
 namespace Absencespot.Domain
 {
-    public class Permission : Entity
+    public class UserRole : Entity
     {
-        //REQUEST = ["UPDATE, DELETE, READ, UPDATE"]
-        //OFFICE = ["UPDATE, DELETE, READ, UPDATE"]
-
+        public int UserId { get; set; }
+        public User User { get; set; }
+        public int RoleId { get; set; }
+        public Role Role { get; set; }
     }
 }
