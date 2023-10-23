@@ -16,6 +16,9 @@ namespace Absencespot.Domain
         public ICollection<Leave> AvailableLeaves { get; set; }
         public ICollection<Absence> Absences { get; set; }
 
+        public int CompanyId { get; set; }
+        public Company Company { get; set; }
+
 
     }
 }

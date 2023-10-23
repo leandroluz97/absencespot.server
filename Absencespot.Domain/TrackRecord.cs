@@ -19,5 +19,8 @@ namespace Absencespot.Domain
         public DateTime BreakEnd{ get; set; }
         public LocationType Location { get; set; }
         public string Note{ get; set; }
+
+        public int UserId { get; set; }
+        public User User { get; set; }
     }
 }

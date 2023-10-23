@@ -11,8 +11,11 @@ namespace Absencespot.Domain
     {
         public string Name { get; set; }
         public string Description { get; set; }
-        public bool IsAutoApprove { get; set; }
+        public bool IsAutoApproved { get; set; }
         public ICollection<User> Managers { get; set; }
         public ICollection<User> Users { get; set; }
+
+        public int CompanyId { get; set; }
+        public Company Company { get; set; }
     }
 }

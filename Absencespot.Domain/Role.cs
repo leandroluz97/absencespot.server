@@ -5,7 +5,7 @@ namespace Absencespot.Domain
 {
     public class Role : IdentityRole<Guid>
     {
-        public RoleTypes Name { get; set; }
+        public RoleType Name { get; set; }
         public string NormalizedName
         {
             get
