@@ -20,5 +20,6 @@ namespace Absencespot.Domain
 
         public int CompanyId { get; set; }
         public Company Company { get; set; }
+        public ICollection<OfficeLeave> Offices { get; set; }
     }
 }

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Absencespot.Domain
 {
-    public class Address : Entity
+    public class Address 
     {
         public string AddressLine1 { get; set; }
         public string AddressLine2 { get; set; }

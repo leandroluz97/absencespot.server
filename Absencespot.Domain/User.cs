@@ -11,10 +11,15 @@ namespace Absencespot.Domain
     {
         public string? FirstName { get; set; }
         public string? LastName { get; set; }
+        public string Position { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime? BirthDay { get; set; }
 
         public int CompanyId { get; set; }
         public Company Company { get; set; }
         public int OfficeId { get; set; }
         public Office Office { get; set; }
+        public int WorkScheduleId { get; set; }
+        public WorkSchedule WorkSchedule { get; set; }
     }
 }
