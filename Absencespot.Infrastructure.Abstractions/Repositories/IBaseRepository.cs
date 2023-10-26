@@ -11,6 +11,12 @@ namespace Absencespot.Infrastructure.Abstractions.Repositories
     public interface IBaseRepository<T> where T : class
     {
         IQueryable<T> AsQueryable(RepositoryOptions? options = null);
+        IQueryable<T> Include<TProperty>(IQueryable<T> queryable, Expression<Func<T, TProperty>> navigationPropertyPath);
+        IQueryable<T> IncludeThen<TProperty, TSubProperty>(IQueryable<T> queryable, Expression<Func<T, TProperty>> navigationPropertyPath, Expression<Func<TProperty, TSubProperty>> subProperty);
+        Task<IEnumerable<T>> ToListAsync<TProperty, TSubProperty>(IQueryable<T> queryable);
+        Task<T?> FindByGlobalIdAsync(Guid globalId, CancellationToken cancellationToken = default);
+        Task<T?> FindByIdAsync(int id, CancellationToken cancellationToken = default);
+        Task<T?> FirstOrDefaultAsync<TProperty, TSubProperty>(IQueryable<T> queryable, CancellationToken cancellationToken = default);
         T Get(Expression<Func<T, bool>> expression);
         IEnumerable<T> GetAll();
         IEnumerable<T> GetAll(Expression<Func<T, bool>> expression);
