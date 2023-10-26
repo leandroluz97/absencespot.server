@@ -6,4 +6,9 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Absencespot.Domain\Absencespot.Domain.csproj" />
+    <ProjectReference Include="..\Absencespot.Utils\Absencespot.Utils.csproj" />
+  </ItemGroup>
+
 </Project>
