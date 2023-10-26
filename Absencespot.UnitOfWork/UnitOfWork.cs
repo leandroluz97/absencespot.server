@@ -11,6 +11,8 @@ namespace Absencespot.UnitOfWork
     {
         private readonly ApplicationDbContext _dbContext;
         private ICompanyRepository _companyRepository;
+        private IUserRoleRepository _userRoleRepository;
+        private IOfficeLeaveRepository _officeLeaveRepository;
         private IIntegrationRepository _integrationRepository;
         private ILeaveRepository _leaveRepository;
         private IOfficeRepository _officeRepository;
@@ -25,6 +27,14 @@ namespace Absencespot.UnitOfWork
             _dbContext = dbContext;
         }
 
+        public IOfficeLeaveRepository OfficeLeaveRepository
+        {
+            get { return _officeLeaveRepository = _officeLeaveRepository ?? new OfficeLeaveRepository(_dbContext); }
+        }
+        public IUserRoleRepository UserRoleRepository
+        {
+            get { return _userRoleRepository = _userRoleRepository ?? new UserRoleRepository(_dbContext); }
+        }
         public ICompanyRepository CompanyRepository
         {
             get { return _companyRepository = _companyRepository ?? new CompanyRepository(_dbContext); }
@@ -78,7 +88,7 @@ namespace Absencespot.UnitOfWork
             _dbContext.SaveChanges();
         }
 
-        public async Task SaveChangesAsync()
+        public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
         {
             foreach (var entry in _dbContext.ChangeTracker.Entries<Signature>())
             {
@@ -92,7 +102,7 @@ namespace Absencespot.UnitOfWork
                 }
             }
 
-            await _dbContext.SaveChangesAsync();
+            await _dbContext.SaveChangesAsync(cancellationToken);
         }
     }
         

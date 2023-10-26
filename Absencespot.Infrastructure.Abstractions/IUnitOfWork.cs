@@ -5,6 +5,8 @@ namespace Absencespot.Infrastructure.Abstractions
     public interface IUnitOfWork
     {
         ICompanyRepository CompanyRepository { get; }
+        IUserRoleRepository UserRoleRepository { get; }
+        IOfficeLeaveRepository OfficeLeaveRepository { get; }
         IIntegrationRepository IntegrationRepository { get; }
         ILeaveRepository LeaveRepository { get; }
         IOfficeRepository OfficeRepository { get; }
@@ -16,7 +18,7 @@ namespace Absencespot.Infrastructure.Abstractions
 
         void SaveChanges();
         void Rollback();
-        Task SaveChangesAsync();
+        Task SaveChangesAsync(CancellationToken cancellationToken = default);
         Task RollbackAsync();
     }
 }
