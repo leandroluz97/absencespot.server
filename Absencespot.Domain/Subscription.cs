@@ -12,5 +12,6 @@ namespace Absencespot.Domain
     {
         public SubscriptionType Type { get; set; }
         public decimal UnitPrice { get; set; }
+        public ICollection<Company> Companies { get; set; }
     }
 }

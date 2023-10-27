@@ -3,8 +3,9 @@ using Microsoft.AspNetCore.Identity;
 
 namespace Absencespot.Domain
 {
-    public class Role : IdentityRole<Guid>
+    public class Role : IdentityRole<int>
     {
+        public Guid GlobalId { get; set; }
         public RoleType Name { get; set; }
         public string NormalizedName
         {

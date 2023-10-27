@@ -7,8 +7,9 @@ using System.Threading.Tasks;
 
 namespace Absencespot.Domain
 {
-    public class User : IdentityUser<Guid>
+    public class User : IdentityUser<int>
     {
+        public Guid GlobalId { get; set; }
         public string? FirstName { get; set; }
         public string? LastName { get; set; }
         public string Position { get; set; }

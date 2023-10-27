@@ -12,6 +12,7 @@ namespace Absencespot.Domain.Enums
         public static readonly ProviderType GOOGLE = new ProviderType(1, "GOOGLE");
         public static readonly ProviderType MICROSOFT = new ProviderType(2, "MICROSOFT");
 
+        public ProviderType(){}
         public ProviderType(int id, string name) : base(id, name)
         {
 

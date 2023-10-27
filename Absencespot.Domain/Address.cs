@@ -17,5 +17,10 @@ namespace Absencespot.Domain
         public string Country { get; set; }
         public string CountryCode { get; set; }
 
+        public int? OfficeId { get; set; }
+        public Office? Office { get; set; }
+        public int? UserId { get; set; }
+        public User? User { get; set; }
+
     }
 }

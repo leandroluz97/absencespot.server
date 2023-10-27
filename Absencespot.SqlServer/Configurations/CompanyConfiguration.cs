@@ -1,0 +1,50 @@
+﻿using Absencespot.Domain;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Absencespot.SqlServer.Configurations
+{
+    public class CompanyConfiguration : BaseConfiguration<Company>
+    {
+        public void Configure(EntityTypeBuilder<Company> builder)
+        {
+            builder.ToTable("Company");
+
+            builder.HasMany<Integration>(c => c.Integrations)
+                    .WithOne(i => i.Company)
+                    .HasForeignKey(o => o.CompanyId);
+
+            builder.HasMany<User>(c => c.Users)
+                    .WithOne(i => i.Company)
+                    .HasForeignKey(o => o.CompanyId);
+
+            builder.HasMany<Leave>(c => c.Leaves)
+                    .WithOne(i => i.Company)
+                    .HasForeignKey(o => o.CompanyId);
+
+            builder.HasMany<Office>(c => c.Offices)
+                    .WithOne(i => i.Company)
+                    .HasForeignKey(o => o.CompanyId);
+
+            builder.HasMany<Team>(c => c.Teams)
+                    .WithOne(i => i.Company)
+                    .HasForeignKey(o => o.CompanyId);
+
+            builder.HasMany<WorkSchedule>(c => c.WorkSchedules)
+                    .WithOne(i => i.Company)
+                    .HasForeignKey(o => o.CompanyId);
+
+            builder.HasOne(c => c.Settings)
+                    .WithOne(i => i.Company)
+                    .HasForeignKey<Settings>(o => o.Company);
+
+
+            base.Configure(builder);
+        }
+    }
+}

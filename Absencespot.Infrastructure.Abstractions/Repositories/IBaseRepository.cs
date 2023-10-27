@@ -1,4 +1,5 @@
-﻿using Absencespot.Utils;
+﻿using Absencespot.Domain.Seedwork;
+using Absencespot.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Absencespot.Infrastructure.Abstractions.Repositories
 {
-    public interface IBaseRepository<T> where T : class
+    public interface IBaseRepository<T> where T : Entity
     {
         IQueryable<T> AsQueryable(RepositoryOptions? options = null);
         IQueryable<T> Include<TProperty>(IQueryable<T> queryable, Expression<Func<T, TProperty>> navigationPropertyPath);

@@ -9,5 +9,14 @@ namespace Absencespot.Domain
 
         public int SubcriptionId { get; set; }
         public Subscription Subcription { get; set; }
+        public int SettingsId { get; set; }
+        public Settings Settings { get; set; }
+        public ICollection<Integration> Integrations { get; set; }
+        public ICollection<User> Users { get; set; }
+        public ICollection<Leave> Leaves { get; set; }
+        public ICollection<Office> Offices { get; set; }
+        public ICollection<Team> Teams { get; set; }
+        public ICollection<WorkSchedule> WorkSchedules { get; set; }
+       // public ICollection<Request> Requests { get; set; }
     }
 }

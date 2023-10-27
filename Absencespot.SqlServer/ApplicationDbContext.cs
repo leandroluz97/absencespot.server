@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Absencespot.SqlServer
 {
-    public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
+    public class ApplicationDbContext : IdentityDbContext<User, Role, int>
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> option) : base(option) { }
 
