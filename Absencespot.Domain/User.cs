@@ -15,6 +15,8 @@ namespace Absencespot.Domain
         public string Position { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime? BirthDay { get; set; }
+        public TrackRecord TrackRecord { get; set; }
+        public Request Request { get; set; }
 
         public int CompanyId { get; set; }
         public Company Company { get; set; }
