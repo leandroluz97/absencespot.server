@@ -14,17 +14,18 @@ namespace Absencespot.SqlServer.Configurations
         public void Configure(EntityTypeBuilder<Office> builder)
         {
             builder.ToTable("Office");
+
             builder.HasMany<OfficeLeave>(c => c.AvailableLeaves)
                     .WithOne(i => i.Office)
                     .HasForeignKey(o => o.OfficeId);
 
-            //builder.HasMany<Absence>(c => c.AvailableLeaves)
-            //        .WithOne(i => i.Office)
-            //        .HasForeignKey(o => o.OfficeId);
-
             builder.HasOne(c => c.Address)
                     .WithOne(i => i.Office)
                     .HasForeignKey<Address>(o => o.OfficeId);
+
+            builder.HasMany(c => c.AvailableLeaves)
+                   .WithMany()
+                   .UsingEntity<OfficeLeave>();
 
             base.Configure(builder);
         }

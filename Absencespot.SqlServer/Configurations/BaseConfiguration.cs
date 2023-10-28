@@ -16,7 +16,7 @@ namespace Absencespot.SqlServer.Configurations
             builder.HasKey(x => x.Id);
             builder.HasAlternateKey(x => x.GlobalId);
             builder.Property(x => x.GlobalId).HasDefaultValueSql("NEWID()");
-            builder.Property(p => p.RowVersion).IsRowVersion();
+            builder.Property(p => p.RowVersion).IsRowVersion().IsConcurrencyToken();
             builder.Property(p => p.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
 
         }

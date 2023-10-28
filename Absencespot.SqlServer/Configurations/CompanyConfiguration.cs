@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Absencespot.SqlServer.Configurations
 {
-    public class CompanyConfiguration : BaseConfiguration<Company>
+    public class CompanyConfiguration : BaseConfiguration<Company>, IEntityTypeConfiguration<Company>
     {
         public void Configure(EntityTypeBuilder<Company> builder)
         {

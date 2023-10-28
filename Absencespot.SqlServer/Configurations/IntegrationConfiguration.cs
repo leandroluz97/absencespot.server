@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Absencespot.SqlServer.Configurations
 {
-    public class IntegrationConfiguration : BaseConfiguration<Integration>
+    public class IntegrationConfiguration : BaseConfiguration<Integration>, IEntityTypeConfiguration<Integration>
     {
         public void Configure(EntityTypeBuilder<Integration> builder)
         {

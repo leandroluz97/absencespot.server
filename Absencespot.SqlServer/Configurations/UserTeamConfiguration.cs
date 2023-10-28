@@ -9,13 +9,13 @@ using System.Threading.Tasks;
 
 namespace Absencespot.SqlServer.Configurations
 {
-    public class UserRoleConfiguration : BaseConfiguration<UserRole>, IEntityTypeConfiguration<UserRole>
+    public class UserTeamConfiguration : BaseConfiguration<UserTeam>, IEntityTypeConfiguration<UserTeam>
     {
-        public void Configure(EntityTypeBuilder<UserRole> builder)
+        public void Configure(EntityTypeBuilder<UserTeam> builder)
         {
-            builder.ToTable("UserRole");
+            builder.ToTable("UserTeam");
             base.Configure(builder);
-            builder.HasKey(x => new { x.UserId, x.RoleId });
+            builder.HasKey(x => new { x.UserId, x.TeamId });
         }
     }
 }

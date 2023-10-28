@@ -1,4 +1,5 @@
 ﻿using Absencespot.Domain;
+using Absencespot.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System;
@@ -14,7 +15,11 @@ namespace Absencespot.SqlServer.Configurations
         public void Configure(EntityTypeBuilder<Request> builder)
         {
             builder.ToTable("Request");
-            
+            builder.Property(o => o.Status)
+                  .HasConversion(
+                           type => type.DisplayName,
+                           displayName => StatusType.FromDisplayName<StatusType>(displayName)
+                   );
 
             base.Configure(builder);
         }

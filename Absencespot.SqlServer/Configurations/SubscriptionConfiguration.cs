@@ -1,4 +1,5 @@
 ﻿using Absencespot.Domain;
+using Absencespot.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System;
@@ -16,9 +17,15 @@ namespace Absencespot.SqlServer.Configurations
             builder.ToTable("Subscription");
             builder.HasMany<Company>(s => s.Companies)
                     .WithOne(c => c.Subcription)
-                    .HasForeignKey(o => o.SubcriptionId);
+                    .HasForeignKey(o => o.SubcriptionId); 
+
+            builder.Property(o => o.Type)
+                   .HasConversion(
+                            type => type.DisplayName,
+                            displayName => SubscriptionType.FromDisplayName<SubscriptionType>(displayName)
+                    );
 
             base.Configure(builder);
-        }
+        } 
     }
 }
