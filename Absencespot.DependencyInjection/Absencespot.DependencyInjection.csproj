@@ -6,4 +6,18 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.24" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="7.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Identity.Core" Version="7.0.13" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Absencespot.Business.Abstractions\Absencespot.Business.Abstractions.csproj" />
+    <ProjectReference Include="..\Absencespot.Infrastructure.Abstractions\Absencespot.Infrastructure.Abstractions.csproj" />
+    <ProjectReference Include="..\Absencespot.Services\Absencespot.Services.csproj" />
+    <ProjectReference Include="..\Absencespot.SqlServer\Absencespot.SqlServer.csproj" />
+    <ProjectReference Include="..\Absencespot.UnitOfWork\Absencespot.UnitOfWork.csproj" />
+  </ItemGroup>
+
 </Project>
