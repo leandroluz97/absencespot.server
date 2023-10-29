@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Absencespot.Infrastructure.Abstractions.Repositories
 {
-    public interface IUserRoleRepository : IBaseRepository<UserRole>
+    public interface IUserTeamRepository : IBaseRepository<UserTeam>
     {
     }
 }
