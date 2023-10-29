@@ -1,4 +1,5 @@
-﻿using Absencespot.Infrastructure.Abstractions.Repositories;
+﻿using Absencespot.Domain.Seedwork;
+using Absencespot.Infrastructure.Abstractions.Repositories;
 using Absencespot.SqlServer;
 using Absencespot.Utils;
 using Microsoft.EntityFrameworkCore;
@@ -6,7 +7,7 @@ using System.Linq.Expressions;
 
 namespace Absencespot.UnitOfWork.Repositories
 {
-    public class BaseRepository<T> : IBaseRepository<T> where T : class
+    public class BaseRepository<T>  : IBaseRepository<T> where T : Entity
     {
         protected readonly ApplicationDbContext _dbContext;
         private readonly DbSet<T> _dbSet;

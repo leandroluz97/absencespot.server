@@ -9,9 +9,9 @@ using System.Threading.Tasks;
 
 namespace Absencespot.UnitOfWork.Repositories
 {
-    public class UserRoleRepository : BaseRepository<UserRole>, IUserRoleRepository
+    public class UserTeamRepository : BaseRepository<UserTeam>, IUserTeamRepository
     {
-        public UserRoleRepository(ApplicationDbContext dbContext) : base(dbContext)
+        public UserTeamRepository(ApplicationDbContext dbContext) : base(dbContext)
         {
         }
     }
