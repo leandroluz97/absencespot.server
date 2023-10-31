@@ -16,15 +16,16 @@ namespace Absencespot.Domain
         public DateTime StartDate { get; set; }
         public DateTime? BirthDay { get; set; }
         public ICollection<TrackRecord> TrackRecords { get; set; }
+        public ICollection<UserTeam> Teams { get; set; }
         public ICollection<Request> Requests { get; set; }
         //public ICollection<Request> OnBehalfOs { get; set; }
         //public Request? OnBehalfOf { get; set; }
 
         public int CompanyId { get; set; }
         public Company Company { get; set; }
-        public int OfficeId { get; set; }
-        public Office Office { get; set; }
-        public int WorkScheduleId { get; set; }
-        public WorkSchedule WorkSchedule { get; set; }
+        public int? OfficeId { get; set; }
+        public Office? Office { get; set; }
+        public int? WorkScheduleId { get; set; }
+        public WorkSchedule? WorkSchedule { get; set; }
     }
 }

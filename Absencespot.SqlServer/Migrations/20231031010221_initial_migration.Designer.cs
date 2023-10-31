@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Absencespot.SqlServer.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20231030234235_initial")]
-    partial class initial
+    [Migration("20231031010221_initial_migration")]
+    partial class initial_migration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -376,11 +376,11 @@ namespace Absencespot.SqlServer.Migrations
 
             modelBuilder.Entity("Absencespot.Domain.OfficeLeave", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
+                    b.Property<int?>("OfficeId")
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    b.Property<int?>("LeaveId")
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
@@ -392,7 +392,7 @@ namespace Absencespot.SqlServer.Migrations
                         .HasColumnType("uniqueidentifier")
                         .HasDefaultValueSql("NEWID()");
 
-                    b.Property<int?>("LeaveId")
+                    b.Property<int>("Id")
                         .HasColumnType("int");
 
                     b.Property<byte[]>("RowVersion")
@@ -404,7 +404,7 @@ namespace Absencespot.SqlServer.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
 
-                    b.HasKey("Id");
+                    b.HasKey("OfficeId", "LeaveId");
 
                     b.HasAlternateKey("GlobalId");
 
@@ -420,9 +420,6 @@ namespace Absencespot.SqlServer.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("CompanyId")
-                        .HasColumnType("int");
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
@@ -441,7 +438,7 @@ namespace Absencespot.SqlServer.Migrations
                         .HasColumnType("uniqueidentifier")
                         .HasDefaultValueSql("NEWID()");
 
-                    b.Property<int>("LeaveId")
+                    b.Property<int?>("LeaveId")
                         .HasColumnType("int");
 
                     b.Property<string>("Note")
@@ -466,8 +463,6 @@ namespace Absencespot.SqlServer.Migrations
                     b.HasKey("Id");
 
                     b.HasAlternateKey("GlobalId");
-
-                    b.HasIndex("CompanyId");
 
                     b.HasIndex("LeaveId");
 
@@ -793,7 +788,7 @@ namespace Absencespot.SqlServer.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
 
-                    b.Property<int>("OfficeId")
+                    b.Property<int?>("OfficeId")
                         .HasColumnType("int");
 
                     b.Property<string>("PasswordHash")
@@ -822,7 +817,7 @@ namespace Absencespot.SqlServer.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
 
-                    b.Property<int>("WorkScheduleId")
+                    b.Property<int?>("WorkScheduleId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
@@ -846,10 +841,10 @@ namespace Absencespot.SqlServer.Migrations
 
             modelBuilder.Entity("Absencespot.Domain.UserTeam", b =>
                 {
-                    b.Property<int>("UserId")
+                    b.Property<int?>("UserId")
                         .HasColumnType("int");
 
-                    b.Property<int>("TeamId")
+                    b.Property<int?>("TeamId")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("CreatedAt")
@@ -874,6 +869,9 @@ namespace Absencespot.SqlServer.Migrations
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("rowversion");
 
+                    b.Property<int>("TeamId1")
+                        .HasColumnType("int");
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
 
@@ -882,6 +880,8 @@ namespace Absencespot.SqlServer.Migrations
                     b.HasAlternateKey("GlobalId");
 
                     b.HasIndex("TeamId");
+
+                    b.HasIndex("TeamId1");
 
                     b.ToTable("UserTeam", (string)null);
                 });
@@ -1107,7 +1107,7 @@ namespace Absencespot.SqlServer.Migrations
                     b.HasOne("Absencespot.Domain.Company", "Company")
                         .WithMany("Offices")
                         .HasForeignKey("CompanyId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Company");
@@ -1117,32 +1117,32 @@ namespace Absencespot.SqlServer.Migrations
                 {
                     b.HasOne("Absencespot.Domain.Leave", "Leave")
                         .WithMany("OfficesLeaves")
-                        .HasForeignKey("LeaveId");
+                        .HasForeignKey("LeaveId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Absencespot.Domain.Office", "Office")
+                        .WithMany("AvailableLeaves")
+                        .HasForeignKey("OfficeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Leave");
+
+                    b.Navigation("Office");
                 });
 
             modelBuilder.Entity("Absencespot.Domain.Request", b =>
                 {
-                    b.HasOne("Absencespot.Domain.Company", "Company")
-                        .WithMany()
-                        .HasForeignKey("CompanyId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("Absencespot.Domain.Leave", "Leave")
                         .WithMany("Requests")
-                        .HasForeignKey("LeaveId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("LeaveId");
 
                     b.HasOne("Absencespot.Domain.User", "User")
                         .WithMany("Requests")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Company");
 
                     b.Navigation("Leave");
 
@@ -1192,15 +1192,11 @@ namespace Absencespot.SqlServer.Migrations
 
                     b.HasOne("Absencespot.Domain.Office", "Office")
                         .WithMany()
-                        .HasForeignKey("OfficeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("OfficeId");
 
                     b.HasOne("Absencespot.Domain.WorkSchedule", "WorkSchedule")
                         .WithMany()
-                        .HasForeignKey("WorkScheduleId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("WorkScheduleId");
 
                     b.Navigation("Company");
 
@@ -1211,15 +1207,15 @@ namespace Absencespot.SqlServer.Migrations
 
             modelBuilder.Entity("Absencespot.Domain.UserTeam", b =>
                 {
-                    b.HasOne("Absencespot.Domain.Team", "Team")
-                        .WithMany("Users")
+                    b.HasOne("Absencespot.Domain.User", "User")
+                        .WithMany("Teams")
                         .HasForeignKey("TeamId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Absencespot.Domain.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
+                    b.HasOne("Absencespot.Domain.Team", "Team")
+                        .WithMany("Users")
+                        .HasForeignKey("TeamId1")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -1323,6 +1319,8 @@ namespace Absencespot.SqlServer.Migrations
 
                     b.Navigation("Address")
                         .IsRequired();
+
+                    b.Navigation("AvailableLeaves");
                 });
 
             modelBuilder.Entity("Absencespot.Domain.Subscription", b =>
@@ -1338,6 +1336,8 @@ namespace Absencespot.SqlServer.Migrations
             modelBuilder.Entity("Absencespot.Domain.User", b =>
                 {
                     b.Navigation("Requests");
+
+                    b.Navigation("Teams");
 
                     b.Navigation("TrackRecords");
                 });

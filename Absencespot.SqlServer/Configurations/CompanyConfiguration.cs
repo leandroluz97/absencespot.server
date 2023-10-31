@@ -31,7 +31,8 @@ namespace Absencespot.SqlServer.Configurations
 
             builder.HasMany<Office>(c => c.Offices)
                     .WithOne(i => i.Company)
-                    .HasForeignKey(o => o.CompanyId);
+                    .HasForeignKey(o => o.CompanyId)
+                     .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasMany<Team>(c => c.Teams)
                     .WithOne(i => i.Company)

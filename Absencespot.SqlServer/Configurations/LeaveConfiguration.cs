@@ -22,15 +22,17 @@ namespace Absencespot.SqlServer.Configurations
             builder.HasMany<OfficeLeave>(c => c.OfficesLeaves)
                     .WithOne(i => i.Leave)
                     .HasForeignKey(o => o.LeaveId)
-                    .IsRequired(false);
+                    .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasMany<Request>(c => c.Requests)
                     .WithOne(i => i.Leave)
-                    .HasForeignKey(o => o.LeaveId);
+                    .HasForeignKey(o => o.LeaveId)
+                    .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasMany<Absence>(c => c.Absences)
                     .WithOne(i => i.Leave)
-                    .HasForeignKey(o => o.LeaveId);
+                    .HasForeignKey(o => o.LeaveId)
+                    .OnDelete(DeleteBehavior.Restrict);
 
             base.Configure(builder);
         }

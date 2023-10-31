@@ -15,7 +15,7 @@ namespace Absencespot.SqlServer.Configurations
         {
             builder.ToTable("OfficeLeave");
             base.Configure(builder);
-           // builder.HasKey(x =>  new { x.OfficeId, x.LeaveId });
+            builder.HasKey(x =>  new { x.OfficeId, x.LeaveId });
         }
     }
 }

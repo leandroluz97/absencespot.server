@@ -18,15 +18,15 @@ namespace Absencespot.SqlServer.Configurations
             builder.Property(l => l.StartDate).IsRequired();
             builder.Property(l => l.IsEmployeeLeaveStartOnJobStartDate).IsRequired();
 
-            //builder.HasMany<OfficeLeave>(c => c.AvailableLeaves)
-            //        .WithOne(i => i.Office)
-            //        .HasForeignKey(o => o.OfficeId)
-            //        .IsRequired(false)
-            //        .OnDelete(DeleteBehavior.SetNull);
+            builder.HasMany<OfficeLeave>(c => c.AvailableLeaves)
+                    .WithOne(i => i.Office)
+                    .HasForeignKey(o => o.OfficeId)
+                    .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasMany<Absence>(c => c.Absences)
                     .WithOne(i => i.Office)
-                    .HasForeignKey(o => o.OfficeId);
+                    .HasForeignKey(o => o.OfficeId)
+                     .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasOne(c => c.Address)
                     .WithOne(i => i.Office)

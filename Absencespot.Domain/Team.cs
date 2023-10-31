@@ -14,8 +14,8 @@ namespace Absencespot.Domain
         public string Description { get; set; }
         public bool IsAutoApproved { get; set; }
         [NotMapped]
-        public ICollection<UserTeam> Managers { get; set; }
-        public ICollection<UserTeam> Users { get; set; }
+        public ICollection<UserTeam>? Managers { get; set; }
+        public ICollection<UserTeam>? Users { get; set; }
 
         public int CompanyId { get; set; }
         public Company Company { get; set; }

@@ -16,6 +16,11 @@ namespace Absencespot.SqlServer.Configurations
             builder.ToTable("UserTeam");
             base.Configure(builder);
             builder.HasKey(x => new { x.UserId, x.TeamId });
+
+            builder.HasOne(ut => ut.User)
+            .WithMany(i => i.Teams)
+            .HasForeignKey(o => o.TeamId)
+            .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

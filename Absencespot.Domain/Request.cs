@@ -18,13 +18,11 @@ namespace Absencespot.Domain
         public StatusType Status { get; set; }
         public string File { get; set; }
 
-        public int LeaveId { get; set; }
-        public Leave Leave { get; set; }
+        public int? LeaveId { get; set; }
+        public Leave? Leave { get; set; }
 
         public int UserId { get; set; }
         public User User { get; set; }
 
-        public int CompanyId { get; set; }
-        public Company Company { get; set; }
     }
 }

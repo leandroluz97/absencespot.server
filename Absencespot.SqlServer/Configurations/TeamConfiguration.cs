@@ -19,7 +19,8 @@ namespace Absencespot.SqlServer.Configurations
 
             builder.HasMany<UserTeam>(u => u.Users)
                     .WithOne(u => u.Team)
-                    .HasForeignKey(o => o.TeamId);
+                    .HasForeignKey(o => o.TeamId)
+                    .OnDelete(DeleteBehavior.Restrict);
 
             //builder.HasMany<UserTeam>(u => u.Managers)
             //       .WithOne(u => u.Team)

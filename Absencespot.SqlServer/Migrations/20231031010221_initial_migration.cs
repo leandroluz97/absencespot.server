@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Absencespot.SqlServer.Migrations
 {
     /// <inheritdoc />
-    public partial class initial : Migration
+    public partial class initial_migration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -178,7 +178,7 @@ namespace Absencespot.SqlServer.Migrations
                         column: x => x.CompanyId,
                         principalTable: "Company",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -268,29 +268,6 @@ namespace Absencespot.SqlServer.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "OfficeLeave",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    LeaveId = table.Column<int>(type: "int", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
-                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    RowVersion = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: false),
-                    GlobalId = table.Column<Guid>(type: "uniqueidentifier", nullable: false, defaultValueSql: "NEWID()")
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_OfficeLeave", x => x.Id);
-                    table.UniqueConstraint("AK_OfficeLeave_GlobalId", x => x.GlobalId);
-                    table.ForeignKey(
-                        name: "FK_OfficeLeave_Leave_LeaveId",
-                        column: x => x.LeaveId,
-                        principalTable: "Leave",
-                        principalColumn: "Id");
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Absence",
                 columns: table => new
                 {
@@ -324,6 +301,36 @@ namespace Absencespot.SqlServer.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "OfficeLeave",
+                columns: table => new
+                {
+                    OfficeId = table.Column<int>(type: "int", nullable: false),
+                    LeaveId = table.Column<int>(type: "int", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    RowVersion = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: false),
+                    Id = table.Column<int>(type: "int", nullable: false),
+                    GlobalId = table.Column<Guid>(type: "uniqueidentifier", nullable: false, defaultValueSql: "NEWID()")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_OfficeLeave", x => new { x.OfficeId, x.LeaveId });
+                    table.UniqueConstraint("AK_OfficeLeave_GlobalId", x => x.GlobalId);
+                    table.ForeignKey(
+                        name: "FK_OfficeLeave_Leave_LeaveId",
+                        column: x => x.LeaveId,
+                        principalTable: "Leave",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_OfficeLeave_Office_OfficeId",
+                        column: x => x.OfficeId,
+                        principalTable: "Office",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "AspNetUsers",
                 columns: table => new
                 {
@@ -336,8 +343,8 @@ namespace Absencespot.SqlServer.Migrations
                     StartDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     BirthDay = table.Column<DateTime>(type: "datetime2", nullable: true),
                     CompanyId = table.Column<int>(type: "int", nullable: false),
-                    OfficeId = table.Column<int>(type: "int", nullable: false),
-                    WorkScheduleId = table.Column<int>(type: "int", nullable: false),
+                    OfficeId = table.Column<int>(type: "int", nullable: true),
+                    WorkScheduleId = table.Column<int>(type: "int", nullable: true),
                     UserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     Email = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
@@ -366,14 +373,12 @@ namespace Absencespot.SqlServer.Migrations
                         name: "FK_AspNetUsers_Office_OfficeId",
                         column: x => x.OfficeId,
                         principalTable: "Office",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_AspNetUsers_WorkSchedule_WorkScheduleId",
                         column: x => x.WorkScheduleId,
                         principalTable: "WorkSchedule",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -507,9 +512,8 @@ namespace Absencespot.SqlServer.Migrations
                     EndDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Note = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     File = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    LeaveId = table.Column<int>(type: "int", nullable: false),
+                    LeaveId = table.Column<int>(type: "int", nullable: true),
                     UserId = table.Column<int>(type: "int", nullable: false),
-                    CompanyId = table.Column<int>(type: "int", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     RowVersion = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: false),
@@ -526,17 +530,10 @@ namespace Absencespot.SqlServer.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Request_Company_CompanyId",
-                        column: x => x.CompanyId,
-                        principalTable: "Company",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
                         name: "FK_Request_Leave_LeaveId",
                         column: x => x.LeaveId,
                         principalTable: "Leave",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -575,6 +572,7 @@ namespace Absencespot.SqlServer.Migrations
                 {
                     UserId = table.Column<int>(type: "int", nullable: false),
                     TeamId = table.Column<int>(type: "int", nullable: false),
+                    TeamId1 = table.Column<int>(type: "int", nullable: false),
                     IsManager = table.Column<bool>(type: "bit", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
@@ -587,14 +585,14 @@ namespace Absencespot.SqlServer.Migrations
                     table.PrimaryKey("PK_UserTeam", x => new { x.UserId, x.TeamId });
                     table.UniqueConstraint("AK_UserTeam_GlobalId", x => x.GlobalId);
                     table.ForeignKey(
-                        name: "FK_UserTeam_AspNetUsers_UserId",
-                        column: x => x.UserId,
+                        name: "FK_UserTeam_AspNetUsers_TeamId",
+                        column: x => x.TeamId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_UserTeam_Team_TeamId",
-                        column: x => x.TeamId,
+                        name: "FK_UserTeam_Team_TeamId1",
+                        column: x => x.TeamId1,
                         principalTable: "Team",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -701,11 +699,6 @@ namespace Absencespot.SqlServer.Migrations
                 column: "LeaveId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Request_CompanyId",
-                table: "Request",
-                column: "CompanyId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Request_LeaveId",
                 table: "Request",
                 column: "LeaveId");
@@ -735,6 +728,11 @@ namespace Absencespot.SqlServer.Migrations
                 name: "IX_UserTeam_TeamId",
                 table: "UserTeam",
                 column: "TeamId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserTeam_TeamId1",
+                table: "UserTeam",
+                column: "TeamId1");
 
             migrationBuilder.CreateIndex(
                 name: "IX_WorkSchedule_CompanyId",
