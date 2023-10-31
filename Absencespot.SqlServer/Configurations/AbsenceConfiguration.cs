@@ -14,6 +14,10 @@ namespace Absencespot.SqlServer.Configurations
         public void Configure(EntityTypeBuilder<Absence> builder)
         {
             builder.ToTable("Absence");
+            builder.Property(a => a.Allowance).HasPrecision(3, 2);
+            builder.Property(a => a.MonthlyAccrual).HasPrecision(3, 2);
+            builder.Property(a => a.MonthCarryOverExpiresAfter).HasPrecision(3, 2);
+            builder.Property(a => a.MonthMaxCarryOver).HasPrecision(3, 2);
             base.Configure(builder);
         }
     }

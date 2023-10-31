@@ -9,14 +9,14 @@ namespace Absencespot.Domain
 {
     public class Absence : Entity
     {
-        public decimal Allowance { get; set; }
-        public decimal MonthlyAccrual { get; set; }
-        public decimal MonthCarryOverExpiresAfter { get; set; }
-        public decimal MonthMaxCarryOver { get; set; }
+        public double Allowance { get; set; }
+        public double MonthlyAccrual { get; set; }
+        public double MonthCarryOverExpiresAfter { get; set; }
+        public double MonthMaxCarryOver { get; set; }
 
-        public int OfficeId { get; set; }
-        public Office Office { get; set; }
-        public int LeaveId { get; set; }
-        public Leave Leave { get; set; }
+        public int? OfficeId { get; set; }
+        public Office? Office { get; set; }
+        public int? LeaveId { get; set; }
+        public Leave? Leave { get; set; }
     }
 }

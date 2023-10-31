@@ -10,8 +10,8 @@ namespace Absencespot.Domain
 {
     public class TrackRecord : Entity
     {
-        public User Owner { get; set; }
-        public User OnBehalfOf { get; set; }
+        //public User Owner { get; set; }
+        //public User OnBehalfOf { get; set; }
         public DateTime Date { get; set; }
         public DateTime CheckIn { get; set; }
         public DateTime CheckOut { get; set; }

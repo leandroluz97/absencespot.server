@@ -15,7 +15,7 @@ namespace Absencespot.SqlServer.Configurations
         public void Configure(EntityTypeBuilder<TrackRecord> builder)
         {
             builder.ToTable("TrackRecord");
-            builder.Property(o => o.Location)
+            builder.Property(o => o.Location) 
                    .HasConversion(
                             type => type.DisplayName,
                             displayName => LocationType.FromDisplayName<LocationType>(displayName)

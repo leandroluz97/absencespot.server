@@ -15,11 +15,23 @@ namespace Absencespot.SqlServer.Configurations
         public void Configure(EntityTypeBuilder<Request> builder)
         {
             builder.ToTable("Request");
+            builder.Property(l => l.StartDate).IsRequired();
+            builder.Property(l => l.EndDate).IsRequired();
             builder.Property(o => o.Status)
                   .HasConversion(
                            type => type.DisplayName,
                            displayName => StatusType.FromDisplayName<StatusType>(displayName)
-                   );
+                   ).IsRequired();
+
+            //builder.HasOne(c => c.OnBehalfOf)
+            //        .WithMany(i => i.OnBehalfOs)
+            //        .HasForeignKey(o => o.OnBehalfOfId)
+            //        .IsRequired(false);
+
+            builder.HasOne(c => c.User)
+                    .WithMany(i => i.Requests)
+                    .HasForeignKey(o => o.UserId);
+  
 
             base.Configure(builder);
         }

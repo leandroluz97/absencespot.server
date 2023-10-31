@@ -15,6 +15,12 @@ namespace Absencespot.SqlServer.Configurations
         public void Configure(EntityTypeBuilder<Settings> builder)
         {
             builder.ToTable("Settings");
+            builder.Property(l => l.PrivacyMode).IsRequired();
+            builder.Property(l => l.OnBehalfOf).IsRequired();
+            builder.Property(l => l.IsLoginFromEmailLinkRequired).IsRequired();
+            builder.Property(l => l.DateFormat).IsRequired();
+            builder.Property(l => l.TimeZone).IsRequired();
+            builder.Property(l => l.DisplayBirthday).IsRequired();
             builder.Property(o => o.DisplayMode)
                    .HasConversion(
                             type => type.DisplayName,

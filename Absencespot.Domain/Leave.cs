@@ -17,9 +17,11 @@ namespace Absencespot.Domain
         public bool IsReasonRequired { get; set; }
         public bool IsLimitedQuota { get; set; }
         public decimal? YearlyQuota { get; set; }
+        public ICollection<Absence>? Absences { get; set; }
+        public ICollection<Request>? Requests { get; set; }
 
         public int CompanyId { get; set; }
         public Company Company { get; set; }
-        public ICollection<OfficeLeave> OfficesLeaves { get; set; }
+        public ICollection<OfficeLeave>? OfficesLeaves { get; set; }
     }
 }

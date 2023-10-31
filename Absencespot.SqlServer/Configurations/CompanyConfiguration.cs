@@ -14,6 +14,8 @@ namespace Absencespot.SqlServer.Configurations
         public void Configure(EntityTypeBuilder<Company> builder)
         {
             builder.ToTable("Company");
+            builder.Property(c => c.Name).HasMaxLength(256).IsRequired();
+            builder.Property(c => c.FiscalNumber);
 
             builder.HasMany<Integration>(c => c.Integrations)
                     .WithOne(i => i.Company)
@@ -25,7 +27,7 @@ namespace Absencespot.SqlServer.Configurations
 
             builder.HasMany<Leave>(c => c.Leaves)
                     .WithOne(i => i.Company)
-                    .HasForeignKey(o => o.CompanyId);
+                    .HasForeignKey(o => o.CompanyId); ;
 
             builder.HasMany<Office>(c => c.Offices)
                     .WithOne(i => i.Company)
@@ -41,8 +43,7 @@ namespace Absencespot.SqlServer.Configurations
 
             builder.HasOne(c => c.Settings)
                     .WithOne(i => i.Company)
-                    .HasForeignKey<Settings>(o => o.Company);
-
+                    .HasForeignKey<Settings>(o => o.CompanyId);
 
             base.Configure(builder);
         }

@@ -6,7 +6,7 @@ namespace Absencespot.SqlServer
 {
     public class ApplicationDbContextFactory : IDesignTimeDbContextFactory<ApplicationDbContext>
     {
-        public ApplicationDbContextFactory()
+        public ApplicationDbContextFactory() 
         {
 
         }

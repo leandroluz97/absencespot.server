@@ -14,6 +14,13 @@ namespace Absencespot.SqlServer.Configurations
         public void Configure(EntityTypeBuilder<Address> builder)
         {
             builder.ToTable("Address");
+            builder.Property(a => a.AddressLine1).HasMaxLength(256);
+            builder.Property(a => a.AddressLine2).HasMaxLength(256);
+            builder.Property(a => a.AddressLine3).HasMaxLength(256);
+            builder.Property(a => a.City).HasMaxLength(256);
+            builder.Property(a => a.PostalCode).HasMaxLength(256);
+            builder.Property(a => a.Country).HasMaxLength(50);
+            builder.Property(a => a.CountryCode).HasMaxLength(3);
             base.Configure(builder);
         }
     }

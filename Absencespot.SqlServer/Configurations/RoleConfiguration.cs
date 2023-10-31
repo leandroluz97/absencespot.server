@@ -1,12 +1,34 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Absencespot.Domain;
+using Absencespot.Domain.Enums;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Absencespot.SqlServer.Configurations
 {
-    internal class RoleConfiguration
+    public class RoleConfiguration : IEntityTypeConfiguration<Role>
     {
+        public void Configure(EntityTypeBuilder<Role> builder)
+        {
+            builder.ToTable("AspNetRoles");
+            builder.HasKey(x => x.Id);
+            builder.HasAlternateKey(x => x.GlobalId);
+            builder.Property(x => x.GlobalId).HasDefaultValueSql("NEWID()");
+            builder.Property(p => p.RowVersion).IsRowVersion().IsConcurrencyToken();
+            builder.Property(p => p.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
+
+            builder.Property(u => u.Name).HasMaxLength(256);
+            builder.Property(u => u.NormalizedName).HasMaxLength(256);
+
+            //builder.Property(o => o.Name)
+            //       .HasConversion(
+            //                type => type.DisplayName,
+            //                displayName => RoleType.FromDisplayName<RoleType>(displayName)
+            //        );
+
+            builder.HasMany<IdentityUserRole<int>>().WithOne().HasForeignKey(ur => ur.RoleId).IsRequired();
+            builder.HasMany<IdentityRoleClaim<int>>().WithOne().HasForeignKey(rc => rc.RoleId).IsRequired();
+            builder.HasIndex(r => r.NormalizedName).HasDatabaseName("RoleNameIndex").IsUnique();
+        }
     }
 }

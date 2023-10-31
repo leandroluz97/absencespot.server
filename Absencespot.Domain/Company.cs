@@ -5,12 +5,11 @@ namespace Absencespot.Domain
     public class Company : Entity
     {
         public string Name { get; set; }
-        public string FiscalNumber { get; set; }
+        public string? FiscalNumber { get; set; }
+        public Settings Settings { get; set; }
 
         public int SubcriptionId { get; set; }
         public Subscription Subcription { get; set; }
-        public int SettingsId { get; set; }
-        public Settings Settings { get; set; }
         public ICollection<Integration> Integrations { get; set; }
         public ICollection<User> Users { get; set; }
         public ICollection<Leave> Leaves { get; set; }

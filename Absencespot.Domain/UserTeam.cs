@@ -9,7 +9,7 @@ namespace Absencespot.Domain
 {
     public class UserTeam : Entity
     {
-        public Guid UserId { get; set; }
+        public int UserId { get; set; }
         public User User { get; set; }
         public int TeamId { get; set; }
         public Team Team { get; set; }

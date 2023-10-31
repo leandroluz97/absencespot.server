@@ -15,6 +15,8 @@ namespace Absencespot.SqlServer.Configurations
         public void Configure(EntityTypeBuilder<Subscription> builder)
         {
             builder.ToTable("Subscription");
+            builder.Property(l => l.UnitPrice).HasPrecision(5, 2).IsRequired();
+
             builder.HasMany<Company>(s => s.Companies)
                     .WithOne(c => c.Subcription)
                     .HasForeignKey(o => o.SubcriptionId); 

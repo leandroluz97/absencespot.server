@@ -13,8 +13,8 @@ namespace Absencespot.Domain
         public DateTime StartDate { get; set; }
         public bool IsEmployeeLeaveStartOnJobStartDate { get; set; }
         public Address Address { get; set; }
-        public ICollection<OfficeLeave> AvailableLeaves { get; set; }
-        public ICollection<Absence> Absences { get; set; }
+        //public ICollection<OfficeLeave>? AvailableLeaves { get; set; }
+        public ICollection<Absence>? Absences { get; set; }
 
         public int CompanyId { get; set; }
         public Company Company { get; set; }
