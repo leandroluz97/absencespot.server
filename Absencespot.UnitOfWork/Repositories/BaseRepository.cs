@@ -56,9 +56,10 @@ namespace Absencespot.UnitOfWork.Repositories
             return await _dbSet.FindAsync(id, cancellationToken);
         }
 
-        public void Add(T entity)
+        public T Add(T entity)
         {
             _dbSet.Add(entity);
+            return entity;
         }
 
         public async Task AddAsync(T entity, CancellationToken cancellationToken = default)
@@ -66,9 +67,10 @@ namespace Absencespot.UnitOfWork.Repositories
             await _dbContext.AddAsync(entity, cancellationToken);
         }
 
-        public void AddRange(IEnumerable<T> entities)
+        public IEnumerable<T> AddRange(IEnumerable<T> entities)
         {
             _dbContext.AddRange(entities);
+            return entities;
         }
 
         public async Task AddRangeAsync(IEnumerable<T> entities, CancellationToken cancellationToken = default)
@@ -121,14 +123,16 @@ namespace Absencespot.UnitOfWork.Repositories
             _dbContext.RemoveRange(entities);
         }
 
-        public void Update(T entity)
+        public T Update(T entity)
         {
-            _dbContext.Update(entity);
+           _dbContext.Update(entity);
+            return entity;
         }
 
-        public void UpdateRange(IEnumerable<T> entities)
+        public IEnumerable<T> UpdateRange(IEnumerable<T> entities)
         {
             _dbContext.UpdateRange(entities);
+            return entities;
         }
     }
 }
