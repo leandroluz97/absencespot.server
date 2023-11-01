@@ -10,7 +10,7 @@ namespace Absencespot.Domain
         public override string Name {
             get
             {
-                return _type.DisplayName;
+                return _type.Name;
             }
             set
             {
