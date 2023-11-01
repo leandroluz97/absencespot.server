@@ -23,7 +23,7 @@ namespace Absencespot.SqlServer.Configurations
             builder.Property(l => l.DisplayBirthday).IsRequired();
             builder.Property(o => o.DisplayMode)
                    .HasConversion(
-                            type => type.DisplayName,
+                            type => type.Name,
                             displayName => DisplayType.FromDisplayName<DisplayType>(displayName)
                     );
 

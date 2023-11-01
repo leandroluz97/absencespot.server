@@ -23,7 +23,7 @@ namespace Absencespot.SqlServer.Configurations
 
             builder.Property(o => o.Type)
                    .HasConversion(
-                            type => type.DisplayName,
+                            type => type.Name,
                             displayName => SubscriptionType.FromDisplayName<SubscriptionType>(displayName)
                     );
 

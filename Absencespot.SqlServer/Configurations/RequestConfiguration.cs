@@ -19,7 +19,7 @@ namespace Absencespot.SqlServer.Configurations
             builder.Property(l => l.EndDate).IsRequired();
             builder.Property(o => o.Status)
                   .HasConversion(
-                           type => type.DisplayName,
+                           type => type.Name,
                            displayName => StatusType.FromDisplayName<StatusType>(displayName)
                    ).IsRequired();
 

@@ -15,12 +15,12 @@ namespace Absencespot.SqlServer
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Ignore<DisplayType>();
-            modelBuilder.Ignore<LocationType>();
-            modelBuilder.Ignore<ProviderType>();
-            modelBuilder.Ignore<RoleType>();
-            modelBuilder.Ignore<StatusType>();
-            modelBuilder.Ignore<SubscriptionType>();
+            //modelBuilder.Ignore<DisplayType>();
+            //modelBuilder.Ignore<LocationType>();
+            //modelBuilder.Ignore<ProviderType>();
+            //modelBuilder.Ignore<RoleType>();
+            //modelBuilder.Ignore<StatusType>();
+            //modelBuilder.Ignore<SubscriptionType>();
             modelBuilder.ApplyConfiguration(new RequestConfiguration());
             modelBuilder.ApplyConfiguration(new AbsenceConfiguration());
             modelBuilder.ApplyConfiguration(new AddressConfiguration());

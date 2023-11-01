@@ -17,7 +17,7 @@ namespace Absencespot.SqlServer.Configurations
             builder.ToTable("Integration");
             builder.Property(o => o.Provider)
                    .HasConversion(
-                            type => type.DisplayName,
+                            type => type.Name,
                             displayName => ProviderType.FromDisplayName<ProviderType>(displayName)
                     );
            

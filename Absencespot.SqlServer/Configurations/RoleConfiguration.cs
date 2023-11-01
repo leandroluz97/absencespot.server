@@ -22,7 +22,7 @@ namespace Absencespot.SqlServer.Configurations
 
             //builder.Property(o => o.Name)
             //       .HasConversion(
-            //                type => type.DisplayName,
+            //                type => type.Name,
             //                displayName => RoleType.FromDisplayName<RoleType>(displayName)
             //        );
 
