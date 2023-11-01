@@ -3,7 +3,6 @@ using Absencespot.Domain;
 using Absencespot.Infrastructure.Abstractions;
 using Absencespot.Services;
 using Absencespot.SqlServer;
-using Absencespot.UnitOfWork;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -11,6 +10,7 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Absencespot.DependencyInjection
@@ -18,17 +18,19 @@ namespace Absencespot.DependencyInjection
     public static class ConfigureServicesExtension
     {
 
-        public static IServiceCollection AddPersistences(this IServiceCollection services, IConfiguration configuration)
+        public static IServiceCollection AddPersistence(this IServiceCollection services, IConfiguration configuration)
         {
-            services.AddDbContext<ApplicationDbContext>(options =>
+            services.AddDbContext<ApplicationDbContext>((provider, options) =>
                 {
                     options.UseSqlServer(
                         configuration.GetConnectionString("DefaultConnection"),
                         options =>
                         {
-                            options.EnableRetryOnFailure(3);
+                            options.EnableRetryOnFailure(5, new(0, 0, 30), null);
                             options.CommandTimeout(60);
-                        });                   
+                        });
+                    options.UseLoggerFactory(provider.GetRequiredService<ILoggerFactory>());
+                    options.EnableDetailedErrors();
                 });
             return services;
         }
