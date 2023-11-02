@@ -13,7 +13,6 @@ namespace Absencespot.Domain.Enums
         public static readonly StatusType PENDING = new StatusType(2, "PENDING");
         public static readonly StatusType REJECTED = new StatusType(3, "REJECTED");
 
-        public StatusType(){}
         public StatusType(int id, string name) : base(id, name)
         {
 

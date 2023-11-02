@@ -22,12 +22,13 @@ namespace Absencespot.SqlServer.Configurations
                     .HasForeignKey(o => o.SubcriptionId); 
 
             builder.Property(o => o.Type)
-                   .HasConversion(
-                            type => type.Name,
-                            displayName => SubscriptionType.FromDisplayName<SubscriptionType>(displayName)
+                .HasMaxLength(20)
+                   .HasConversion<string>(
+                            t => t.Name,
+                            t => SubscriptionType.FromDisplayName<SubscriptionType>(t)
                     );
-
             base.Configure(builder);
+
         } 
     }
 }

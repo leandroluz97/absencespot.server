@@ -15,7 +15,6 @@ namespace Absencespot.Domain.Enums
         public static readonly RoleType USER = new RoleType(4, "USER");
         public static readonly RoleType ACCOUNTING = new RoleType(5, "ACCOUNTING");
 
-        public RoleType(){}
         public RoleType(int id, string name) : base(id, name)
         {
 

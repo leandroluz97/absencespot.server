@@ -11,7 +11,6 @@ namespace Absencespot.Domain.Enums
     {
         public static readonly DisplayType OFFICE = new DisplayType(1, "OFFICE");
         public static readonly DisplayType TEAM = new DisplayType(2, "TEAM");
-        public DisplayType():base(){}
         public DisplayType(int id, string name) : base(id, name)
         {
 

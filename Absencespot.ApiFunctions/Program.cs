@@ -26,7 +26,7 @@ namespace Absencespot.ApiFunctions
                  })
                 .ConfigureServices((context, services) =>
                 {
-                    services.AddPersistences(context.Configuration);
+                    services.AddPersistence(context.Configuration);
                     services.AddServices(context.Configuration);
                 })
                 .Build();

@@ -21,7 +21,7 @@ namespace Absencespot.SqlServer.Configurations
             builder.Property(l => l.DateFormat).IsRequired();
             builder.Property(l => l.TimeZone).IsRequired();
             builder.Property(l => l.DisplayBirthday).IsRequired();
-            builder.Property(o => o.DisplayMode)
+            builder.Property(o => o.DisplayMode).HasMaxLength(255)
                    .HasConversion(
                             type => type.Name,
                             displayName => DisplayType.FromDisplayName<DisplayType>(displayName)

@@ -30,13 +30,13 @@ namespace Absencespot.SqlServer
             modelBuilder.ApplyConfiguration(new OfficeConfiguration());
             modelBuilder.ApplyConfiguration(new OfficeLeaveConfiguration());
             modelBuilder.ApplyConfiguration(new SettingsConfiguration());
-            modelBuilder.ApplyConfiguration(new SubscriptionConfiguration());
             modelBuilder.ApplyConfiguration(new TeamConfiguration());
             modelBuilder.ApplyConfiguration(new TrackRecordConfiguration());
             //modelBuilder.ApplyConfiguration(new UserRoleConfiguration());
             modelBuilder.ApplyConfiguration(new RoleConfiguration());
             modelBuilder.ApplyConfiguration(new UserTeamConfiguration());
             modelBuilder.ApplyConfiguration(new WorkScheduleConfiguration());
+            modelBuilder.ApplyConfiguration(new SubscriptionConfiguration());
 
             base.OnModelCreating(modelBuilder);
         }

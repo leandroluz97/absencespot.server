@@ -9,27 +9,13 @@ namespace Absencespot.Utils
 {
     public abstract class Enumeration : IComparable
     {
-        private readonly int _value;
-        private readonly string _displayName;
+        public int Id { get; private set; }
+        public string Name { get; private set; }
 
-        protected Enumeration()
+        protected Enumeration(int id, string name)
         {
-        }
-
-        protected Enumeration(int value, string displayName)
-        {
-            _value = value;
-            _displayName = displayName;
-        }
-
-        public int Id
-        {
-            get { return _value; }
-        }
-
-        public string Name
-        {
-            get { return _displayName; }
+            Id = id;
+            Name = name;
         }
 
         public override string ToString()
@@ -37,21 +23,22 @@ namespace Absencespot.Utils
             return Name;
         }
 
-        public static IEnumerable<T> GetAll<T>() where T : Enumeration, new()
+        public static IEnumerable<T> GetAll<T>() where T : Enumeration
         {
             var type = typeof(T);
             var fields = type.GetFields(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly);
 
-            foreach (var info in fields)
-            {
-                var instance = new T();
-                var locatedValue = info.GetValue(instance) as T;
+            return fields.Select(x => x.GetValue(null)).Cast<T>();
+            //foreach (var info in fields)
+            //{
+            //    var instance = new T();
+            //    var locatedValue = info.GetValue(instance) as T;
 
-                if (locatedValue != null)
-                {
-                    yield return locatedValue;
-                }
-            }
+            //    if (locatedValue != null)
+            //    {
+            //        yield return locatedValue;
+            //    }
+            //}
         }
 
         public override bool Equals(object obj)
@@ -64,14 +51,14 @@ namespace Absencespot.Utils
             }
 
             var typeMatches = GetType().Equals(obj.GetType());
-            var valueMatches = _value.Equals(otherValue.Id);
+            var valueMatches = Id.Equals(otherValue.Id);
 
             return typeMatches && valueMatches;
         }
 
         public override int GetHashCode()
         {
-            return _value.GetHashCode();
+            return Id.GetHashCode();
         }
 
         public static int AbsoluteDifference(Enumeration firstValue, Enumeration secondValue)
@@ -80,19 +67,19 @@ namespace Absencespot.Utils
             return absoluteDifference;
         }
 
-        public static T FromValue<T>(int value) where T : Enumeration, new()
+        public static T FromValue<T>(int value) where T : Enumeration
         {
             var matchingItem = parse<T, int>(value, "value", item => item.Id == value);
             return matchingItem;
         }
 
-        public static T FromDisplayName<T>(string displayName) where T : Enumeration, new()
+        public static T FromDisplayName<T>(string displayName) where T : Enumeration
         {
             var matchingItem = parse<T, string>(displayName, "display name", item => item.Name == displayName);
             return matchingItem;
         }
 
-        private static T parse<T, K>(K value, string description, Func<T, bool> predicate) where T : Enumeration, new()
+        private static T parse<T, K>(K value, string description, Func<T, bool> predicate) where T : Enumeration
         {
             var matchingItem = GetAll<T>().FirstOrDefault(predicate);
 

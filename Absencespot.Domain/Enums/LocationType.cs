@@ -11,7 +11,6 @@ namespace Absencespot.Domain.Enums
     {
         public static readonly LocationType ONSITE = new LocationType(1, "ON_SITE");
         public static readonly LocationType REMOTE = new LocationType(2, "REMOTE");
-        public LocationType(){}
         public LocationType(int id, string name) : base(id, name)
         {
 
