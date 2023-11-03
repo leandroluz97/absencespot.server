@@ -6,13 +6,13 @@ using Microsoft.Extensions.Logging;
 
 namespace Absencespot.ApiFunctions
 {
-    public class Function1
+    public class RequestFunction
     {
         private readonly ILogger _logger;
 
-        public Function1(ILoggerFactory loggerFactory)
+        public RequestFunction(ILoggerFactory loggerFactory)
         {
-            _logger = loggerFactory.CreateLogger<Function1>();
+            _logger = loggerFactory.CreateLogger<RequestFunction>();
         }
 
         [Function("Function1")]
