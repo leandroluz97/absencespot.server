@@ -11,20 +11,16 @@ namespace Absencespot.SqlServer.Configurations
 {
     public class TeamConfiguration : BaseConfiguration<Team>
     {
+        public TeamConfiguration(){}
         public void Configure(EntityTypeBuilder<Team> builder)
         {
             builder.ToTable("Team");
             builder.Property(l => l.Name).HasMaxLength(256).IsRequired();
-            builder.Ignore(l => l.Managers);
 
             builder.HasMany<UserTeam>(u => u.Users)
                     .WithOne(u => u.Team)
                     .HasForeignKey(o => o.TeamId)
-                    .OnDelete(DeleteBehavior.Restrict);
-
-            //builder.HasMany<UserTeam>(u => u.Managers)
-            //       .WithOne(u => u.Team)
-            //       .HasForeignKey(u => u.TeamId);
+                    .OnDelete(DeleteBehavior.ClientCascade);
 
             base.Configure(builder);
         }

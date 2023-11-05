@@ -11,6 +11,7 @@ namespace Absencespot.SqlServer.Configurations
 {
     public class OfficeLeaveConfiguration : BaseConfiguration<OfficeLeave>, IEntityTypeConfiguration<OfficeLeave>
     {
+        public OfficeLeaveConfiguration(){}
         public void Configure(EntityTypeBuilder<OfficeLeave> builder)
         {
             builder.ToTable("OfficeLeave");

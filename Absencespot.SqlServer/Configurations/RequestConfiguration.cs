@@ -12,16 +12,16 @@ namespace Absencespot.SqlServer.Configurations
 {
     public class RequestConfiguration : BaseConfiguration<Request>
     {
+        public RequestConfiguration(){}
         public void Configure(EntityTypeBuilder<Request> builder)
         {
             builder.ToTable("Request");
             builder.Property(l => l.StartDate).IsRequired();
             builder.Property(l => l.EndDate).IsRequired();
-            builder.Property(o => o.Status)
-                  .HasConversion(
-                           type => type.Name,
-                           displayName => StatusType.FromDisplayName<StatusType>(displayName)
-                   ).IsRequired();
+            builder.Property(o => o.Status);
+                   //.HasConversion(
+                   //        type => type.ToString(),
+                   //        name => Enum.TryParse<DisplayType>(name, out DisplayType displayType));
 
             //builder.HasOne(c => c.OnBehalfOf)
             //        .WithMany(i => i.OnBehalfOs)
@@ -31,12 +31,9 @@ namespace Absencespot.SqlServer.Configurations
             builder.HasOne(c => c.User)
                     .WithMany(i => i.Requests)
                     .HasForeignKey(o => o.UserId);
-  
+
 
             base.Configure(builder);
         }
     }
 }
-//builder.HasMany<Request>(c => c.Requests)
-//        .WithOne(i => i.Company)
-//        .HasForeignKey(o => o.CompanyId);

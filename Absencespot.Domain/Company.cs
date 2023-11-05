@@ -1,4 +1,5 @@
-﻿using Absencespot.Domain.Seedwork;
+﻿using Absencespot.Domain.Enums;
+using Absencespot.Domain.Seedwork;
 
 namespace Absencespot.Domain
 {

@@ -12,6 +12,7 @@ namespace Absencespot.SqlServer.Configurations
 {
     public class SettingsConfiguration : BaseConfiguration<Settings>
     {
+        public SettingsConfiguration(){}
         public void Configure(EntityTypeBuilder<Settings> builder)
         {
             builder.ToTable("Settings");
@@ -21,11 +22,11 @@ namespace Absencespot.SqlServer.Configurations
             builder.Property(l => l.DateFormat).IsRequired();
             builder.Property(l => l.TimeZone).IsRequired();
             builder.Property(l => l.DisplayBirthday).IsRequired();
-            builder.Property(o => o.DisplayMode).HasMaxLength(255)
-                   .HasConversion(
-                            type => type.Name,
-                            displayName => DisplayType.FromDisplayName<DisplayType>(displayName)
-                    );
+            builder.Property(o => o.DisplayMode);
+                   //.HasConversion(
+                   //         type => type.Name,
+                   //         displayName => DisplayType.FromDisplayName<DisplayType>(displayName)
+                   // );
 
             base.Configure(builder);
         }

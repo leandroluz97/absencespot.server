@@ -1,4 +1,5 @@
 ﻿using Absencespot.Domain;
+using Absencespot.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System;
@@ -11,6 +12,7 @@ namespace Absencespot.SqlServer.Configurations
 {
     public class CompanyConfiguration : BaseConfiguration<Company>, IEntityTypeConfiguration<Company>
     {
+        public CompanyConfiguration(){}
         public void Configure(EntityTypeBuilder<Company> builder)
         {
             builder.ToTable("Company");
@@ -32,7 +34,7 @@ namespace Absencespot.SqlServer.Configurations
             builder.HasMany<Office>(c => c.Offices)
                     .WithOne(i => i.Company)
                     .HasForeignKey(o => o.CompanyId)
-                     .OnDelete(DeleteBehavior.Restrict);
+                     .OnDelete(DeleteBehavior.ClientCascade);
 
             builder.HasMany<Team>(c => c.Teams)
                     .WithOne(i => i.Company)

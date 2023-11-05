@@ -11,6 +11,7 @@ namespace Absencespot.SqlServer.Configurations
 {
     public class UserRoleConfiguration : BaseConfiguration<UserRole>, IEntityTypeConfiguration<UserRole>
     {
+        public UserRoleConfiguration(){}
         public void Configure(EntityTypeBuilder<UserRole> builder)
         {
             builder.ToTable("UserRole");

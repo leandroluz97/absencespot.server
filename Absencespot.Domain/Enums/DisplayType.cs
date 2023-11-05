@@ -1,20 +1,22 @@
 ﻿using Absencespot.Utils;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Absencespot.Domain.Enums
 {
-    public class DisplayType : Enumeration
+    //public class DisplayType : Enumeration
+    //{
+    //    public static readonly DisplayType OFFICE = new DisplayType(1, "OFFICE");
+    //    public static readonly DisplayType TEAM = new DisplayType(2, "TEAM");
+    //    public DisplayType(int id, string name) : base(id, name)
+    //    {
+
+    //    }
+
+    //}
+
+    public enum DisplayType
     {
-        public static readonly DisplayType OFFICE = new DisplayType(1, "OFFICE");
-        public static readonly DisplayType TEAM = new DisplayType(2, "TEAM");
-        public DisplayType(int id, string name) : base(id, name)
-        {
-
-        }
-
+        Team = 1,
+        Office = 2,
     }
 }
+

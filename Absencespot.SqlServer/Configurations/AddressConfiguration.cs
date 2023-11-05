@@ -11,6 +11,7 @@ namespace Absencespot.SqlServer.Configurations
 {
     public class AddressConfiguration : BaseConfiguration<Address>, IEntityTypeConfiguration<Address>
     {
+        public AddressConfiguration(){}
         public void Configure(EntityTypeBuilder<Address> builder)
         {
             builder.ToTable("Address");

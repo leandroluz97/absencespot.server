@@ -12,14 +12,15 @@ namespace Absencespot.SqlServer.Configurations
 {
     public class IntegrationConfiguration : BaseConfiguration<Integration>, IEntityTypeConfiguration<Integration>
     {
+        public IntegrationConfiguration(){}
         public void Configure(EntityTypeBuilder<Integration> builder)
         {
             builder.ToTable("Integration");
-            builder.Property(o => o.Provider)
-                   .HasConversion(
-                            type => type.Name,
-                            displayName => ProviderType.FromDisplayName<ProviderType>(displayName)
-                    );
+            builder.Property(o => o.Provider);
+                   //.HasConversion(
+                   //         type => type.ToString(),
+                   //         displayName => ProviderType.FromDisplayName<ProviderType>(displayName)
+                   // );
            
             base.Configure(builder);
         }

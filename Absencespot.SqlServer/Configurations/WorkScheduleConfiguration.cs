@@ -11,6 +11,7 @@ namespace Absencespot.SqlServer.Configurations
 {
     public class WorkScheduleConfiguration : BaseConfiguration<WorkSchedule>
     {
+        public WorkScheduleConfiguration(){}
         public void Configure(EntityTypeBuilder<WorkSchedule> builder)
         {
             builder.ToTable("WorkSchedule");

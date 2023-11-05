@@ -8,6 +8,7 @@ namespace Absencespot.SqlServer.Configurations
 {
     public class RoleConfiguration : IEntityTypeConfiguration<Role>
     {
+        public RoleConfiguration(){}
         public void Configure(EntityTypeBuilder<Role> builder)
         {
             builder.ToTable("AspNetRoles");
@@ -19,12 +20,6 @@ namespace Absencespot.SqlServer.Configurations
 
             builder.Property(u => u.Name).HasMaxLength(256);
             builder.Property(u => u.NormalizedName).HasMaxLength(256);
-
-            //builder.Property(o => o.Name)
-            //       .HasConversion(
-            //                type => type.Name,
-            //                displayName => RoleType.FromDisplayName<RoleType>(displayName)
-            //        );
 
             builder.HasMany<IdentityUserRole<int>>().WithOne().HasForeignKey(ur => ur.RoleId).IsRequired();
             builder.HasMany<IdentityRoleClaim<int>>().WithOne().HasForeignKey(rc => rc.RoleId).IsRequired();

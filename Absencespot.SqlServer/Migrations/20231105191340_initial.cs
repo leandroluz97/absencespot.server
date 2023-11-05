@@ -32,55 +32,22 @@ namespace Absencespot.SqlServer.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "DisplayType",
+                name: "Subscription",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    Type = table.Column<int>(type: "int", nullable: false),
+                    UnitPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    RowVersion = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: false),
+                    GlobalId = table.Column<Guid>(type: "uniqueidentifier", nullable: false, defaultValueSql: "NEWID()")
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_DisplayType", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "LocationType",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_LocationType", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "StatusType",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_StatusType", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "SubscriptionType",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_SubscriptionType", x => x.Id);
+                    table.PrimaryKey("PK_Subscription", x => x.Id);
+                    table.UniqueConstraint("AK_Subscription_GlobalId", x => x.GlobalId);
                 });
 
             migrationBuilder.CreateTable(
@@ -100,31 +67,6 @@ namespace Absencespot.SqlServer.Migrations
                         name: "FK_AspNetRoleClaims_AspNetRoles_RoleId",
                         column: x => x.RoleId,
                         principalTable: "AspNetRoles",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Subscription",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    TypeId = table.Column<int>(type: "int", nullable: false),
-                    UnitPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
-                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    RowVersion = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: false),
-                    GlobalId = table.Column<Guid>(type: "uniqueidentifier", nullable: false, defaultValueSql: "NEWID()")
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Subscription", x => x.Id);
-                    table.UniqueConstraint("AK_Subscription_GlobalId", x => x.GlobalId);
-                    table.ForeignKey(
-                        name: "FK_Subscription_SubscriptionType_TypeId",
-                        column: x => x.TypeId,
-                        principalTable: "SubscriptionType",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -161,7 +103,7 @@ namespace Absencespot.SqlServer.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Provider = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Provider = table.Column<int>(type: "int", nullable: false),
                     IsActive = table.Column<bool>(type: "bit", nullable: false),
                     CompanyId = table.Column<int>(type: "int", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
@@ -236,8 +178,7 @@ namespace Absencespot.SqlServer.Migrations
                         name: "FK_Office_Company_CompanyId",
                         column: x => x.CompanyId,
                         principalTable: "Company",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -246,7 +187,7 @@ namespace Absencespot.SqlServer.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    DisplayModeId = table.Column<int>(type: "int", nullable: false),
+                    DisplayMode = table.Column<int>(type: "int", nullable: false),
                     PrivacyMode = table.Column<bool>(type: "bit", nullable: false),
                     OnBehalfOf = table.Column<bool>(type: "bit", nullable: false),
                     IsLoginFromEmailLinkRequired = table.Column<bool>(type: "bit", nullable: false),
@@ -269,12 +210,6 @@ namespace Absencespot.SqlServer.Migrations
                         name: "FK_Settings_Company_CompanyId",
                         column: x => x.CompanyId,
                         principalTable: "Company",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Settings_DisplayType_DisplayModeId",
-                        column: x => x.DisplayModeId,
-                        principalTable: "DisplayType",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -577,8 +512,8 @@ namespace Absencespot.SqlServer.Migrations
                     StartDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     EndDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Note = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    StatusId = table.Column<int>(type: "int", nullable: false),
                     File = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Status = table.Column<int>(type: "int", nullable: false),
                     LeaveId = table.Column<int>(type: "int", nullable: true),
                     UserId = table.Column<int>(type: "int", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
@@ -601,12 +536,6 @@ namespace Absencespot.SqlServer.Migrations
                         column: x => x.LeaveId,
                         principalTable: "Leave",
                         principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_Request_StatusType_StatusId",
-                        column: x => x.StatusId,
-                        principalTable: "StatusType",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -620,7 +549,7 @@ namespace Absencespot.SqlServer.Migrations
                     CheckOut = table.Column<DateTime>(type: "datetime2", nullable: false),
                     BreakStart = table.Column<DateTime>(type: "datetime2", nullable: false),
                     BreakEnd = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    LocationId = table.Column<int>(type: "int", nullable: false),
+                    Location = table.Column<int>(type: "int", nullable: false),
                     Note = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     UserId = table.Column<int>(type: "int", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
@@ -638,12 +567,6 @@ namespace Absencespot.SqlServer.Migrations
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_TrackRecord_LocationType_LocationId",
-                        column: x => x.LocationId,
-                        principalTable: "LocationType",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -652,7 +575,6 @@ namespace Absencespot.SqlServer.Migrations
                 {
                     UserId = table.Column<int>(type: "int", nullable: false),
                     TeamId = table.Column<int>(type: "int", nullable: false),
-                    TeamId1 = table.Column<int>(type: "int", nullable: false),
                     IsManager = table.Column<bool>(type: "bit", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
@@ -665,14 +587,14 @@ namespace Absencespot.SqlServer.Migrations
                     table.PrimaryKey("PK_UserTeam", x => new { x.UserId, x.TeamId });
                     table.UniqueConstraint("AK_UserTeam_GlobalId", x => x.GlobalId);
                     table.ForeignKey(
-                        name: "FK_UserTeam_AspNetUsers_TeamId",
-                        column: x => x.TeamId,
+                        name: "FK_UserTeam_AspNetUsers_UserId",
+                        column: x => x.UserId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_UserTeam_Team_TeamId1",
-                        column: x => x.TeamId1,
+                        name: "FK_UserTeam_Team_TeamId",
+                        column: x => x.TeamId,
                         principalTable: "Team",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -784,11 +706,6 @@ namespace Absencespot.SqlServer.Migrations
                 column: "LeaveId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Request_StatusId",
-                table: "Request",
-                column: "StatusId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Request_UserId",
                 table: "Request",
                 column: "UserId");
@@ -800,24 +717,9 @@ namespace Absencespot.SqlServer.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_Settings_DisplayModeId",
-                table: "Settings",
-                column: "DisplayModeId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Subscription_TypeId",
-                table: "Subscription",
-                column: "TypeId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Team_CompanyId",
                 table: "Team",
                 column: "CompanyId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_TrackRecord_LocationId",
-                table: "TrackRecord",
-                column: "LocationId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_TrackRecord_UserId",
@@ -828,11 +730,6 @@ namespace Absencespot.SqlServer.Migrations
                 name: "IX_UserTeam_TeamId",
                 table: "UserTeam",
                 column: "TeamId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_UserTeam_TeamId1",
-                table: "UserTeam",
-                column: "TeamId1");
 
             migrationBuilder.CreateIndex(
                 name: "IX_WorkSchedule_CompanyId",
@@ -889,15 +786,6 @@ namespace Absencespot.SqlServer.Migrations
                 name: "Leave");
 
             migrationBuilder.DropTable(
-                name: "StatusType");
-
-            migrationBuilder.DropTable(
-                name: "DisplayType");
-
-            migrationBuilder.DropTable(
-                name: "LocationType");
-
-            migrationBuilder.DropTable(
                 name: "AspNetUsers");
 
             migrationBuilder.DropTable(
@@ -914,9 +802,6 @@ namespace Absencespot.SqlServer.Migrations
 
             migrationBuilder.DropTable(
                 name: "Subscription");
-
-            migrationBuilder.DropTable(
-                name: "SubscriptionType");
         }
     }
 }

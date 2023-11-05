@@ -11,6 +11,7 @@ namespace Absencespot.SqlServer.Configurations
 {
     public class LeaveConfiguration : BaseConfiguration<Leave>
     {
+        public LeaveConfiguration(){}
         public void Configure(EntityTypeBuilder<Leave> builder)
         {
             builder.ToTable("Leave");
@@ -22,17 +23,17 @@ namespace Absencespot.SqlServer.Configurations
             builder.HasMany<OfficeLeave>(c => c.OfficesLeaves)
                     .WithOne(i => i.Leave)
                     .HasForeignKey(o => o.LeaveId)
-                    .OnDelete(DeleteBehavior.Restrict);
+                    .OnDelete(DeleteBehavior.ClientCascade);
 
             builder.HasMany<Request>(c => c.Requests)
                     .WithOne(i => i.Leave)
                     .HasForeignKey(o => o.LeaveId)
-                    .OnDelete(DeleteBehavior.Restrict);
+                    .OnDelete(DeleteBehavior.ClientCascade);
 
             builder.HasMany<Absence>(c => c.Absences)
                     .WithOne(i => i.Leave)
                     .HasForeignKey(o => o.LeaveId)
-                    .OnDelete(DeleteBehavior.Restrict);
+                    .OnDelete(DeleteBehavior.ClientCascade);
 
             base.Configure(builder);
         }

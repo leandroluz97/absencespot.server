@@ -11,16 +11,21 @@ namespace Absencespot.SqlServer.Configurations
 {
     public class UserTeamConfiguration : BaseConfiguration<UserTeam>, IEntityTypeConfiguration<UserTeam>
     {
+        public UserTeamConfiguration(){}
         public void Configure(EntityTypeBuilder<UserTeam> builder)
         {
             builder.ToTable("UserTeam");
-            base.Configure(builder);
+            builder.HasAlternateKey(x => x.GlobalId);
+            builder.Property(x => x.GlobalId).HasDefaultValueSql("NEWID()");
+            builder.Property(p => p.RowVersion).IsRowVersion().IsConcurrencyToken();
+            builder.Property(p => p.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
+
             builder.HasKey(x => new { x.UserId, x.TeamId });
 
-            builder.HasOne(ut => ut.User)
-            .WithMany(i => i.Teams)
-            .HasForeignKey(o => o.TeamId)
-            .OnDelete(DeleteBehavior.Restrict);
+            //builder.HasOne(ut => ut.User)
+            //.WithMany(i => i.Teams)
+            //.HasForeignKey(o => o.TeamId)
+            //.OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

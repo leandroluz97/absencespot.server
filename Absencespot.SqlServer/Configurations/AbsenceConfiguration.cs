@@ -9,8 +9,9 @@ using System.Threading.Tasks;
 
 namespace Absencespot.SqlServer.Configurations
 {
-    internal class AbsenceConfiguration : BaseConfiguration<Absence>, IEntityTypeConfiguration<Absence>
+    public class AbsenceConfiguration : BaseConfiguration<Absence>, IEntityTypeConfiguration<Absence>
     {
+        public AbsenceConfiguration(){}
         public void Configure(EntityTypeBuilder<Absence> builder)
         {
             builder.ToTable("Absence");

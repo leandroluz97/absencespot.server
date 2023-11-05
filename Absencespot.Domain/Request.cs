@@ -15,8 +15,8 @@ namespace Absencespot.Domain
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
         public string Note { get; set; }
-        public StatusType Status { get; set; }
         public string File { get; set; }
+        public StatusType Status { get; set; }
 
         public int? LeaveId { get; set; }
         public Leave? Leave { get; set; }

@@ -12,21 +12,20 @@ namespace Absencespot.SqlServer.Configurations
 {
     public class SubscriptionConfiguration : BaseConfiguration<Subscription>
     {
+        public SubscriptionConfiguration(){}
         public void Configure(EntityTypeBuilder<Subscription> builder)
         {
             builder.ToTable("Subscription");
             builder.Property(l => l.UnitPrice).HasPrecision(5, 2).IsRequired();
+            builder.Property(o => o.Type);
+                   //.HasConversion(
+                   // t => t.Name,
+                   // t => SubscriptionType.FromDisplayName<SubscriptionType>(t));
 
             builder.HasMany<Company>(s => s.Companies)
                     .WithOne(c => c.Subcription)
                     .HasForeignKey(o => o.SubcriptionId); 
 
-            builder.Property(o => o.Type)
-                .HasMaxLength(20)
-                   .HasConversion<string>(
-                            t => t.Name,
-                            t => SubscriptionType.FromDisplayName<SubscriptionType>(t)
-                    );
             base.Configure(builder);
 
         } 
