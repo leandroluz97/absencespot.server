@@ -34,6 +34,7 @@ namespace Absencespot.SqlServer
             modelBuilder.ApplyConfiguration(new TrackRecordConfiguration());
             modelBuilder.ApplyConfiguration(new RoleConfiguration());
             modelBuilder.ApplyConfiguration(new UserTeamConfiguration());
+            modelBuilder.ApplyConfiguration(new UserConfiguration());
             modelBuilder.ApplyConfiguration(new WorkScheduleConfiguration());
             modelBuilder.ApplyConfiguration(new SubscriptionConfiguration());
 

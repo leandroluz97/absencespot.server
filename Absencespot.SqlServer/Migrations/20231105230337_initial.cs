@@ -591,7 +591,7 @@ namespace Absencespot.SqlServer.Migrations
                         column: x => x.UserId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_UserTeam_Team_TeamId",
                         column: x => x.TeamId,

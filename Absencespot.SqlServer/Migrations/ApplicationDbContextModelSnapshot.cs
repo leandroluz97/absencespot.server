@@ -1219,7 +1219,7 @@ namespace Absencespot.SqlServer.Migrations
                     b.HasOne("Absencespot.Domain.User", "User")
                         .WithMany("Teams")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Team");

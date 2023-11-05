@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Absencespot.SqlServer.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20231105191340_initial")]
+    [Migration("20231105230337_initial")]
     partial class initial
     {
         /// <inheritdoc />
@@ -1222,7 +1222,7 @@ namespace Absencespot.SqlServer.Migrations
                     b.HasOne("Absencespot.Domain.User", "User")
                         .WithMany("Teams")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Team");

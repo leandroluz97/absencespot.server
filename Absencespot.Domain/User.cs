@@ -16,7 +16,7 @@ namespace Absencespot.Domain
         public DateTime StartDate { get; set; }
         public DateTime? BirthDay { get; set; }
         public ICollection<TrackRecord> TrackRecords { get; set; }
-        public ICollection<UserTeam> Teams { get; set; }
+        public ICollection<UserTeam>? Teams { get; set; }
         public ICollection<Request> Requests { get; set; }
         //public ICollection<Request> OnBehalfOs { get; set; }
         //public Request? OnBehalfOf { get; set; }
