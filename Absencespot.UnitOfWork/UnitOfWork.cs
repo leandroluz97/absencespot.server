@@ -21,6 +21,7 @@ namespace Absencespot.UnitOfWork
         private ITeamRepository _teamRepository;
         private ITrackRecordRepository _trackRecordRepository;
         private IWorkScheduleRepository _workScheduleRepository;
+        private ISubscriptionRepository _subscriptionRepository;
         
         public UnitOfWork(ApplicationDbContext dbContext)
         {
@@ -60,7 +61,7 @@ namespace Absencespot.UnitOfWork
         {
             get { return _settingsRepository = _settingsRepository ?? new SettingsRepository(_dbContext); }
         }
-        public ITeamRepository ITeamRepository
+        public ITeamRepository TeamRepository
         {
             get { return _teamRepository = _teamRepository ?? new TeamRepository(_dbContext); }
         }
@@ -72,6 +73,11 @@ namespace Absencespot.UnitOfWork
         {
             get { return _workScheduleRepository = _workScheduleRepository ?? new WorkScheduleRepository(_dbContext); }
         }
+        public ISubscriptionRepository SubscriptionRepository
+        {
+            get { return _subscriptionRepository = _subscriptionRepository ?? new SubscriptionRepository(_dbContext); }
+        }
+
 
         public void Rollback()
         {

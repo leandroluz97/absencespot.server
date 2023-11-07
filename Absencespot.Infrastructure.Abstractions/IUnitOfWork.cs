@@ -12,9 +12,10 @@ namespace Absencespot.Infrastructure.Abstractions
         IOfficeRepository OfficeRepository { get; }
         IRequestRepository RequestRepository { get; }
         ISettingsRepository SettingsRepository { get; }
-        ITeamRepository ITeamRepository { get; }
+        ITeamRepository TeamRepository { get; }
         ITrackRecordRepository TrackRecordRepository { get; }
         IWorkScheduleRepository WorkScheduleRepository { get; }
+        ISubscriptionRepository SubscriptionRepository { get; }
 
         void SaveChanges();
         void Rollback();
