@@ -17,10 +17,12 @@ namespace Absencespot.Tests.Repositories
         [Test]
         public async Task CreateCompany_Successfull()
         {
+            var subscription = await _unitOfWork.SubscriptionRepository.FindByIdAsync(1);
             var company = new Company()
             {
                 Name = "Company X",
-                FiscalNumber = "286828666"
+                FiscalNumber = "286828666",
+                Subcription = subscription
             };
 
             var result = _unitOfWork.CompanyRepository.Add(company);

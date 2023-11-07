@@ -17,6 +17,8 @@ namespace Absencespot.Tests
             .Build();
 
             var services = new ServiceCollection();
+
+            services.AddLogging();
             services.AddPersistence(configuration);
             services.AddServices(configuration);
 
