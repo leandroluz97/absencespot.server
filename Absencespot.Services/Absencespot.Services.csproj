@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
@@ -8,6 +8,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Absencespot.Business.Abstractions\Absencespot.Business.Abstractions.csproj" />
+    <ProjectReference Include="..\Absencespot.Infrastructure.Abstractions\Absencespot.Infrastructure.Abstractions.csproj" />
+    <ProjectReference Include="..\Absencespot.UnitOfWork\Absencespot.UnitOfWork.csproj" />
   </ItemGroup>
 
 </Project>
