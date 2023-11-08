@@ -9,9 +9,9 @@ namespace Absencespot.Business.Abstractions
 {
     public interface ICompanyService
     {
-        Task<Dtos.Company> CreateAsync(Guid subscriptionId, Dtos.Company company);
-        Task<Dtos.Company> GetByIdAsync(Guid companyId);
-        Task<Dtos.Company> UpdateAsync(Dtos.Company company);
-        Task DeleteAsync(Guid companyId);
+        Task<Dtos.Company> CreateAsync(Guid subscriptionId, Dtos.Company company, CancellationToken cancellationToken);
+        Task<Dtos.Company> GetByIdAsync(Guid companyId, CancellationToken cancellationToke);
+        Task<Dtos.Company> UpdateAsync(Guid companyId, Dtos.Company company, CancellationToken cancellationToke);
+        Task DeleteAsync(Guid companyId, CancellationToken cancellationToke);
     }
 }

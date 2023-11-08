@@ -4,6 +4,7 @@ using Absencespot.Infrastructure.Abstractions;
 using Absencespot.Services.Exceptions;
 using Absencespot.Services.Mappers;
 using Absencespot.UnitOfWork;
+using Absencespot.Utils;
 using Microsoft.Extensions.Logging;
 
 namespace Absencespot.Services
@@ -17,20 +18,20 @@ namespace Absencespot.Services
             _unitOfWork = unitOfWork;
             _logger = logger;
         }
-        public async Task<Company> CreateAsync(Guid subscriptionId, Dtos.Company companyDto)
+        public async Task<Company> CreateAsync(Guid subscriptionId, Dtos.Company companyDto, CancellationToken cancellationToken = default)
         {
-            if(subscriptionId == default)
+            if (subscriptionId == default)
             {
                 throw new ArgumentNullException(nameof(subscriptionId));
             }
-            if(companyDto == null)
+            if (companyDto == null)
             {
                 throw new ArgumentNullException(nameof(companyDto));
             }
             companyDto.EnsureValidation();
 
-            var subscription = await _unitOfWork.SubscriptionRepository.FindByGlobalIdAsync(subscriptionId);
-            if(subscription == null)
+            var subscription = await _unitOfWork.SubscriptionRepository.FindByGlobalIdAsync(subscriptionId, cancellationToken);
+            if (subscription == null)
             {
                 throw new NotFoundException($"Could not find {nameof(subscription)}");
             }
@@ -38,27 +39,65 @@ namespace Absencespot.Services
             var companyDomain = CompanyMapper.ToDomain(companyDto);
             companyDomain.Subcription = subscription;
 
-            companyDomain = _unitOfWork.CompanyRepository.Add(companyDomain);  
+            companyDomain = _unitOfWork.CompanyRepository.Add(companyDomain);
             await _unitOfWork.SaveChangesAsync();
-            
+
             _logger.LogInformation("Created company by Id:");
 
             return CompanyMapper.ToDto(companyDomain);
         }
 
-        public Task DeleteAsync(Guid companyId)
+        public Task DeleteAsync(Guid companyId, CancellationToken cancellationToke)
         {
             throw new NotImplementedException();
         }
 
-        public Task<Company> GetByIdAsync(Guid companyId)
+        public async Task<Dtos.Company> GetByIdAsync(Guid companyId, CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            if (companyId == default)
+            {
+                throw new ArgumentNullException(nameof(companyId));
+            }
+
+            var companyDomain = await LoadByIdAsync(companyId, cancellationToken);
+
+            _logger.LogInformation($"Found company Id:{companyId}");
+
+            return CompanyMapper.ToDto(companyDomain);
         }
 
-        public Task<Company> UpdateAsync(Company company)
+        public async Task<Dtos.Company> UpdateAsync(Guid companyId, Company companyDto, CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            if(companyId == default)
+            {
+                throw new ArgumentNullException(nameof(companyId));
+            }
+            if (companyDto == null)
+            {
+                throw new ArgumentNullException(nameof(companyId));
+            }
+            companyDto.EnsureValidation();
+
+            var companyDomain = await LoadByIdAsync(companyId, cancellationToken);
+
+            companyDomain.Name = companyDto.Name;
+            companyDomain.FiscalNumber = companyDto.Name;
+
+            return CompanyMapper.ToDto(companyDomain);
+        }
+
+        private async Task<Domain.Company> LoadByIdAsync(Guid companyId, CancellationToken cancellationToken = default)
+        {
+            if (companyId == default)
+            {
+                throw new ArgumentNullException(nameof(companyId));
+            }
+            var companyDomain = await _unitOfWork.CompanyRepository.FindByGlobalIdAsync(companyId, cancellationToken);
+            if (companyDomain == null)
+            {
+                throw new NotFoundException(nameof(companyDomain));
+            }
+            return companyDomain;
         }
     }
 }
