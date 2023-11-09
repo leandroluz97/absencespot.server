@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Absencespot.Dtos\Absencespot.Dtos.csproj" />
+    <ProjectReference Include="..\Absencespot.Utils\Absencespot.Utils.csproj" />
   </ItemGroup>
 
 </Project>
