@@ -37,18 +37,21 @@ namespace Absencespot.UnitOfWork.Repositories
            return queryable.Include(navigationPropertyPath).ThenInclude(subProperty);
         }
 
-        public async Task<IEnumerable<T>> ToListAsync<TProperty, TSubProperty>(IQueryable<T> queryable)
+        public async Task<IEnumerable<T>> ToListAsync(IQueryable<T> queryable)
         {
             return await queryable.ToListAsync();
         }
-        public async Task<T?> FirstOrDefaultAsync<TProperty, TSubProperty>(IQueryable<T> queryable, CancellationToken cancellationToken = default)
+        public async Task<T?> FirstOrDefaultAsync(IQueryable<T> queryable, CancellationToken cancellationToken = default)
         {
             return await queryable.FirstOrDefaultAsync(cancellationToken);
         }
 
         public async Task<T?> FindByGlobalIdAsync(Guid globalId, CancellationToken cancellationToken = default)
         {
-            return await _dbSet.FindAsync(new object[] { globalId }, cancellationToken);
+            IQueryable<T> source = AsQueryable();
+            source = source.Where(s  => s.GlobalId == globalId);
+            var result = await FirstOrDefaultAsync(source, cancellationToken).ConfigureAwait(false);
+            return result;
         }
 
         public async Task<T?> FindByIdAsync(int id, CancellationToken cancellationToken = default)
