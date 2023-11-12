@@ -15,7 +15,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Absencespot.Azure\Absencespot.Azure.csproj" />
     <ProjectReference Include="..\Absencespot.Business.Abstractions\Absencespot.Business.Abstractions.csproj" />
+    <ProjectReference Include="..\Absencespot.Clients\Absencespot.Clients.csproj" />
     <ProjectReference Include="..\Absencespot.Infrastructure.Abstractions\Absencespot.Infrastructure.Abstractions.csproj" />
     <ProjectReference Include="..\Absencespot.Services\Absencespot.Services.csproj" />
     <ProjectReference Include="..\Absencespot.SqlServer\Absencespot.SqlServer.csproj" />

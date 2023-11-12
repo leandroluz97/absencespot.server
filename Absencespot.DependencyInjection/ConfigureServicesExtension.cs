@@ -1,8 +1,12 @@
-﻿using Absencespot.Business.Abstractions;
+﻿using Absencespot.Azure;
+using Absencespot.Business.Abstractions;
+using Absencespot.Clients.Sendgrid;
 using Absencespot.Domain;
 using Absencespot.Infrastructure.Abstractions;
+using Absencespot.Infrastructure.Abstractions.Clients;
 using Absencespot.Services;
 using Absencespot.SqlServer;
+using Azure.Storage.Blobs;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -51,12 +55,11 @@ namespace Absencespot.DependencyInjection
         {
             services.AddSingleton<IConfiguration>(configuration);
             services.AddScoped<IUnitOfWork, Absencespot.UnitOfWork.UnitOfWork>();
-            //services.AddTransient<IEmailClient, SengridClient>();
+            services.AddTransient<IEmailClient, SendridClient>();
             services.AddTransient<ICompanyService, CompanyService>();
             services.AddTransient<IRequestService, RequestService>();
-            //services.AddSingleton(x => new BlobServiceClient(configuration["Azure:BlobStorage"]));
-            //services.AddSingleton<FinnStock.Azure.BlobClient>();
-            //services.AddSignalR();
+            services.AddSingleton(x => new BlobServiceClient(configuration.GetConnectionString("BlobStorageConnection")));
+            services.AddSingleton<BlobStorageClient>();
 
             services.AddIdentity<User, Role>(options =>
             {

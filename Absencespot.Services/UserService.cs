@@ -25,7 +25,7 @@ namespace Absencespot.Services
             Guid companyId,
             string? groupBy,
             Guid? filterBy,
-            string? textSearch,
+            string? textSearch,  
             int pageNumber = 1,
             int pageSize = 50,
             string? sortBy = GroupBy.Office,
@@ -116,7 +116,6 @@ namespace Absencespot.Services
             return userDto;
         }
 
-
         public async Task<string> GetProfileImageAsync(Guid userId)
         {
             //if (userId == default)
@@ -132,7 +131,6 @@ namespace Absencespot.Services
 
             return "";
         }
-
 
         public async Task<string> InviteAsync(Guid companyId, Dtos.InviteUser user, CancellationToken cancellationToken = default)
         {
@@ -255,7 +253,6 @@ namespace Absencespot.Services
 
             _logger.LogInformation($"{nameof(UploadProfileImageAsync)} userId: {userId}");
         }
-
 
         public async Task ChangePasswordAsync(Guid companyId, Guid userId, Dtos.ChangePasswordRequest password, CancellationToken cancellationToken = default)
         {
