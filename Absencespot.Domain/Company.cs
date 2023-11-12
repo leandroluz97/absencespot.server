@@ -6,7 +6,10 @@ namespace Absencespot.Domain
     public class Company : Entity
     {
         public string Name { get; set; }
-        public string? FiscalNumber { get; set; }
+        public string? FiscalNumber { get; set; }  
+        public string? EmailContact { get; set; }
+        public string Industry { get; set; }
+        public bool IsActive { get; set; }
         public Settings Settings { get; set; }
 
         public int SubcriptionId { get; set; }
