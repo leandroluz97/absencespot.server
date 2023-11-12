@@ -39,6 +39,7 @@ namespace Absencespot.DependencyInjection
             services.AddSingleton<IConfiguration>(configuration);
             services.AddScoped<IUnitOfWork, Absencespot.UnitOfWork.UnitOfWork>();
             //services.AddTransient<IEmailClient, SengridClient>();
+            services.AddTransient<ICompanyService, CompanyService>();
             services.AddTransient<IRequestService, RequestService>();
             //services.AddSingleton(x => new BlobServiceClient(configuration["Azure:BlobStorage"]));
             //services.AddSingleton<FinnStock.Azure.BlobClient>();
