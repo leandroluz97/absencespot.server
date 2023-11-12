@@ -1,3 +1,4 @@
+using Absencespot.ApiFunctions.Middlewares;
 using Absencespot.DependencyInjection;
 using Microsoft.Azure.Functions.Worker.Configuration;
 using Microsoft.Extensions.Configuration;
@@ -14,7 +15,7 @@ namespace Absencespot.ApiFunctions
             var host = new HostBuilder()
                 .ConfigureFunctionsWorkerDefaults(builder =>
                 {
-                    //builder.UseMiddleware<ExceptionHandlingMiddleware>();
+                    builder.UseMiddleware<ExceptionHandlerMiddleware>();
                     //builder.UseMiddleware<MyCustomMiddleware>();
                 })
                 .ConfigureAppConfiguration((hostingContext, config) =>

@@ -1,37 +1,30 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Text.Json;
+using Azure.Core.Serialization;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 
 namespace Absencespot.ApiFunctions
 {
-    public abstract class BaseFunction
+    public  class BaseFunction
     {
         protected readonly ILogger _logger;
-        protected readonly JsonSerializerOptions _jsonserializerOptions;
+        protected readonly JsonSerializerOptions _jsonSerializerOptions;
+        protected readonly ObjectSerializer _objectSerializer;
 
-        public BaseFunction(ILogger logger)
+        public BaseFunction(ILogger<BaseFunction> logger)
         {
             _logger = logger;
-            _jsonserializerOptions = new JsonSerializerOptions()
+            _jsonSerializerOptions = new JsonSerializerOptions()
             {
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                WriteIndented = true,
+                AllowTrailingCommas = false,
             };
+            _objectSerializer = new JsonObjectSerializer(_jsonSerializerOptions);
         }
 
-        //[Function("BaseFunction")]
-        //public HttpResponseData Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequestData req)
-        //{
-        //    _logger.LogInformation("C# HTTP trigger function processed a request.");
-
-        //    var response = req.CreateResponse(HttpStatusCode.OK);
-        //    response.Headers.Add("Content-Type", "text/plain; charset=utf-8");
-
-        //    response.WriteString("Welcome to Azure Functions!");
-
-        //    return response;
-        //}
     }
 }
