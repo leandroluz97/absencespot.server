@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -21,17 +22,29 @@ namespace Absencespot.DependencyInjection
         public static IServiceCollection AddPersistence(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddDbContext<ApplicationDbContext>((provider, options) =>
-                {
-                    options.UseSqlServer(
-                        configuration.GetConnectionString("DefaultConnection"),
-                        options =>
-                        {
-                            options.EnableRetryOnFailure(5, new(0, 0, 30), null);
-                            options.CommandTimeout(60);
-                        });
-                    options.UseLoggerFactory(provider.GetRequiredService<ILoggerFactory>());
-                    options.EnableDetailedErrors();
-                });
+            {
+                options.UseSqlServer(
+                    configuration.GetConnectionString("DefaultConnection"),
+                    options =>
+                    {
+                        options.EnableRetryOnFailure(5, new(0, 0, 30), null);
+                        options.CommandTimeout(60);
+                    });
+                options.UseLoggerFactory(provider.GetRequiredService<ILoggerFactory>());
+                options.EnableDetailedErrors();
+            });
+            services.AddAzureClients(builder =>
+             {
+                 builder.AddBlobServiceClient(configuration.GetConnectionString("BlobStorageConnection"));
+                 builder.ConfigureDefaults(options =>
+                 {
+                     options.Retry.Delay = TimeSpan.FromSeconds(30);
+                     options.Retry.MaxDelay = TimeSpan.FromSeconds(40);
+                     options.Retry.NetworkTimeout = TimeSpan.FromSeconds(60);
+                     options.Retry.MaxRetries = 5;
+                 });
+             });
+
             return services;
         }
         public static IServiceCollection AddServices(this IServiceCollection services, IConfiguration configuration)
