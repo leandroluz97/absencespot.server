@@ -13,33 +13,33 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Infrastructure", "Infrastru
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Absencespot.Domain", "Absencespot.Domain\Absencespot.Domain.csproj", "{64796D59-AD0F-494A-97FE-46743B8989AE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Absencespot.Dtos", "Absencespot.Dtos\Absencespot.Dtos.csproj", "{66D1C0D5-BF8C-479D-987D-F9BBABE69187}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Absencespot.Dtos", "Absencespot.Dtos\Absencespot.Dtos.csproj", "{66D1C0D5-BF8C-479D-987D-F9BBABE69187}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Absencespot.Services", "Absencespot.Services\Absencespot.Services.csproj", "{036F1818-452D-42A0-ABBA-CC4DEBC6795E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Absencespot.Services", "Absencespot.Services\Absencespot.Services.csproj", "{036F1818-452D-42A0-ABBA-CC4DEBC6795E}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{D5ED89AB-5F45-4389-A912-2EDC0C18EE70}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Utils", "Utils", "{254D1F1D-C79B-4E37-AEB9-34D6AD169C7F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Absencespot.Business.Abstractions", "Absencespot.Business.Abstractions\Absencespot.Business.Abstractions.csproj", "{3D15CB44-D629-4B55-99B2-A39879148B42}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Absencespot.Business.Abstractions", "Absencespot.Business.Abstractions\Absencespot.Business.Abstractions.csproj", "{3D15CB44-D629-4B55-99B2-A39879148B42}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Absencespot.SqlServer", "Absencespot.SqlServer\Absencespot.SqlServer.csproj", "{80D06525-6A58-4E39-9FCE-E73919501F10}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Absencespot.SqlServer", "Absencespot.SqlServer\Absencespot.SqlServer.csproj", "{80D06525-6A58-4E39-9FCE-E73919501F10}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Absencespot.UnitOfWork", "Absencespot.UnitOfWork\Absencespot.UnitOfWork.csproj", "{92B70E77-798D-4563-91A2-9A842BED0712}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Absencespot.UnitOfWork", "Absencespot.UnitOfWork\Absencespot.UnitOfWork.csproj", "{92B70E77-798D-4563-91A2-9A842BED0712}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Absencespot.Clients", "Absencespot.Clients\Absencespot.Clients.csproj", "{16F93009-0B33-4252-90F0-7BE2A74F116B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Absencespot.Clients", "Absencespot.Clients\Absencespot.Clients.csproj", "{16F93009-0B33-4252-90F0-7BE2A74F116B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Absencespot.WebSocket", "Absencespot.WebSocket\Absencespot.WebSocket.csproj", "{0A56A186-765D-46BF-B9E9-DBE307B3A0D0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Absencespot.WebSocket", "Absencespot.WebSocket\Absencespot.WebSocket.csproj", "{0A56A186-765D-46BF-B9E9-DBE307B3A0D0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Absencespot.Azure", "Absencespot.Azure\Absencespot.Azure.csproj", "{768DF819-2CDB-4D63-9335-F0448F65C97B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Absencespot.Azure", "Absencespot.Azure\Absencespot.Azure.csproj", "{768DF819-2CDB-4D63-9335-F0448F65C97B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Absencespot.Infrastructure.Abstractions", "Absencespot.Infrastructure.Abstractions\Absencespot.Infrastructure.Abstractions.csproj", "{EEF8DE7A-B17A-46E0-AA4E-40B4EC718602}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Absencespot.Infrastructure.Abstractions", "Absencespot.Infrastructure.Abstractions\Absencespot.Infrastructure.Abstractions.csproj", "{EEF8DE7A-B17A-46E0-AA4E-40B4EC718602}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Absencespot.DependencyInjection", "Absencespot.DependencyInjection\Absencespot.DependencyInjection.csproj", "{C3F7FCC1-D657-4386-B5CC-049073A8B6D0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Absencespot.DependencyInjection", "Absencespot.DependencyInjection\Absencespot.DependencyInjection.csproj", "{C3F7FCC1-D657-4386-B5CC-049073A8B6D0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Absencespot.Tests", "Absencespot.Tests\Absencespot.Tests.csproj", "{0AD4A85D-E7F9-4101-9287-F92CECACFD11}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Absencespot.Tests", "Absencespot.Tests\Absencespot.Tests.csproj", "{0AD4A85D-E7F9-4101-9287-F92CECACFD11}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Absencespot.Utils", "Absencespot.Utils\Absencespot.Utils.csproj", "{8AF1F40B-E4B7-4FEF-ADA4-7035DEF41F64}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Absencespot.Utils", "Absencespot.Utils\Absencespot.Utils.csproj", "{8AF1F40B-E4B7-4FEF-ADA4-7035DEF41F64}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
