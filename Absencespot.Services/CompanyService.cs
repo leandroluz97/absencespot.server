@@ -83,6 +83,8 @@ namespace Absencespot.Services
             companyDomain.Name = companyDto.Name;
             companyDomain.FiscalNumber = companyDto.Name;
 
+            _logger.LogInformation($"Updated company Id:{companyId}");
+
             return CompanyMapper.ToDto(companyDomain);
         }
 
