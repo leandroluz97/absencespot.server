@@ -46,9 +46,9 @@ namespace Absencespot.UnitOfWork.Repositories
             return await queryable.FirstOrDefaultAsync(cancellationToken);
         }
 
-        public async Task<T?> FindByGlobalIdAsync(Guid globalId, CancellationToken cancellationToken = default)
+        public async Task<T?> FindByGlobalIdAsync(Guid globalId, RepositoryOptions? options = null, CancellationToken cancellationToken = default)
         {
-            IQueryable<T> source = AsQueryable();
+            IQueryable<T> source = AsQueryable(options);
             source = source.Where(s  => s.GlobalId == globalId);
             var result = await FirstOrDefaultAsync(source, cancellationToken).ConfigureAwait(false);
             return result;
