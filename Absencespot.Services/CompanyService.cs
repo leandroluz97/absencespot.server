@@ -82,6 +82,8 @@ namespace Absencespot.Services
 
             companyDomain.Name = companyDto.Name;
             companyDomain.FiscalNumber = companyDto.Name;
+            companyDomain.Industry = companyDto.Industry;
+            companyDomain.EmailContact = companyDto.EmailContact;
 
             _logger.LogInformation($"Updated company Id:{companyId}");
 

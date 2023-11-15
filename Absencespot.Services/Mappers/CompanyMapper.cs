@@ -23,6 +23,7 @@ namespace Absencespot.Services.Mappers
         {
             return new Dtos.Company()
             {
+                SubscriptionId = domain.Subcription.GlobalId,
                 Id = domain.GlobalId,
                 Name = domain.Name,
                 FiscalNumber = string.IsNullOrWhiteSpace(domain.FiscalNumber) ? null : domain.FiscalNumber,
