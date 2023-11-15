@@ -18,19 +18,19 @@ namespace Absencespot.Services
             _unitOfWork = unitOfWork;
             _logger = logger;
         }
-        public async Task<Company> CreateAsync(Guid subscriptionId, Dtos.Company companyDto, CancellationToken cancellationToken = default)
+        public async Task<Company> CreateAsync(Dtos.Company companyDto, CancellationToken cancellationToken = default)
         {
-            if (subscriptionId == default)
-            {
-                throw new ArgumentNullException(nameof(subscriptionId));
-            }
             if (companyDto == null)
             {
                 throw new ArgumentNullException(nameof(companyDto));
             }
             companyDto.EnsureValidation();
 
-            var subscription = await _unitOfWork.SubscriptionRepository.FindByGlobalIdAsync(subscriptionId, cancellationToken);
+            var subscription = await _unitOfWork.SubscriptionRepository.FindByGlobalIdAsync(
+                companyDto.SubscriptionId, 
+                RepositoryOptions.AsTracking(), 
+                cancellationToken);
+
             if (subscription == null)
             {
                 throw new NotFoundException($"Could not find {nameof(subscription)}");
@@ -94,7 +94,7 @@ namespace Absencespot.Services
             {
                 throw new ArgumentNullException(nameof(companyId));
             }
-            var companyDomain = await _unitOfWork.CompanyRepository.FindByGlobalIdAsync(companyId, cancellationToken);
+            var companyDomain = await _unitOfWork.CompanyRepository.FindByGlobalIdAsync(companyId, cancellationToken: cancellationToken);
             if (companyDomain == null)
             {
                 throw new NotFoundException(nameof(companyDomain));

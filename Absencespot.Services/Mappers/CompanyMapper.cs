@@ -14,6 +14,9 @@ namespace Absencespot.Services.Mappers
             {
                 Name = dto.Name,
                 FiscalNumber = string.IsNullOrWhiteSpace(dto.FiscalNumber) ? null : dto.FiscalNumber,
+                EmailContact = dto.EmailContact,
+                Industry = dto.Industry,
+                IsActive = dto.IsActive,
             };
         }
         public static Dtos.Company ToDto(Domain.Company domain)
@@ -23,6 +26,9 @@ namespace Absencespot.Services.Mappers
                 Id = domain.GlobalId,
                 Name = domain.Name,
                 FiscalNumber = string.IsNullOrWhiteSpace(domain.FiscalNumber) ? null : domain.FiscalNumber,
+                EmailContact = domain.EmailContact,
+                Industry = domain.Industry,
+                IsActive = domain.IsActive,
             };
         }
     }
