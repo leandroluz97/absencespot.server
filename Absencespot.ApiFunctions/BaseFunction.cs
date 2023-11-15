@@ -21,7 +21,6 @@ namespace Absencespot.ApiFunctions
             {
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
                 WriteIndented = true,
-                AllowTrailingCommas = false,
             };
             _objectSerializer = new JsonObjectSerializer(_jsonSerializerOptions);
         }
