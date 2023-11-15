@@ -101,6 +101,7 @@ namespace Absencespot.UnitOfWork
                 if (entry.State == EntityState.Added)
                 {
                     entry.Entity.CreatedAt = DateTime.UtcNow;
+                    entry.Entity.UpdatedAt = DateTime.UtcNow;
                 }
                 else if (entry.State == EntityState.Modified)
                 {
