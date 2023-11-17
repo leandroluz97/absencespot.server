@@ -8,5 +8,14 @@ namespace Absencespot.Dtos
 {
     public class Register
     {
+        public string Email { get; set; }
+
+        public void EnsureValidation()
+        {
+            if (string.IsNullOrWhiteSpace(Email))
+            {
+                throw new ArgumentException(nameof(Email));
+            }
+        }
     }
 }
