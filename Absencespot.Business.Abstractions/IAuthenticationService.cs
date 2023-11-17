@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Identity;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,11 +11,11 @@ namespace Absencespot.Business.Abstractions
     {
         Task Register(Dtos.Register register);
         Task ConfirmEmail(Dtos.ConfirmEmail confirmEmail);
-        Task<Dtos.LoginResponse> Login(Dtos.LoginRequest login);
+        Task<Dtos.TokenResponse> Login(Dtos.LoginRequest login);
         Task LoginWithGoogle();
         Task LoginWithMicrosoft();
         Task LoginWithSlack();
-        Task<Dtos.TokenResponse> ExternalLogin(Dtos.ExternalLogin externalLogin);
+        Task<Dtos.TokenResponse> ExternalLogin(ExternalLoginInfo externalLogin);
         Task RequestResetPassword(string email);
         Task ResetPassword(Dtos.ResetPassword resetPassword);
     }
