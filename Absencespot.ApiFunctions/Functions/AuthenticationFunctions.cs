@@ -1,0 +1,37 @@
+using System.Net;
+using System.Text.Json;
+using System.Threading.Tasks;
+using Absencespot.Business.Abstractions;
+using Microsoft.Azure.Functions.Worker;
+using Microsoft.Azure.Functions.Worker.Http;
+using Microsoft.Extensions.Logging;
+
+namespace Absencespot.ApiFunctions.Functions
+{
+    public class AuthenticationFunctions : BaseFunction
+    {
+        private readonly ILogger _logger;
+        private readonly IAuthenticationService _authenticationService;
+
+        public AuthenticationFunctions(
+            ILogger<AuthenticationFunctions> logger,
+            IAuthenticationService authenticationService) : base(logger)
+        {
+            _logger = logger;
+            _authenticationService = authenticationService;
+        }
+
+
+        [Function(nameof(RegisterAsync))]
+        public async Task<HttpResponseData> RegisterAsync([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "authentication/register")] HttpRequestData req)
+        {
+            _logger.LogInformation($"{nameof(RegisterAsync)} HTTP trigger function processed a request.");
+
+            var registerBody = JsonSerializer.Deserialize<Dtos.Register>(req.Body, _jsonSerializerOptions);
+            await _authenticationService.Register(registerBody);
+
+            var response = req.CreateResponse(HttpStatusCode.OK);
+            return response;
+        }
+    }
+}
