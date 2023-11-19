@@ -58,6 +58,7 @@ namespace Absencespot.DependencyInjection
             services.AddTransient<IEmailClient, SendridClient>();
             services.AddTransient<ICompanyService, CompanyService>();
             services.AddTransient<IRequestService, RequestService>();
+            services.AddTransient<IAuthenticationService, AuthenticationService>();
             services.AddSingleton(x => new BlobServiceClient(configuration.GetConnectionString("BlobStorageConnection")));
             services.AddSingleton<BlobStorageClient>();
 
