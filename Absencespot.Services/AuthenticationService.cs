@@ -8,13 +8,9 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
-using System;
-using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
 using System.Security.Claims;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Absencespot.Services
 {
@@ -40,7 +36,8 @@ namespace Absencespot.Services
             _sendgridClient = sendgridClient;
         }
 
-        public async Task Register(Dtos.Register register)
+
+        public async Task Register(Dtos.Register register, CancellationToken cancellationToken = default)
         {
             _logger.LogInformation($"{nameof(Register)} param value {register}");
 
@@ -53,6 +50,8 @@ namespace Absencespot.Services
             var user = new Domain.User()
             {
                 Email = register.Email,
+                UserName = register.Email,
+                Position = register.Position,
                 TwoFactorEnabled = false,
                 PhoneNumberConfirmed = true,
             };
@@ -86,7 +85,7 @@ namespace Absencespot.Services
         }
 
 
-        public async Task ConfirmEmail(Dtos.ConfirmEmail confirmEmail)
+        public async Task ConfirmEmail(Dtos.ConfirmEmail confirmEmail, CancellationToken cancellationToken = default)
         {
             _logger.LogInformation($"{nameof(ConfirmEmail)} param value {confirmEmail}");
 
@@ -116,7 +115,9 @@ namespace Absencespot.Services
 
             _logger.LogInformation($"{nameof(ConfirmEmail)} {user.Email}");
         }
-        public async Task<Dtos.TokenResponse> Login(LoginRequest login)
+
+
+        public async Task<Dtos.TokenResponse> Login(LoginRequest login, CancellationToken cancellationToken = default)
         {
             _logger.LogInformation($"{nameof(Login)} param value {login}");
 
@@ -141,7 +142,8 @@ namespace Absencespot.Services
             return CreateJWT(user);
         }
 
-        public async Task<TokenResponse> ExternalLogin(ExternalLoginInfo externalLogin)
+
+        public async Task<TokenResponse> ExternalLogin(ExternalLoginInfo externalLogin, CancellationToken cancellationToken = default)
         {
             _logger.LogInformation("{ExternalLogin} param value {externalLoginInfo}", nameof(ExternalLogin), externalLogin);
 
@@ -221,6 +223,7 @@ namespace Absencespot.Services
             }
         }
 
+
         public Task LoginWithMicrosoft()
         {
             throw new NotImplementedException();
@@ -232,7 +235,7 @@ namespace Absencespot.Services
         }
 
 
-        public async Task RequestResetPassword(string email)
+        public async Task RequestResetPassword(string email, CancellationToken cancellationToken = default)
         {
             _logger.LogInformation("{RequestResetPassword} param value {email}", nameof(RequestResetPassword), email);
 
@@ -269,7 +272,8 @@ namespace Absencespot.Services
             _logger.LogInformation($"{nameof(RequestResetPassword)} {user}");
         }
 
-        public async Task ResetPassword(ResetPassword resetPassword)
+
+        public async Task ResetPassword(ResetPassword resetPassword, CancellationToken cancellationToken = default)
         {
             _logger.LogInformation("{ResetPassword} param value {email}", nameof(ResetPassword), resetPassword);
 
@@ -296,6 +300,7 @@ namespace Absencespot.Services
             _logger.LogInformation($"{nameof(ResetPassword)} failed {user.Email}");
         }
 
+
         private Dtos.TokenResponse CreateJWT(Domain.User user)
         {
             DateTime expiration = DateTime.UtcNow.AddMinutes(Convert.ToDouble(_configuration["Jwt:Exp_time"]));
@@ -309,7 +314,7 @@ namespace Absencespot.Services
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Secret_key"]));
 
             var signingCredentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
-
+                
             JwtSecurityToken tokenGenerator = new JwtSecurityToken(
                 _configuration["Jwt:Issuer"],
                 _configuration["Jwt:Audience"],
