@@ -16,6 +16,11 @@ namespace Absencespot.SqlServer.Configurations
             // Primary key
             builder.HasKey(u => u.Id);
 
+            //Custom properties
+            builder.HasAlternateKey(x => x.GlobalId);
+            builder.Property(x => x.GlobalId).HasDefaultValueSql("NEWID()");
+            builder.Property(p => p.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
+
             // Indexes for "normalized" username and email, to allow efficient lookups
             builder.HasIndex(u => u.NormalizedUserName).HasName("UserNameIndex").IsUnique();
             builder.HasIndex(u => u.NormalizedEmail).HasName("EmailIndex");
