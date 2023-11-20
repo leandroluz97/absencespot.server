@@ -10,6 +10,7 @@ namespace Absencespot.Domain
     public class User : IdentityUser<int>
     {
         public Guid GlobalId { get; set; }
+        public DateTime CreatedAt { get; set; }
         public string? FirstName { get; set; }
         public string? LastName { get; set; }
         public string Position { get; set; }
@@ -21,8 +22,8 @@ namespace Absencespot.Domain
         //public ICollection<Request> OnBehalfOs { get; set; }
         //public Request? OnBehalfOf { get; set; }
 
-        public int CompanyId { get; set; }
-        public Company Company { get; set; }
+        public int? CompanyId { get; set; }
+        public Company? Company { get; set; }
         public int? OfficeId { get; set; }
         public Office? Office { get; set; }
         public int? WorkScheduleId { get; set; }
