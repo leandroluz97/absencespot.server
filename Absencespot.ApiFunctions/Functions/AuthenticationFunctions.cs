@@ -33,5 +33,18 @@ namespace Absencespot.ApiFunctions.Functions
             var response = req.CreateResponse(HttpStatusCode.OK);
             return response;
         }
+
+
+        [Function(nameof(ConfirmEmailAsync))]
+        public async Task<HttpResponseData> ConfirmEmailAsync([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "authentication/confirm")] HttpRequestData req)
+        {
+            _logger.LogInformation($"{nameof(ConfirmEmailAsync)} HTTP trigger function processed a request.");
+
+            var confirmEmailBody = JsonSerializer.Deserialize<Dtos.ConfirmEmail>(req.Body, _jsonSerializerOptions);
+            await _authenticationService.ConfirmEmail(confirmEmailBody);
+
+            var response = req.CreateResponse(HttpStatusCode.OK);
+            return response;
+        }
     }
 }
