@@ -46,5 +46,20 @@ namespace Absencespot.ApiFunctions.Functions
             var response = req.CreateResponse(HttpStatusCode.OK);
             return response;
         }
+
+
+        [Function(nameof(LoginAsync))]
+        public async Task<HttpResponseData> LoginAsync([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "authentication/login")] HttpRequestData req)
+        {
+            _logger.LogInformation($"{nameof(LoginAsync)} HTTP trigger function processed a request.");
+
+            var loginBody = JsonSerializer.Deserialize<Dtos.LoginRequest>(req.Body, _jsonSerializerOptions);
+            await _authenticationService.Login(loginBody);
+
+            var response = req.CreateResponse(HttpStatusCode.OK);
+            await response.WriteAsJsonAsync(loginBody, _objectSerializer)
+                .ConfigureAwait(false);
+            return response;
+        }
     }
 }
