@@ -61,5 +61,29 @@ namespace Absencespot.ApiFunctions.Functions
                 .ConfigureAwait(false);
             return response;
         }
+
+        [Function(nameof(RequestResetPasswordAsync))]
+        public async Task<HttpResponseData> RequestResetPasswordAsync([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "authentication/password-reset")] HttpRequestData req)
+        {
+            _logger.LogInformation($"{nameof(RequestResetPasswordAsync)} HTTP trigger function processed a request.");
+
+            var requestResetPasswordBody = JsonSerializer.Deserialize<Dtos.PasswordReset>(req.Body, _jsonSerializerOptions);
+            await _authenticationService.RequestResetPassword(requestResetPasswordBody.Email);
+
+            var response = req.CreateResponse(HttpStatusCode.OK);
+            return response;
+        }
+        
+        [Function(nameof(ResetPasswordAsync))]
+        public async Task<HttpResponseData> ResetPasswordAsync([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "authentication/reset-password")] HttpRequestData req)
+        {
+            _logger.LogInformation($"{nameof(ResetPasswordAsync)} HTTP trigger function processed a request.");
+
+            var resetPasswordBody = JsonSerializer.Deserialize<Dtos.ResetPassword>(req.Body, _jsonSerializerOptions);
+            await _authenticationService.ResetPassword(resetPasswordBody);
+
+            var response = req.CreateResponse(HttpStatusCode.OK);
+            return response;
+        }
     }
 }
