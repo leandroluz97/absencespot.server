@@ -54,10 +54,10 @@ namespace Absencespot.ApiFunctions.Functions
             _logger.LogInformation($"{nameof(LoginAsync)} HTTP trigger function processed a request.");
 
             var loginBody = JsonSerializer.Deserialize<Dtos.LoginRequest>(req.Body, _jsonSerializerOptions);
-            await _authenticationService.Login(loginBody);
+            var loginResponse = await _authenticationService.Login(loginBody);
 
             var response = req.CreateResponse(HttpStatusCode.OK);
-            await response.WriteAsJsonAsync(loginBody, _objectSerializer)
+            await response.WriteAsJsonAsync(loginResponse, _objectSerializer)
                 .ConfigureAwait(false);
             return response;
         }

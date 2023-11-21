@@ -12,6 +12,8 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
+
+
 namespace Absencespot.Services
 {
     public class AuthenticationService : IAuthenticationService
@@ -54,6 +56,7 @@ namespace Absencespot.Services
                 Position = register.Position,
                 TwoFactorEnabled = false,
                 PhoneNumberConfirmed = true,
+                LockoutEnabled = false,
             };
 
             var result = await _userManager.CreateAsync(user);
@@ -100,11 +103,7 @@ namespace Absencespot.Services
             {
                 throw new NotFoundException($"{nameof(user)} with {confirmEmail.Email} not found");
             }
-            user.FirstName = confirmEmail.FirstName;
-            user.LastName = confirmEmail.LastName;
-            user.PhoneNumber = confirmEmail.PhoneNumber;
 
-            await _userManager.ChangePasswordAsync(user, null, user.Email);
             var token = Conversor.ToString(confirmEmail.Token);
 
             var result = await _userManager.ConfirmEmailAsync(user, token);
@@ -112,6 +111,12 @@ namespace Absencespot.Services
             {
                 throw new InvalidOperationException();
             }
+
+            user.FirstName = confirmEmail.FirstName;
+            user.LastName = confirmEmail.LastName;
+            user.PhoneNumber = confirmEmail.PhoneNumber;
+
+            await _userManager.AddPasswordAsync(user, confirmEmail.Password);
 
             _logger.LogInformation($"{nameof(ConfirmEmail)} {user.Email}");
         }
@@ -133,12 +138,14 @@ namespace Absencespot.Services
                 throw new NotFoundException($"{nameof(user)} with {login.Email} not found");
             }
 
-            var result = await _signInManager.PasswordSignInAsync(login.Email, login.Password, isPersistent: false, lockoutOnFailure: false);
+            var result = await _signInManager.CheckPasswordSignInAsync(user, login.Password, lockoutOnFailure: false);
             if (!result.Succeeded)
             {
-                throw new InvalidOperationException($"Unable to authenticate user {nameof(user.Email)}.");
+                throw new InvalidOperationException($"Unable to authenticate user {user.Email}.");
             }
-            
+
+            //await _signInManager.SignInAsync(user, isPersistent: false, authenticationMethod: "Local");
+
             return CreateJWT(user);
         }
 
