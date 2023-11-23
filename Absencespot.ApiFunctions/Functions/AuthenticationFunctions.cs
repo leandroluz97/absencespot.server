@@ -1,9 +1,13 @@
+using System;
 using System.Net;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Absencespot.Business.Abstractions;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace Absencespot.ApiFunctions.Functions
@@ -12,13 +16,17 @@ namespace Absencespot.ApiFunctions.Functions
     {
         private readonly ILogger _logger;
         private readonly IAuthenticationService _authenticationService;
+        private readonly SignInManager<Domain.User> _signInManager;
 
         public AuthenticationFunctions(
             ILogger<AuthenticationFunctions> logger,
-            IAuthenticationService authenticationService) : base(logger)
+            IAuthenticationService authenticationService,
+            SignInManager<Domain.User> signInManager
+            ) : base(logger)
         {
             _logger = logger;
             _authenticationService = authenticationService;
+            _signInManager = signInManager;
         }
 
 
@@ -73,7 +81,7 @@ namespace Absencespot.ApiFunctions.Functions
             var response = req.CreateResponse(HttpStatusCode.OK);
             return response;
         }
-        
+
         [Function(nameof(ResetPasswordAsync))]
         public async Task<HttpResponseData> ResetPasswordAsync([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "authentication/reset-password")] HttpRequestData req)
         {
@@ -84,6 +92,51 @@ namespace Absencespot.ApiFunctions.Functions
 
             var response = req.CreateResponse(HttpStatusCode.OK);
             return response;
+        }
+
+
+        [Function(nameof(ExternalLogin))]
+        public async Task<HttpResponseData> ExternalLogin(
+         [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "authentication/external-login")] HttpRequestData req)
+        {
+            _logger.LogInformation($"{nameof(ExternalLogin)} HTTP trigger function processed a request.");
+
+            var query = System.Web.HttpUtility.ParseQueryString(req.Url.Query);
+            var provider = query["provider"];
+            var returnUrl = query["returnUrl"];
+            var redirectUrl = $"{GetFunctionAppBaseUrl(req)}api/v1/authentication/external-auth-callBack?returnUrl={returnUrl}";
+
+            var properties = _signInManager.ConfigureExternalAuthenticationProperties(provider, redirectUrl);
+            properties.AllowRefresh = true;
+
+            var response = req.CreateResponse(HttpStatusCode.OK);
+            return response;
+        }
+
+        [Function(nameof(ExternalAuthCallBack))]
+        public async Task<HttpResponseData> ExternalAuthCallBack(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "authentication/external-auth-callBack")] HttpRequestData req)
+        {
+            _logger.LogInformation($"{nameof(ExternalAuthCallBack)} HTTP trigger function processed a request.");
+
+            ExternalLoginInfo info = await _signInManager.GetExternalLoginInfoAsync();
+            var result = await _authenticationService.ExternalLogin(info);
+
+            if (result == null)
+            {
+                throw new InvalidOperationException();
+            }
+
+            var redirectUrl = $"http://localhost:3000/?token={result.Token}";
+
+            var response = req.CreateResponse(HttpStatusCode.Redirect);
+            response.Headers.Add("Location", redirectUrl);
+            return response;
+        }
+
+        private static string GetFunctionAppBaseUrl(HttpRequestData req)
+        {
+            return $"{req.Url.Scheme}://{req.Url.Host}{(req.Url.IsDefaultPort ? string.Empty : $":{req.Url.Port}")}";
         }
     }
 }
