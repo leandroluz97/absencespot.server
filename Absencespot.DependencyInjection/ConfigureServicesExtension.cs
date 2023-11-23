@@ -102,18 +102,23 @@ namespace Absencespot.DependencyInjection
                     IssuerSigningKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(configuration["Jwt:Secret_key"]))
                 };
             })
-            .AddCookie();
-            //.AddGoogle(googleOptions =>
-            //{
-            //    googleOptions.ClientId = configuration["GoogleAuth:ClientId"];
-            //    googleOptions.ClientSecret = configuration["GoogleAuth:ClientSecret"];
-            //    //googleOptions.SignInScheme = GoogleDefaults.AuthenticationScheme;
-            //    //googleOptions.AuthorizationEndpoint
+            .AddCookie()
+            .AddGoogle(googleOptions =>
+            {
+                googleOptions.ClientId = configuration["GoogleAuth:ClientId"];
+                googleOptions.ClientSecret = configuration["GoogleAuth:ClientSecret"];
+                //googleOptions.SignInScheme = GoogleDefaults.AuthenticationScheme;
+                //googleOptions.AuthorizationEndpoint
 
-            //    googleOptions.Scope.Add("profile");
-            //    googleOptions.SignInScheme = Microsoft.AspNetCore.Identity.IdentityConstants.ExternalScheme;
-            //});
-
+                googleOptions.Scope.Add("profile");
+                googleOptions.SignInScheme = Microsoft.AspNetCore.Identity.IdentityConstants.ExternalScheme;
+            })
+            .AddMicrosoftAccount(options =>
+           {
+               options.ClientId = configuration["MicrosoftAuth:ClientId"];
+               options .ClientSecret = configuration["MicrosoftAuth:ClientSecret"];
+           });
+             
             //services.Configure<CookiePolicyOptions>(options =>
             //{
             //    // This lambda determines whether user consent for non-essential cookies is needed for a given request.
