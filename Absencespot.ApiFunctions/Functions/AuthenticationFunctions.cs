@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Absencespot.Business.Abstractions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.DependencyInjection;
@@ -96,7 +97,7 @@ namespace Absencespot.ApiFunctions.Functions
 
 
         [Function(nameof(ExternalLogin))]
-        public async Task<HttpResponseData> ExternalLogin(
+        public async Task<ChallengeResult> ExternalLogin(
          [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "authentication/external-login")] HttpRequestData req)
         {
             _logger.LogInformation($"{nameof(ExternalLogin)} HTTP trigger function processed a request.");
@@ -104,18 +105,17 @@ namespace Absencespot.ApiFunctions.Functions
             var query = System.Web.HttpUtility.ParseQueryString(req.Url.Query);
             var provider = query["provider"];
             var returnUrl = query["returnUrl"];
-            var redirectUrl = $"{GetFunctionAppBaseUrl(req)}api/v1/authentication/external-auth-callBack?returnUrl={returnUrl}";
+            var redirectUrl = $"{GetFunctionAppBaseUrl(req)}/api/authentication/external-auth-callBack?returnUrl={returnUrl}";
 
             var properties = _signInManager.ConfigureExternalAuthenticationProperties(provider, redirectUrl);
             properties.AllowRefresh = true;
-
-            var response = req.CreateResponse(HttpStatusCode.OK);
-            return response;
+            var challengeResult = new ChallengeResult(redirectUrl, properties);
+            return challengeResult;
         }
 
         [Function(nameof(ExternalAuthCallBack))]
         public async Task<HttpResponseData> ExternalAuthCallBack(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "authentication/external-auth-callBack")] HttpRequestData req)
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "authentication/external-auth-callBack")] HttpRequestData req)
         {
             _logger.LogInformation($"{nameof(ExternalAuthCallBack)} HTTP trigger function processed a request.");
 

@@ -22,7 +22,7 @@ namespace Absencespot.ApiFunctions.Middlewares
                 await next(context);
             }
             catch (Exception ex)
-            {
+            {//HttpContext must not be null.
                 await HandleExceptionAsync(context, ex);
             }
         }

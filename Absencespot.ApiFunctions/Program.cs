@@ -2,6 +2,7 @@ using Absencespot.ApiFunctions.Middlewares;
 using Absencespot.DependencyInjection;
 using Microsoft.Azure.Functions.Worker.Configuration;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System.IO;
 using System.Threading.Tasks;
@@ -29,6 +30,7 @@ namespace Absencespot.ApiFunctions
                 {
                     services.AddPersistence(context.Configuration);
                     services.AddServices(context.Configuration);
+                    services.AddHttpContextAccessor();
                 })
                 .Build();
 
