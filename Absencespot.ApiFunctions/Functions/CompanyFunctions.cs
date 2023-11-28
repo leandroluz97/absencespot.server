@@ -23,8 +23,8 @@ namespace Absencespot.ApiFunctions
             _companyService = companyService;
         }
 
-        [Function(nameof(CreateAsync))]
-        public async Task<HttpResponseData> CreateAsync([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "companies")] HttpRequestData req)
+        [Function(nameof(CreateCompany))]
+        public async Task<HttpResponseData> CreateCompany([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "companies")] HttpRequestData req)
         {
             _logger.LogInformation("C# HTTP trigger function processed a request.");
 
@@ -44,8 +44,8 @@ namespace Absencespot.ApiFunctions
             return response;
         }
 
-        [Function(nameof(GetByIdAsync))]
-        public async Task<HttpResponseData> GetByIdAsync([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "companies/{companyId}")] HttpRequestData req, Guid companyId)
+        [Function(nameof(GetCompanyById))]
+        public async Task<HttpResponseData> GetCompanyById([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "companies/{companyId}")] HttpRequestData req, Guid companyId)
         {
             _logger.LogInformation("C# HTTP trigger function processed a request.");
 
@@ -57,8 +57,8 @@ namespace Absencespot.ApiFunctions
             return response;
         }
 
-        [Function(nameof(UpdateAsync))]
-        public async Task<HttpResponseData> UpdateAsync([HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = "companies/{companyId}")] HttpRequestData req, Guid companyId)
+        [Function(nameof(UpdateCompany))]
+        public async Task<HttpResponseData> UpdateCompany([HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = "companies/{companyId}")] HttpRequestData req, Guid companyId)
         {
             _logger.LogInformation("C# HTTP trigger function processed a request.");
 
