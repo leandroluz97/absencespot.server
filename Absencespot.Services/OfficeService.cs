@@ -3,6 +3,7 @@ using Absencespot.Dtos;
 using Absencespot.Infrastructure.Abstractions;
 using Absencespot.Services.Exceptions;
 using Absencespot.Services.Mappers;
+using Absencespot.Utils;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -73,7 +74,7 @@ namespace Absencespot.Services
             throw new NotImplementedException();
         }
 
-        public Task<IEnumerable<Office>> GetAllAsync(Guid companyId, Office office, CancellationToken cancellationToken = default)
+        public Task<Pagination<Office>> GetAllAsync(Guid companyId, Office office, CancellationToken cancellationToken = default)
         {
             throw new NotImplementedException();
         }
