@@ -30,7 +30,7 @@ namespace Absencespot.ApiFunctions
                 {
                     services.AddPersistence(context.Configuration);
                     services.AddServices(context.Configuration);
-                    services.AddHttpContextAccessor();
+                   // services.AddHttpContextAccessor();
                 })
                 .Build();
 
