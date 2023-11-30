@@ -12,5 +12,6 @@ namespace Absencespot.Dtos
         public double MonthlyAccrual { get; set; }
         public double MonthCarryOverExpiresAfter { get; set; }
         public double MonthMaxCarryOver { get; set; }
+        public Guid LeaveId { get; set; }
     }
 }

@@ -29,6 +29,10 @@ namespace Absencespot.Dtos
             {
                 throw new ArgumentException(nameof(AvailableLeaves));
             }
+            if (Absences == null || !Absences.Any())
+            {
+                throw new ArgumentException(nameof(Absences));
+            }
         }
     }
 }
