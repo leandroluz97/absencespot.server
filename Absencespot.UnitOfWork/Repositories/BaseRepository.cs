@@ -3,6 +3,7 @@ using Absencespot.Infrastructure.Abstractions.Repositories;
 using Absencespot.SqlServer;
 using Absencespot.Utils;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query;
 using System.Linq.Expressions;
 
 namespace Absencespot.UnitOfWork.Repositories
@@ -32,14 +33,24 @@ namespace Absencespot.UnitOfWork.Repositories
             return queryable.Include(navigationPropertyPath);
         }
 
-        public IQueryable<T> IncludeThen<TProperty, TSubProperty>(IQueryable<T> queryable, Expression<Func<T, TProperty>> navigationPropertyPath, Expression<Func<TProperty, TSubProperty>> subProperty)
+        public IQueryable<T> IncludeThen<TProperty, TSubProperty>(IQueryable<T> queryable, Expression<Func<TProperty, TSubProperty>> navigationPropertyPath)
         {
-           return queryable.Include(navigationPropertyPath).ThenInclude(subProperty);
+            if (queryable is IIncludableQueryable<T, TProperty> asSingle)
+            {
+                return asSingle.ThenInclude(navigationPropertyPath);
+            }
+
+            if (queryable is IIncludableQueryable<T, IEnumerable<TProperty>> asEnumerable)
+            {
+                return asEnumerable.ThenInclude(navigationPropertyPath);
+            }
+
+            throw new InvalidCastException("Invalid cast for IncludeThen method.");
         }
 
-        public async Task<IEnumerable<T>> ToListAsync(IQueryable<T> queryable)
+        public async Task<IEnumerable<T>> ToListAsync(IQueryable<T> queryable, CancellationToken cancellationToken = default)
         {
-            return await queryable.ToListAsync();
+            return await queryable.ToListAsync(cancellationToken);
         }
          public async Task<T?> FirstOrDefaultAsync(IQueryable<T> queryable, CancellationToken cancellationToken = default)
         {
@@ -61,8 +72,8 @@ namespace Absencespot.UnitOfWork.Repositories
 
         public T Add(T entity)
         {
-            _dbSet.Add(entity);
-            return entity;
+            var result = _dbSet.Add(entity);
+            return result.Entity;
         }
 
         public async Task AddAsync(T entity, CancellationToken cancellationToken = default)
@@ -128,8 +139,8 @@ namespace Absencespot.UnitOfWork.Repositories
 
         public T Update(T entity)
         {
-           _dbContext.Update(entity);
-            return entity;
+          var result = _dbContext.Update(entity);
+            return result.Entity;
         }
 
         public IEnumerable<T> UpdateRange(IEnumerable<T> entities)
