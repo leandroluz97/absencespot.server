@@ -24,12 +24,13 @@ namespace Absencespot.Services.Mappers
         {
             return new Dtos.Office()
             {
-                Address = AddressMapper.ToDto(domain.Address),
+                Id = domain.GlobalId,
+                Address = domain.Address != null ? AddressMapper.ToDto(domain.Address) : null,
                 Name= domain.Name,
                 IsEmployeeLeaveStartOnJobStartDate = domain.IsEmployeeLeaveStartOnJobStartDate,
                 Absences = domain.Absences?.Select(AbsenceMapper.ToDto).ToList(),
                 StartDate = domain.StartDate,
-                AvailableLeaves  = domain.AvailableLeaves.Select(a => a.Leave.GlobalId)
+                AvailableLeaves  = domain.AvailableLeaves?.Select(a => a.Leave.GlobalId)
             };
         }
     }

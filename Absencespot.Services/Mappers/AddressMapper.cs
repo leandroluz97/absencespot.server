@@ -18,6 +18,7 @@ namespace Absencespot.Services.Mappers
                 AddressLine2 = dto.AddressLine2,
                 AddressLine3 = dto.AddressLine3,
                 CountryCode = dto.CountryCode,
+                PostalCode = dto.PostalCode,
             };
         }
 
@@ -32,6 +33,7 @@ namespace Absencespot.Services.Mappers
                 AddressLine2 = domain.AddressLine2,
                 AddressLine3 = domain.AddressLine3,
                 CountryCode = domain.CountryCode,
+                PostalCode = domain.PostalCode,
             };
         }
     }

@@ -28,6 +28,7 @@ namespace Absencespot.Services.Mappers
         {
             return new Dtos.Leave()
             {
+                Id = domain.GlobalId,
                 Name = domain.Name,
                 Color = domain.Color,
                 IsActive = domain.IsActive,
@@ -36,6 +37,7 @@ namespace Absencespot.Services.Mappers
                 IsLimitedQuota = domain.IsLimitedQuota,
                 Icon = domain.Icon,
                 YearlyQuota = domain.YearlyQuota,
+                OfficeIds = domain.OfficesLeaves?.Select(x => x.Office.GlobalId)
             };
         }
     }
