@@ -70,24 +70,172 @@ namespace Absencespot.Services
             return TeamMapper.ToDto(teamDomain);
         }
 
-        public Task DeleteAsync(Guid companyId, Guid officeId, CancellationToken cancellationToken = default)
+        public async Task DeleteAsync(Guid companyId, Guid teamId, CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            if (companyId == default)
+            {
+                throw new ArgumentNullException(nameof(companyId));
+            }
+            if (teamId == default)
+            {
+                throw new ArgumentNullException(nameof(teamId));
+            }
+
+            var companyDomain = await _unitOfWork.CompanyRepository.FindByGlobalIdAsync(companyId, cancellationToken: cancellationToken);
+            if (companyDomain == null)
+            {
+                throw new NotFoundException(nameof(companyDomain));
+            }
+
+            var teamDomain = await _unitOfWork.TeamRepository.FindByGlobalIdAsync(teamId);
+            if (teamDomain == null)
+            {
+                throw new NotFoundException(nameof(teamDomain));
+            }
+
+            if (teamDomain.CompanyId != companyDomain.Id)
+            {
+                throw new UnauthorizedAccessException();
+            }
+
+            foreach (var teamUser in teamDomain.Users)
+            {
+                teamDomain.Users.Remove(teamUser);
+            }
+
+            _unitOfWork.TeamRepository.Remove(teamDomain);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
         }
 
-        public Task<Pagination<Team>> GetAllAsync(Guid companyId, int pageNumber = 1, int pageSize = 50, CancellationToken cancellationToken = default)
+        public async Task<Pagination<Team>> GetAllAsync(Guid companyId, int pageNumber = 1, int pageSize = 50, CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            if (companyId == default)
+            {
+                throw new ArgumentNullException(nameof(companyId));
+            }
+            var companyDomain = await _unitOfWork.CompanyRepository.FindByGlobalIdAsync(companyId, cancellationToken: cancellationToken);
+            if (companyDomain == null)
+            {
+                throw new NotFoundException(nameof(companyDomain));
+            }
+
+            var queryable = _unitOfWork.TeamRepository.AsQueryable(RepositoryOptions.AsNoTracking());
+            queryable = queryable.Where(l => l.Company.GlobalId == companyId);
+
+            var totalTeams = queryable.Count();
+            queryable = queryable.Skip((pageNumber - 1) * pageSize).Take(pageSize);
+            queryable = _unitOfWork.TeamRepository.Include(queryable, x => x.Users);
+            queryable = _unitOfWork.TeamRepository.IncludeThen<Domain.UserTeam, Domain.User>(queryable, x => x.User);
+            var teams = await _unitOfWork.TeamRepository.ToListAsync(queryable, cancellationToken);
+
+            _logger.LogInformation($"Get office pageSize: {pageSize}, pageNumber: {pageNumber}");
+
+            return new Pagination<Dtos.Team>()
+            {
+                TotalRecords = totalTeams,
+                TotalPages = (int)Math.Ceiling((decimal)totalTeams / (decimal)pageSize),
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                Items = teams.Select(TeamMapper.ToDto)
+            };
         }
 
-        public Task<Team> GetByIdAsync(Guid companyId, Guid teamId, CancellationToken cancellationToken = default)
+        public async Task<Dtos.Team> GetByIdAsync(Guid companyId, Guid teamId, CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            if (companyId == default)
+            {
+                throw new ArgumentNullException(nameof(companyId));
+            }
+            if (teamId == default)
+            {
+                throw new ArgumentNullException(nameof(teamId));
+            }
+
+            var companyDomain = await _unitOfWork.CompanyRepository.FindByGlobalIdAsync(companyId, cancellationToken: cancellationToken);
+            if (companyDomain == null)
+            {
+                throw new NotFoundException(nameof(companyDomain));
+            }
+
+            var teamDomain = await _unitOfWork.TeamRepository.FindByGlobalIdAsync(teamId);
+            if (teamDomain == null)
+            {
+                throw new NotFoundException(nameof(teamDomain));
+            }
+
+            _logger.LogInformation($"Found team Id: {teamId}");
+
+            return TeamMapper.ToDto(teamDomain);
         }
 
-        public Task<Team> UpdateAsync(Guid companyId, Guid officeId, Team office, CancellationToken cancellationToken = default)
+        public async Task<Team> UpdateAsync(Guid companyId, Guid teamId, Team team, CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            if (companyId == default)
+            {
+                throw new ArgumentNullException(nameof(companyId));
+            }
+            var companyDomain = await _unitOfWork.CompanyRepository.FindByGlobalIdAsync(companyId, cancellationToken: cancellationToken);
+            if (companyDomain == null)
+            {
+                throw new NotFoundException(nameof(companyDomain));
+            }
+            if (teamId == default)
+            {
+                throw new ArgumentNullException(nameof(teamId));
+            }
+            if (team == null)
+            {
+                throw new ArgumentNullException(nameof(team));
+            }
+            team.EnsureValidation();
+
+            var queryable = _unitOfWork.TeamRepository.AsQueryable(RepositoryOptions.AsNoTracking());
+            queryable = queryable.Where(l => l.Company.GlobalId == companyId);
+            queryable = _unitOfWork.TeamRepository.Include(queryable, x => x.Users);
+            queryable = _unitOfWork.TeamRepository.IncludeThen<Domain.UserTeam, Domain.User>(queryable, x => x.User);
+            var teamDomain = await _unitOfWork.TeamRepository.FirstOrDefaultAsync(queryable, cancellationToken);
+
+            if (teamDomain == null)
+            {
+                throw new ArgumentNullException(nameof(teamDomain));
+            }
+
+            foreach (Domain.UserTeam userTeam in teamDomain?.Users)
+            {
+                if (!team.Users.Any(baseUser => baseUser.Id == userTeam.User?.GlobalId))
+                {
+                    teamDomain.Users.Remove(userTeam);
+                }
+            }
+
+            foreach (BaseUser baseUser in team.Users)
+            {
+                if (!teamDomain.Users.Any(teamUser => teamUser.User.GlobalId == baseUser.Id))
+                {
+                    var user = await LoadUserByIdAsync(companyId, baseUser.Id);
+                    if (user == null)
+                    {
+                        throw new NotFoundException(nameof(user));
+                    }
+                    teamDomain.Users ??= new List<Domain.UserTeam>();
+                    teamDomain.Users.Add(new Domain.UserTeam
+                    {
+                        Team = teamDomain,
+                        User = user
+                    });
+                }
+            }
+
+            teamDomain.Name = team.Name;
+            teamDomain.Name = team.Description;
+            teamDomain.IsAutoApproved = team.IsAutoApproved;
+
+            _unitOfWork.TeamRepository.Update(teamDomain);
+            await _unitOfWork.SaveChangesAsync();
+
+            _logger.LogInformation($"Updated leave Id: {teamId}");
+
+            return TeamMapper.ToDto(teamDomain);
         }
 
         private async Task<Domain.User> LoadUserByIdAsync(Guid companyId, Guid userId)
