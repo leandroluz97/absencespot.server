@@ -31,7 +31,7 @@ namespace Absencespot.Services
             }
             if (office == null)
             {
-                throw new ArgumentNullException(nameof(companyId));
+                throw new ArgumentNullException(nameof(office));
             }
             office.EnsureValidation();
 
@@ -83,6 +83,7 @@ namespace Absencespot.Services
             return OfficeMapper.ToDto(officeDomain);
         }
 
+
         public async Task DeleteAsync(Guid companyId, Guid officeId, CancellationToken cancellationToken = default)
         {
             if(companyId == default)
@@ -114,6 +115,7 @@ namespace Absencespot.Services
             _unitOfWork.OfficeRepository.Remove(officeDomain);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
         }
+
 
         public async Task<Pagination<Office>> GetAllAsync(
             Guid companyId,
@@ -179,13 +181,13 @@ namespace Absencespot.Services
             return OfficeMapper.ToDto(officeDomain);
         }
 
+
         public async Task<Dtos.Office> UpdateAsync(Guid companyId, Guid officeId, Dtos.Office office, CancellationToken cancellationToken = default)
         {
             if(office == null)
             {
                 throw new ArgumentNullException(nameof(office));
             }
-            office.EnsureValidation();
 
             if (companyId == default)
             {
@@ -201,7 +203,7 @@ namespace Absencespot.Services
             {
                 throw new ArgumentNullException(nameof(officeId));
             }
-            var officeDomain = await _unitOfWork.OfficeRepository.FindByGlobalIdAsync(officeId);
+            var officeDomain = await _unitOfWork.OfficeRepository.FindByGlobalIdAsync(officeId, cancellationToken: cancellationToken);
             if (officeDomain == null)
             {
                 throw new NotFoundException(nameof(officeDomain));
@@ -215,8 +217,13 @@ namespace Absencespot.Services
             officeDomain.Name = office.Name;
             officeDomain.IsEmployeeLeaveStartOnJobStartDate = office.IsEmployeeLeaveStartOnJobStartDate;
             officeDomain.StartDate = office.StartDate;
-            officeDomain.Address = AddressMapper.ToDomain(office.Address);
+            if (office.Address != null)
+            {
+                officeDomain.Address = AddressMapper.ToDomain(office.Address);
+            }
 
+            _unitOfWork.OfficeRepository.Update(officeDomain);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
             return OfficeMapper.ToDto(officeDomain);
         }
     }
