@@ -127,6 +127,14 @@ namespace Absencespot.Services
             {
                 throw new ArgumentNullException(nameof(companyId));
             }
+            if (pageNumber < 1)
+            {
+                throw new ArgumentException(nameof(pageNumber));
+            }
+            if (pageSize < 1 || pageSize > 200)
+            {
+                throw new ArgumentException(nameof(pageSize));
+            }
             var companyDomain = await _unitOfWork.CompanyRepository.FindByGlobalIdAsync(companyId, cancellationToken: cancellationToken);
             if (companyDomain == null)
             {
