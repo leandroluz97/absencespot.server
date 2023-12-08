@@ -22,6 +22,8 @@ namespace Absencespot.UnitOfWork.Repositories
             source = source.Where(s => s.GlobalId == globalId);
             source = Include(source, s => s.Address);
             source = Include(source, s => s.Absences);
+            source = Include(source, s => s.AvailableLeaves);
+            source = IncludeThen<Domain.OfficeLeave, Domain.Leave>(source, s => s.Leave);
             var result = await FirstOrDefaultAsync(source, cancellationToken).ConfigureAwait(false);
             return result;
         }
