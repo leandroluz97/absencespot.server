@@ -17,7 +17,7 @@ namespace Absencespot.SqlServer.Configurations
             builder.ToTable("WorkSchedule");
             builder.HasDiscriminator<string>("WorkSchedule")
                     .HasValue<WorkScheduleDefault>("WorkScheduleDefault")
-                    .HasValue<WorkSchedulelFlexible>("WorkSchedulelFlexible");
+                    .HasValue<WorkScheduleFlexible>("WorkScheduleFlexible");
 
             base.Configure(builder);
         }
