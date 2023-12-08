@@ -16,6 +16,7 @@ namespace Absencespot.Services.Mappers
                 Name = dto.Name,
                 IsEmployeeLeaveStartOnJobStartDate = dto.IsEmployeeLeaveStartOnJobStartDate,
                 Absences = dto.Absences?.Select(AbsenceMapper.ToDomain).ToList(),
+                StartDate = dto.StartDate,
             };
         }
 

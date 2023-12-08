@@ -30,6 +30,7 @@ namespace Absencespot.Services.Mappers
                 Users = domain.Users?.Select(u => new Dtos.BaseUser()
                 {
                     Id = u.User.GlobalId,
+                    IsManager = domain.Users.Any(user => user.IsManager && user.GlobalId == u.GlobalId),
                     Email = u.User.Email,
                     FirstName = u.User.FirstName,
                     LastName = u.User.LastName,
