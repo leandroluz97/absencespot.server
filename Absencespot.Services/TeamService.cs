@@ -57,6 +57,7 @@ namespace Absencespot.Services
                 }
                 usersTeam.Add(new Domain.UserTeam()
                 {
+                    IsManager = user.IsManager,
                     User = userDomain,
                     Team = teamDomain
                 });
@@ -190,7 +191,7 @@ namespace Absencespot.Services
             team.EnsureValidation();
 
             var queryable = _unitOfWork.TeamRepository.AsQueryable(RepositoryOptions.AsNoTracking());
-            queryable = queryable.Where(l => l.Company.GlobalId == companyId);
+            queryable = queryable.Where(t => t.Company.GlobalId == companyId && teamId == t.GlobalId);
             queryable = _unitOfWork.TeamRepository.Include(queryable, x => x.Users);
             queryable = _unitOfWork.TeamRepository.IncludeThen<Domain.UserTeam, Domain.User>(queryable, x => x.User);
             var teamDomain = await _unitOfWork.TeamRepository.FirstOrDefaultAsync(queryable, cancellationToken);
@@ -210,7 +211,8 @@ namespace Absencespot.Services
 
             foreach (BaseUser baseUser in team.Users)
             {
-                if (!teamDomain.Users.Any(teamUser => teamUser.User.GlobalId == baseUser.Id))
+                var hasUser = teamDomain.Users.FirstOrDefault(teamUser => teamUser.User.GlobalId == baseUser.Id);
+                if (hasUser is null)
                 {
                     var user = await LoadUserByIdAsync(companyId, baseUser.Id);
                     if (user == null)
@@ -220,14 +222,19 @@ namespace Absencespot.Services
                     teamDomain.Users ??= new List<Domain.UserTeam>();
                     teamDomain.Users.Add(new Domain.UserTeam
                     {
+                        IsManager = baseUser.IsManager,
                         Team = teamDomain,
                         User = user
                     });
                 }
+                else
+                {
+                    hasUser.IsManager = baseUser.IsManager;
+                }
             }
 
             teamDomain.Name = team.Name;
-            teamDomain.Name = team.Description;
+            teamDomain.Description = team.Description;
             teamDomain.IsAutoApproved = team.IsAutoApproved;
 
             _unitOfWork.TeamRepository.Update(teamDomain);
@@ -246,7 +253,7 @@ namespace Absencespot.Services
 
             if (user == null)
             {
-                throw new NotFoundException(nameof(userId));
+                throw new NotFoundException(nameof(user));
             }
 
             return user;
