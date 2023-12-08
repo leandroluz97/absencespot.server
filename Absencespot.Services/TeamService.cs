@@ -106,6 +106,8 @@ namespace Absencespot.Services
 
             _unitOfWork.TeamRepository.Remove(teamDomain);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation($"Deleted team Id: {teamId}");
         }
 
         public async Task<Pagination<Team>> GetAllAsync(Guid companyId, int pageNumber = 1, int pageSize = 50, CancellationToken cancellationToken = default)
@@ -113,6 +115,14 @@ namespace Absencespot.Services
             if (companyId == default)
             {
                 throw new ArgumentNullException(nameof(companyId));
+            }
+            if (pageNumber < 1)
+            {
+                throw new ArgumentException(nameof(pageNumber));
+            }
+            if (pageSize < 1 || pageSize > 200)
+            {
+                throw new ArgumentException(nameof(pageSize));
             }
             var companyDomain = await _unitOfWork.CompanyRepository.FindByGlobalIdAsync(companyId, cancellationToken: cancellationToken);
             if (companyDomain == null)
