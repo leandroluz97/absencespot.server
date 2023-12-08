@@ -9,9 +9,9 @@ namespace Absencespot.Dtos
     public class BaseUser
     {
         public Guid Id { get; set; }
+        public bool IsManager { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public string Email { get; set; }
     }
 }
-1
