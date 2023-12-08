@@ -176,7 +176,7 @@ namespace Absencespot.Services
                 throw new NotFoundException(nameof(officeDomain));
             }
 
-            _logger.LogInformation($"Found leave Id: {officeId}");
+            _logger.LogInformation($"Found office Id: {officeId}");
 
             return OfficeMapper.ToDto(officeDomain);
         }
