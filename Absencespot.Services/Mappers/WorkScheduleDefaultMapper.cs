@@ -10,7 +10,7 @@ namespace Absencespot.Services.Mappers
     {
         public static Domain.WorkScheduleDefault ToDomain(Dtos.WorkScheduleDefault dto)
         {
-            return new Domain.WorkScheduleDefault() 
+            return new Domain.WorkScheduleDefault()
             {
                 IsDefault = dto.IsDefault,
                 WorkDays = dto.WorkDays,
@@ -21,8 +21,9 @@ namespace Absencespot.Services.Mappers
         }
         public static Dtos.WorkScheduleDefault ToDto(Domain.WorkScheduleDefault domain)
         {
-            return new Dtos.WorkScheduleDefault() 
-            { 
+
+            return new Dtos.WorkScheduleDefault()
+            {
                 Id = domain.GlobalId,
                 WorkDays = domain.WorkDays,
                 Name = domain.Name,
@@ -34,3 +35,4 @@ namespace Absencespot.Services.Mappers
         }
     }
 }
+

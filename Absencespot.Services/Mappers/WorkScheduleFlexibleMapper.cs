@@ -10,25 +10,25 @@ namespace Absencespot.Services.Mappers
     {
         public static Domain.WorkScheduleFlexible ToDomain(Dtos.WorkScheduleFlexible dto)
         {
-            return new Domain.WorkScheduleFlexible() 
-            { 
-                Name = dto.Name,    
+            return new Domain.WorkScheduleFlexible()
+            {
+                Name = dto.Name,
                 Description = dto.Description,
                 Hours = dto.Hours,
                 IsDefault = dto.IsDefault,
-                WorkDays = dto.WorkDays,
+                TotalWorkDays = dto.WorkDays,
             };
         }
         public static Dtos.WorkScheduleFlexible ToDto(Domain.WorkScheduleFlexible domain)
         {
-            return new Dtos.WorkScheduleFlexible() 
-            { 
+            return new Dtos.WorkScheduleFlexible()
+            {
                 Id = domain.GlobalId,
-                Name=domain.Name,
-                Description=domain.Description,
+                Name = domain.Name,
+                Description = domain.Description,
                 Hours = domain.Hours,
                 IsDefault = domain.IsDefault,
-                WorkDays = domain.WorkDays,
+                WorkDays = domain.TotalWorkDays,
             };
         }
     }
