@@ -10,8 +10,6 @@ namespace Absencespot.Domain
 {
     public class Request : Entity
     {
-        //public int? OnBehalfOfId { get; set; }
-        //public User? OnBehalfOf { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
         public string Note { get; set; }
@@ -24,5 +22,10 @@ namespace Absencespot.Domain
         public int UserId { get; set; }
         public User User { get; set; }
 
+        public int? OnBehalfOfId { get; set; }
+        public User? OnBehalfOf { get; set; }
+
+        public int? ApproverId { get; set; }
+        public User? Approver { get; set; }
     }
 }

@@ -20,7 +20,8 @@ namespace Absencespot.Domain
         public ICollection<UserTeam>? Teams { get; set; }
         public ICollection<Request> Requests { get; set; }
         //public ICollection<Request> OnBehalfOs { get; set; }
-        //public Request? OnBehalfOf { get; set; }
+        public ICollection<Request>? OnBehalfOfs { get; set; }
+        public ICollection<Request>? Approved { get; set; }
 
         public int? CompanyId { get; set; }
         public Company? Company { get; set; }
