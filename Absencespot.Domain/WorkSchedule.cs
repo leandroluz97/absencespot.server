@@ -14,7 +14,7 @@ namespace Absencespot.Domain
         public bool IsDefault { get; set; }
 
         //default
-        public IEnumerable<string>? WorkDays { get; set; }
+        public string? WorkDays { get; set; }
         public DateTime? StartHour { get; set; }
         public DateTime? EndHour { get; set; }
 
