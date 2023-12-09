@@ -42,6 +42,23 @@ namespace Absencespot.SqlServer.Configurations
                     .WithOne(u => u.User)
                     .HasForeignKey(o => o.UserId)
                     .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasMany(u => u.Requests)
+                .WithOne(r => r.User)
+                .HasForeignKey(r => r.UserId)
+                .OnDelete(DeleteBehavior.Restrict); // Adjust the delete behavior as needed
+
+            builder.HasMany(u => u.Approved)
+                .WithOne(r => r.Approver)
+                .HasForeignKey(r => r.ApproverId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasMany(u => u.OnBehalfOfs)
+                .WithOne(r => r.OnBehalfOf)
+                .HasForeignKey(r => r.OnBehalfOfId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+
             // The relationships between User and other entity types
             // Note that these relationships are configured with no navigation properties
 
