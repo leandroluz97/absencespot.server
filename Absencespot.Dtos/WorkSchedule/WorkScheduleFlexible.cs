@@ -8,8 +8,8 @@ namespace Absencespot.Dtos
 {
     public class WorkScheduleFlexible : WorkSchedule
     {
-        public int WorkDays { get; set; }
-        public int Hours { get; set; }
+        public int? WorkDays { get; set; }
+        public int? Hours { get; set; }
 
         public override void EnsureValidation()
         {
