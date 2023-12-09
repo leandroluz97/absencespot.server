@@ -8,7 +8,7 @@ namespace Absencespot.Domain
 {
     public class WorkScheduleFlexible : WorkSchedule
     {
-        public int WorkDays { get; set; }
-        public int Hours { get; set; }
+        public int? TotalWorkDays { get; set; }
+        public int? Hours { get; set; }
     }
 }
