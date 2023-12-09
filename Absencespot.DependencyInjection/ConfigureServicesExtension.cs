@@ -61,6 +61,7 @@ namespace Absencespot.DependencyInjection
             services.AddTransient<ILeaveService, LeaveService>();
             services.AddTransient<IOfficeService, OfficeService>();
             services.AddTransient<ITeamService, TeamService>();
+            services.AddTransient<IWorkScheduleService, WorkScheduleService>();
             services.AddTransient<IAuthenticationService, AuthenticationService>();
             services.AddSingleton(x => new BlobServiceClient(configuration.GetConnectionString("BlobStorageConnection")));
             services.AddSingleton<BlobStorageClient>();
