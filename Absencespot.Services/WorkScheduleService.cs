@@ -49,25 +49,14 @@ namespace Absencespot.Services
                 throw new ConflictException(nameof(workSchedule));
             }
 
-            if (workSchedule.IsDefault)
-            {
-                workScheduleDomain = WorkScheduleDefaultMapper.ToDomain((WorkScheduleDefault)workSchedule);
-            }
-            else
-            {
-                workScheduleDomain = WorkScheduleFlexibleMapper.ToDomain((WorkScheduleFlexible)workSchedule);
-            }
-
+            workScheduleDomain = WorkScheduleMapper.ToDomain(workSchedule);
+            workScheduleDomain.Company = companyDomain;
             workScheduleDomain = _unitOfWork.WorkScheduleRepository.Add(workScheduleDomain);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             _logger.LogInformation($"Created workSchedule Id {workScheduleDomain.GlobalId}");
 
-            if (workSchedule.IsDefault)
-            {
-               return WorkScheduleDefaultMapper.ToDto((Domain.WorkScheduleDefault)workScheduleDomain);
-            }            
-            return  WorkScheduleFlexibleMapper.ToDto((Domain.WorkScheduleFlexible)workScheduleDomain);
+            return WorkScheduleMapper.ToDto(workScheduleDomain);
         }
 
         public async Task DeleteAsync(Guid companyId, Guid workScheduleId, CancellationToken cancellationToken = default)
@@ -131,11 +120,6 @@ namespace Absencespot.Services
             queryable = queryable.Skip((pageNumber - 1) * pageSize).Take(pageSize);
             var workSchedules = await _unitOfWork.WorkScheduleRepository.ToListAsync(queryable, cancellationToken);
 
-            var defaultSchedules = workSchedules.Where(x => x.IsDefault).Select(x => WorkScheduleDefaultMapper.ToDto((Domain.WorkScheduleDefault)x));
-            var flexibleSchedules = workSchedules.Where(x => x.IsDefault).Select(x => WorkScheduleFlexibleMapper.ToDto((Domain.WorkScheduleFlexible)x));
-            var schedules = new List<Dtos.WorkSchedule>();
-            schedules.AddRange(defaultSchedules);
-            schedules.AddRange(flexibleSchedules);
 
             _logger.LogInformation($"Get workschedule pageSize: {pageSize}, pageNumber: {pageNumber}");
 
@@ -145,7 +129,7 @@ namespace Absencespot.Services
                 TotalPages = (int)Math.Ceiling((decimal)totalWorkSchedules / (decimal)pageSize),
                 PageNumber = pageNumber,
                 PageSize = pageSize,
-                Items = schedules
+                Items = workSchedules.Select(WorkScheduleMapper.ToDto)
             };
         }
 
@@ -174,11 +158,7 @@ namespace Absencespot.Services
 
             _logger.LogInformation($"Found WorkSchedule Id: {workScheduleId}");
 
-            if (workScheduleDomain.IsDefault)
-            {
-                return WorkScheduleDefaultMapper.ToDto((Domain.WorkScheduleDefault)workScheduleDomain);
-            }
-            return WorkScheduleFlexibleMapper.ToDto((Domain.WorkScheduleFlexible)workScheduleDomain);
+            return WorkScheduleMapper.ToDto(workScheduleDomain);
         }
 
         public async Task<Dtos.WorkSchedule> UpdateAsync(Guid companyId, Guid workScheduleId, Dtos.WorkSchedule workSchedule, CancellationToken cancellationToken = default)
@@ -215,51 +195,26 @@ namespace Absencespot.Services
 
             if (workScheduleDomain.IsDefault)
             {
-                var workScheduleDefault = (Dtos.WorkScheduleDefault)workSchedule;
-                Domain.WorkScheduleDefault workScheduleDefaultDomain = new Domain.WorkScheduleDefault()
-                {
-                    Id = workScheduleDomain.Id,
-                    GlobalId = workScheduleDomain.GlobalId,
-                    CreatedAt = workScheduleDomain.CreatedAt,
-                    UpdatedAt = workScheduleDomain.UpdatedAt,
-                    RowVersion = workScheduleDomain.RowVersion,
-                    Company = workScheduleDomain.Company,
-                    Name = workScheduleDefault.Name,
-                    Description = workScheduleDefault.Description,
-                    EndHour = workScheduleDefault.EndHour,
-                    StartHour = workScheduleDefault.StartHour,
-                    WorkDays = workScheduleDefault.WorkDays,
-                };
-                _unitOfWork.WorkScheduleRepository.Update(workScheduleDefaultDomain);
-                await _unitOfWork.SaveChangesAsync(cancellationToken);
-
-                _logger.LogInformation($"Updated WorkSchedule Id: {workScheduleId}");
-
-                return WorkScheduleDefaultMapper.ToDto(workScheduleDefaultDomain);
+                workScheduleDomain.Name = workSchedule.Name;
+                workScheduleDomain.Description = workSchedule.Description;
+                workScheduleDomain.EndHour = workSchedule.EndHour;
+                workScheduleDomain.StartHour = workSchedule.StartHour;
+                workScheduleDomain.WorkDays = string.Join(",", workSchedule.WorkDays);
             }
             else
             {
-                var workScheduleFlexible = (Dtos.WorkScheduleFlexible)workSchedule;
-                Domain.WorkScheduleFlexible workScheduleFlexibleDomain = new Domain.WorkScheduleFlexible()
-                {
-                    Id = workScheduleDomain.Id,
-                    GlobalId = workScheduleDomain.GlobalId,
-                    CreatedAt = workScheduleDomain.CreatedAt,
-                    UpdatedAt = workScheduleDomain.UpdatedAt,
-                    RowVersion = workScheduleDomain.RowVersion,
-                    Company = workScheduleDomain.Company,
-                    Name = workScheduleFlexible.Name,
-                    Description = workScheduleFlexible.Description,
-                    Hours = workScheduleFlexible.Hours,
-                    WorkDays = workScheduleFlexible.WorkDays,
-                };
-                _unitOfWork.WorkScheduleRepository.Update(workScheduleFlexibleDomain);
-                await _unitOfWork.SaveChangesAsync(cancellationToken);
-
-                _logger.LogInformation($"Updated WorkSchedule Id: {workScheduleId}");
-
-                return WorkScheduleFlexibleMapper.ToDto(workScheduleFlexibleDomain);
+                workScheduleDomain.Name = workSchedule.Name;
+                workScheduleDomain.Description = workSchedule.Description;
+                workScheduleDomain.Hours = workSchedule.Hours;
+                workScheduleDomain.TotalWorkDays = workSchedule.TotalWorkDays;
             }
+
+            _unitOfWork.WorkScheduleRepository.Update(workScheduleDomain);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation($"Updated WorkSchedule Id: {workScheduleId}");
+
+            return WorkScheduleMapper.ToDto(workScheduleDomain);
         }
     }
 }
