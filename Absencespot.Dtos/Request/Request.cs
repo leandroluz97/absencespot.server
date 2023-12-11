@@ -25,5 +25,14 @@ namespace Absencespot.Dtos
 
         public int? ApproverId { get; set; }
         public User? Approver { get; set; }
+
+
+        public void EnsureValidation()
+        {
+            if (string.IsNullOrEmpty(Note))
+            {
+                throw new ArgumentException(nameof(Note));
+            }
+        }
     }
 }
