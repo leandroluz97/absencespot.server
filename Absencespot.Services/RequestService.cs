@@ -89,10 +89,11 @@ namespace Absencespot.Services
                 range1 = new DateTime(DateTime.Now.Year, month, day);
             }
 
+            _logger.LogInformation($"Created request Id: ");
 
             //officeDomain.StartDate
-     
-           // requestQueryable = requestQueryable.Where(r => r.StartDate  );
+
+            // requestQueryable = requestQueryable.Where(r => r.StartDate  );
 
 
         }
