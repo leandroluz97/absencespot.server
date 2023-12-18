@@ -22,6 +22,7 @@ namespace Absencespot.Domain
         //public ICollection<Request> OnBehalfOs { get; set; }
         public ICollection<Request>? OnBehalfOfs { get; set; }
         public ICollection<Request>? Approved { get; set; }
+        public ICollection<AvailableLeave>? AvailableLeaves { get; set; }
 
         public int? CompanyId { get; set; }
         public Company? Company { get; set; }
