@@ -14,6 +14,7 @@ namespace Absencespot.Domain
         public double MonthCarryOverExpiresAfter { get; set; }
         public double MonthMaxCarryOver { get; set; }
 
+        public ICollection<AvailableLeave>? AvailableLeaves { get; set; }
         public int? OfficeId { get; set; }
         public Office? Office { get; set; }
         public int? LeaveId { get; set; }

@@ -1,6 +1,8 @@
-﻿namespace Absencespot.Domain
+﻿using Absencespot.Domain.Seedwork;
+
+namespace Absencespot.Domain
 {
-    public class AvailableLeave
+    public class AvailableLeave : Entity
     {
         public double AvailableDays { get; set; }
         public DateTime Period { get; set; }
