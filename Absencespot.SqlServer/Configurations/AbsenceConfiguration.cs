@@ -19,6 +19,12 @@ namespace Absencespot.SqlServer.Configurations
             builder.Property(a => a.MonthlyAccrual).HasPrecision(3, 2);
             builder.Property(a => a.MonthCarryOverExpiresAfter).HasPrecision(3, 2);
             builder.Property(a => a.MonthMaxCarryOver).HasPrecision(3, 2);
+
+            builder.HasMany(u => u.AvailableLeaves)
+                .WithOne(r => r.Absence)
+                .HasForeignKey(r => r.AbsenceId)
+                .OnDelete(DeleteBehavior.Restrict);
+
             base.Configure(builder);
         }
     }
