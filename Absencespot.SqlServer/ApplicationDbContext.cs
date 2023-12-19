@@ -22,6 +22,7 @@ namespace Absencespot.SqlServer
             //modelBuilder.Ignore<StatusType>();
             //modelBuilder.Ignore<SubscriptionType>();
             modelBuilder.ApplyConfiguration(new WorkScheduleConfiguration());
+            modelBuilder.ApplyConfiguration(new AvailableLeaveConfiguration());
             modelBuilder.ApplyConfiguration(new RequestConfiguration());
             modelBuilder.ApplyConfiguration(new AbsenceConfiguration());
             modelBuilder.ApplyConfiguration(new AddressConfiguration());
