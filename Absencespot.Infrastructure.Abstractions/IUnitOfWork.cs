@@ -5,6 +5,7 @@ namespace Absencespot.Infrastructure.Abstractions
     public interface IUnitOfWork
     {
         ICompanyRepository CompanyRepository { get; }
+        IAvailableLeaveRepository AvailableLeaveRepository { get; }
         IUserTeamRepository UserRoleRepository { get; }
         IOfficeLeaveRepository OfficeLeaveRepository { get; }
         IIntegrationRepository IntegrationRepository { get; }
