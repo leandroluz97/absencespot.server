@@ -1,4 +1,5 @@
 ﻿using Absencespot.Business.Abstractions;
+using Absencespot.Domain;
 using Absencespot.Dtos;
 using Absencespot.Infrastructure.Abstractions;
 using Absencespot.Services.Exceptions;
@@ -22,12 +23,12 @@ namespace Absencespot.Services
             _userManager = userManager;
         }
 
-        public Task<Request> ApproveAsync(Guid companyId, Guid requestId, ApproveRequest request, CancellationToken cancellationToken = default)
+        public Task<Dtos.Request> ApproveAsync(Guid companyId, Guid requestId, Dtos.ApproveRequest request, CancellationToken cancellationToken = default)
         {
             throw new NotImplementedException();
         }
 
-        public  async Task<Request> CreateAsync(Guid companyId, Dtos.Request request, CancellationToken cancellationToken = default)
+        public async Task<Dtos.Request> CreateAsync(Guid companyId, Dtos.Request request, CancellationToken cancellationToken = default)
         {
             Guid userId = Guid.NewGuid();
             if (companyId == default)
@@ -69,31 +70,74 @@ namespace Absencespot.Services
                 throw new NotFoundException(nameof(userDomain));
             }
 
-
             var officeDomain = await _unitOfWork.OfficeRepository.FindByGlobalIdAsync(userDomain.Office.GlobalId);
-            var requestQueryable = _unitOfWork.RequestRepository.AsQueryable();
-            requestQueryable = requestQueryable.Where(r => r.User.GlobalId == userId && r.User.Company.GlobalId == companyId);
-            //requestQueryable = requestQueryable.Where(r =>  r.EndDate >= officeDomain.StartDate.);
-
-            var day = officeDomain.StartDate.Day;
-            var month = officeDomain.StartDate.Month;
-            var maxMonthCarryOverExpire = (int)officeDomain.Absences.FirstOrDefault(x => x.Leave.Id == request.LeaveId).MonthCarryOverExpiresAfter;
-
-            DateTime? range1;
-            if(officeDomain.CreatedAt.Year < DateTime.Now.Year)
+            if (officeDomain == null)
             {
-               range1 = new DateTime(DateTime.Now.Year, month, day).AddMonths(maxMonthCarryOverExpire);
+                throw new NotFoundException(nameof(officeDomain));
             }
-            else
+
+            var userAvailableLeaves = await _unitOfWork.AvailableLeaveRepository.FindByUserIdAsync(userDomain.Id);
+            userAvailableLeaves = userAvailableLeaves.Where(a => a.Absence.LeaveId == request.LeaveId);
+            AvailableLeave? userAvailableLeave = null;
+
+            if (request.StartDate.Year == DateTime.Today.Year && request.EndDate.Year == DateTime.Today.Year)
             {
-                range1 = new DateTime(DateTime.Now.Year, month, day);
+                userAvailableLeave = userAvailableLeaves.Where(a => a.Period.Year == DateTime.Today.Year).FirstOrDefault();
             }
+            else if (request.StartDate.Year > DateTime.Today.Year && request.EndDate.Year > DateTime.Today.Year)
+            {
+                userAvailableLeave = userAvailableLeaves.Where(a => a.Period.Year == DateTime.Today.AddYears(1).Year).FirstOrDefault();
+            }
+
+            if(userAvailableLeave != null)
+            {
+                var sumOfRequestDays = request.EndDate - request.StartDate;
+                if(userAvailableLeave.AvailableDays < sumOfRequestDays.Days)
+                {
+                    throw new InvalidOperationException(nameof(userAvailableLeave.AvailableDays));
+                }
+            }
+
+            var officeResetMonth = officeDomain.StartDate.Month;
+            var officeResetday = officeDomain.StartDate.Day;
+            var thisYear = new DateTime(DateTime.Today.Year, officeResetMonth, officeResetday);
+            var nextYear = new DateTime(DateTime.Today.AddYears(1).Year, officeResetMonth, officeResetday);
+
+            if(request.StartDate < nextYear && request.EndDate > nextYear)
+            {
+                var userAvailableLeavesThisYear = userAvailableLeaves.Where(a => a.Period >= thisYear && a.Period <= nextYear);
+                foreach (AvailableLeave item in userAvailableLeavesThisYear)
+                {
+                    if(item.Period >= thisYear)
+                    {
+                        var requestStartDateTillOfficeResetDate = nextYear - request.StartDate;
+                        if( requestStartDateTillOfficeResetDate.Days > item.AvailableDays)
+                        {
+                            throw new InvalidOperationException(nameof(item.AvailableDays));
+                        }
+                    }
+                }
+
+                var userAvailableLeavesNextYear = userAvailableLeaves.Where(a => a.Period >= nextYear);
+                foreach (AvailableLeave item in userAvailableLeavesThisYear)
+                {
+                    if (item.Period >= nextYear)
+                    {
+                        var sumOfDaysOfNextYearRequest = request.EndDate - nextYear;
+                        if (sumOfDaysOfNextYearRequest.Days > item.AvailableDays)
+                        {
+                            throw new InvalidOperationException(nameof(item.AvailableDays));
+                        }
+                    }
+                }
+            }
+
+            
+
+
 
             _logger.LogInformation($"Created request Id: ");
 
-            //officeDomain.StartDate
-
-            // requestQueryable = requestQueryable.Where(r => r.StartDate  );
             return default;
 
         }
@@ -103,22 +147,22 @@ namespace Absencespot.Services
             throw new NotImplementedException();
         }
 
-        public Task<Pagination<Request>> GetAllAsync(Guid companyId, int pageNumber = 1, int pageSize = 50, CancellationToken cancellationToken = default)
+        public Task<Pagination<Dtos.Request>> GetAllAsync(Guid companyId, int pageNumber = 1, int pageSize = 50, CancellationToken cancellationToken = default)
         {
             throw new NotImplementedException();
         }
 
-        public Task<Request> GetByIdAsync(Guid companyId, Guid requestId, CancellationToken cancellationToken = default)
+        public Task<Dtos.Request> GetByIdAsync(Guid companyId, Guid requestId, CancellationToken cancellationToken = default)
         {
             throw new NotImplementedException();
         }
 
-        public Task<Request> RejectAsync(Guid companyId, Guid requestId, RejectRequest request, CancellationToken cancellationToken = default)
+        public Task<Dtos.Request> RejectAsync(Guid companyId, Guid requestId, RejectRequest request, CancellationToken cancellationToken = default)
         {
             throw new NotImplementedException();
         }
 
-        public Task<Request> UpdateAsync(Guid companyId, Guid requestId, Request request, CancellationToken cancellationToken = default)
+        public Task<Dtos.Request> UpdateAsync(Guid companyId, Guid requestId, Dtos.Request request, CancellationToken cancellationToken = default)
         {
             throw new NotImplementedException();
         }
