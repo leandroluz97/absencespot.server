@@ -11,6 +11,7 @@ namespace Absencespot.UnitOfWork
     {
         private readonly ApplicationDbContext _dbContext;
         private ICompanyRepository _companyRepository;
+        private IAvailableLeaveRepository _availableLeaveRepository;
         private IUserTeamRepository _userRoleRepository;
         private IOfficeLeaveRepository _officeLeaveRepository;
         private IIntegrationRepository _integrationRepository;
@@ -31,6 +32,10 @@ namespace Absencespot.UnitOfWork
         public IOfficeLeaveRepository OfficeLeaveRepository
         {
             get { return _officeLeaveRepository = _officeLeaveRepository ?? new OfficeLeaveRepository(_dbContext); }
+        }
+        public IAvailableLeaveRepository AvailableLeaveRepository
+        {
+            get { return _availableLeaveRepository = _availableLeaveRepository ?? new AvailableLeaveRepository(_dbContext); }
         }
         public IUserTeamRepository UserRoleRepository
         {
