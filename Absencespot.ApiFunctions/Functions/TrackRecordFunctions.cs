@@ -86,7 +86,7 @@ namespace Absencespot.ApiFunctions.Functions
             _logger.LogInformation("C# HTTP trigger function processed a request.");
 
             var trackRecordBody = JsonSerializer.Deserialize<Dtos.ApproveRequest>(req.Body, _jsonSerializerOptions);
-            var trackRecordResponse = await _trackRecordService.GetMetricsByIdAsync(companyId, trackRecordId);
+            var trackRecordResponse = await _trackRecordService.GetMetricsByUserIdAsync(companyId, trackRecordId);
 
             var response = req.CreateResponse(HttpStatusCode.OK);
             await response.WriteAsJsonAsync(trackRecordResponse, _objectSerializer)
