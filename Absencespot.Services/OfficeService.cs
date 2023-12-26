@@ -111,6 +111,7 @@ namespace Absencespot.Services
             {
                 throw new UnauthorizedAccessException();
             }
+            _logger.LogInformation($"Deleted offficeId:{officeId}");
 
             _unitOfWork.OfficeRepository.Remove(officeDomain);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
@@ -185,7 +186,6 @@ namespace Absencespot.Services
             }
 
             _logger.LogInformation($"Found office Id: {officeId}");
-
             return OfficeMapper.ToDto(officeDomain);
         }
 

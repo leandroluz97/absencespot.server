@@ -1,5 +1,6 @@
 ﻿using Absencespot.Business.Abstractions;
 using Absencespot.Domain;
+using Absencespot.Domain.Enums;
 using Absencespot.Dtos;
 using Absencespot.Infrastructure.Abstractions;
 using Absencespot.Services.Exceptions;
@@ -23,9 +24,54 @@ namespace Absencespot.Services
             _userManager = userManager;
         }
 
-        public Task<Dtos.Request> ApproveAsync(Guid companyId, Guid requestId, Dtos.ApproveRequest request, CancellationToken cancellationToken = default)
+        public async Task<Dtos.Request> ApproveAsync(Guid companyId, Guid requestId, Dtos.ApproveRequest request, CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            if(request == null)
+            {
+                throw new ArgumentNullException(nameof(request));
+            }
+            request.EnsureValidation();
+
+            if (companyId == default)
+            {
+                throw new ArgumentNullException(nameof(companyId));
+            }
+            var companyDomain = await _unitOfWork.CompanyRepository.FindByGlobalIdAsync(companyId, cancellationToken: cancellationToken);
+            if (companyDomain == null)
+            {
+                throw new NotFoundException(nameof(companyDomain));
+            }
+
+            var options = RepositoryOptions.AsNoTracking();
+            var requestDomain = await _unitOfWork.RequestRepository.FindByGlobalIdAsync(requestId, options);
+            if (requestDomain == null)
+            {
+                throw new NotFoundException(nameof(requestDomain));
+            }
+
+            var queryable = _userManager.Users.AsQueryable();
+            queryable = queryable.Where(u => u.Company.GlobalId == companyId && u.GlobalId == request.ApproverId);
+            var approver= queryable.ToList().FirstOrDefault();
+            if (approver == null)
+            {
+                throw new NotFoundException(nameof(approver));
+            }
+
+            //TODO: validate user role/permission
+            //if(approver.Role != "Approver")
+            //{
+            //    throw new UnauthorizedAccessException();
+            //}
+
+            requestDomain.Approver = approver;
+            requestDomain.Status = request.Status;
+
+            _logger.LogInformation($"Rejected request Id: {requestId}");
+
+            _unitOfWork.RequestRepository.Update(requestDomain);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            return RequestMapper.ToDto(requestDomain);
         }
 
         public async Task<Dtos.Request> CreateAsync(Guid companyId, Dtos.Request request, CancellationToken cancellationToken = default)
@@ -77,25 +123,9 @@ namespace Absencespot.Services
             }
 
             var userAvailableLeaves = await _unitOfWork.AvailableLeaveRepository.FindByUserIdAsync(userDomain.Id);
-            userAvailableLeaves = userAvailableLeaves.Where(a => a.Absence.LeaveId == request.LeaveId);
-            AvailableLeave? userAvailableLeave = null;
-
-            if (request.StartDate.Year == DateTime.Today.Year && request.EndDate.Year == DateTime.Today.Year)
+            if (userAvailableLeaves == null)
             {
-                userAvailableLeave = userAvailableLeaves.Where(a => a.Period.Year == DateTime.Today.Year).FirstOrDefault();
-            }
-            else if (request.StartDate.Year > DateTime.Today.Year && request.EndDate.Year > DateTime.Today.Year)
-            {
-                userAvailableLeave = userAvailableLeaves.Where(a => a.Period.Year == DateTime.Today.AddYears(1).Year).FirstOrDefault();
-            }
-
-            if(userAvailableLeave != null)
-            {
-                var sumOfRequestDays = request.EndDate - request.StartDate;
-                if(userAvailableLeave.AvailableDays < sumOfRequestDays.Days)
-                {
-                    throw new InvalidOperationException(nameof(userAvailableLeave.AvailableDays));
-                }
+                throw new NotFoundException(nameof(userAvailableLeaves));
             }
 
             var officeResetMonth = officeDomain.StartDate.Month;
@@ -103,15 +133,36 @@ namespace Absencespot.Services
             var thisYear = new DateTime(DateTime.Today.Year, officeResetMonth, officeResetday);
             var nextYear = new DateTime(DateTime.Today.AddYears(1).Year, officeResetMonth, officeResetday);
 
-            if(request.StartDate < nextYear && request.EndDate > nextYear)
+            userAvailableLeaves = userAvailableLeaves.Where(a => a.Absence.LeaveId == request.LeaveId);
+            Domain.AvailableLeave? userAvailableLeave = null;
+
+            if (request.StartDate.Year == thisYear.Year && request.EndDate.Year == thisYear.Year)
+            {
+                userAvailableLeave = userAvailableLeaves.Where(a => a.Period.Year == DateTime.Today.Year).FirstOrDefault();
+            }
+            else if (request.StartDate.Year == nextYear.Year && thisYear.Year == nextYear.Year)
+            {
+                userAvailableLeave = userAvailableLeaves.Where(a => a.Period.Year == DateTime.Today.AddYears(1).Year).FirstOrDefault();
+            }
+
+            if (userAvailableLeave != null)
+            {
+                var sumOfRequestDays = request.EndDate - request.StartDate;
+                if (userAvailableLeave.AvailableDays < sumOfRequestDays.Days)
+                {
+                    throw new InvalidOperationException(nameof(userAvailableLeave.AvailableDays));
+                }
+            }
+
+            if (request.StartDate < nextYear && request.EndDate > nextYear)
             {
                 var userAvailableLeavesThisYear = userAvailableLeaves.Where(a => a.Period >= thisYear && a.Period <= nextYear);
-                foreach (AvailableLeave item in userAvailableLeavesThisYear)
+                foreach (Domain.AvailableLeave item in userAvailableLeavesThisYear)
                 {
-                    if(item.Period >= thisYear)
+                    if (item.Period >= thisYear)
                     {
                         var requestStartDateTillOfficeResetDate = nextYear - request.StartDate;
-                        if( requestStartDateTillOfficeResetDate.Days > item.AvailableDays)
+                        if (requestStartDateTillOfficeResetDate.Days > item.AvailableDays)
                         {
                             throw new InvalidOperationException(nameof(item.AvailableDays));
                         }
@@ -119,7 +170,7 @@ namespace Absencespot.Services
                 }
 
                 var userAvailableLeavesNextYear = userAvailableLeaves.Where(a => a.Period >= nextYear);
-                foreach (AvailableLeave item in userAvailableLeavesThisYear)
+                foreach (Domain.AvailableLeave item in userAvailableLeavesThisYear)
                 {
                     if (item.Period >= nextYear)
                     {
@@ -132,39 +183,237 @@ namespace Absencespot.Services
                 }
             }
 
-            
+            var requestDomain = RequestMapper.ToDomain(request);
 
+            requestDomain = _unitOfWork.RequestRepository.Add(requestDomain);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
 
+            _logger.LogInformation($"Created request with Id: {requestDomain.GlobalId}");
 
-            _logger.LogInformation($"Created request Id: ");
-
-            return default;
+            return RequestMapper.ToDto(requestDomain);
 
         }
 
-        public Task DeleteAsync(Guid companyId, Guid requestId, CancellationToken cancellationToken = default)
+        public async Task DeleteAsync(Guid companyId, Guid requestId, CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            Guid userId = Guid.NewGuid();
+            if (companyId == default)
+            {
+                throw new ArgumentNullException(nameof(companyId));
+            }
+            if (requestId == default)
+            {
+                throw new ArgumentNullException(nameof(requestId));
+            }
+            if (userId == default)
+            {
+                throw new ArgumentNullException(nameof(userId));
+            }
+
+            var companyDomain = await _unitOfWork.CompanyRepository.FindByGlobalIdAsync(companyId, RepositoryOptions.AsTracking());
+            if (companyDomain == null)
+            {
+                throw new NotFoundException($"Not found {nameof(companyId)} {companyId}");
+            }
+
+            var requestDomain = await _unitOfWork.RequestRepository.FindByGlobalIdAsync(requestId, RepositoryOptions.AsTracking());
+            if (requestDomain == null)
+            {
+                throw new NotFoundException($"Not found {nameof(requestId)} {requestId}");
+            }
+
+            if(requestDomain.Status != StatusType.Pending)
+            {
+                throw new ConflictException(nameof(requestDomain.Status));
+            }
+
+            if(requestDomain.User.GlobalId != userId)
+            {
+                throw new UnauthorizedAccessException(nameof(requestDomain.User.GlobalId));
+            }
+            _logger.LogInformation($"Deleted requestId:{requestId}");
+
+            _unitOfWork.RequestRepository.Remove(requestDomain);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
         }
 
-        public Task<Pagination<Dtos.Request>> GetAllAsync(Guid companyId, int pageNumber = 1, int pageSize = 50, CancellationToken cancellationToken = default)
+        public async Task<Pagination<Dtos.Request>> GetAllAsync(Guid companyId, int pageNumber = 1, int pageSize = 50, CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            if (companyId == default)
+            {
+                throw new ArgumentNullException(nameof(companyId));
+            }
+            if (pageNumber < 1)
+            {
+                throw new ArgumentException(nameof(pageNumber));
+            }
+            if (pageSize < 1 || pageSize > 200)
+            {
+                throw new ArgumentException(nameof(pageSize));
+            }
+            var companyDomain = await _unitOfWork.CompanyRepository.FindByGlobalIdAsync(companyId, cancellationToken: cancellationToken);
+            if (companyDomain == null)
+            {
+                throw new NotFoundException(nameof(companyDomain));
+            }
+
+            var queryable = _unitOfWork.RequestRepository.AsQueryable(RepositoryOptions.AsNoTracking());
+            queryable = queryable.Where(q => q.User.Company.GlobalId == companyId);
+
+            //if(user == "User")
+            //{
+            //    queryable = queryable.Where(q => q.User.GlobalId == Guid.Empty);
+            //}
+
+            var totalOffices = queryable.Count();
+            queryable = queryable.Skip((pageNumber - 1) * pageSize).Take(pageSize);
+            var offices = await _unitOfWork.RequestRepository.ToListAsync(queryable, cancellationToken);
+
+            _logger.LogInformation($"Get office pageSize: {pageSize}, pageNumber: {pageNumber}");
+
+            return new Pagination<Dtos.Request>()
+            {
+                TotalRecords = totalOffices,
+                TotalPages = (int)Math.Ceiling((decimal)totalOffices / (decimal)pageSize),
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                Items = offices.Select(RequestMapper.ToDto)
+            };
         }
 
-        public Task<Dtos.Request> GetByIdAsync(Guid companyId, Guid requestId, CancellationToken cancellationToken = default)
+        public async Task<Dtos.Request> GetByIdAsync(Guid companyId, Guid requestId, CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            Guid userId = Guid.NewGuid();
+            if (companyId == default)
+            {
+                throw new ArgumentNullException(nameof(companyId));
+            }
+            var companyDomain = await _unitOfWork.CompanyRepository.FindByGlobalIdAsync(companyId, cancellationToken: cancellationToken);
+            if (companyDomain == null)
+            {
+                throw new NotFoundException(nameof(companyDomain));
+            }
+
+            if (requestId == default)
+            {
+                throw new ArgumentNullException(nameof(requestId));
+            }
+
+            var requestDomain = await _unitOfWork.RequestRepository.FindByGlobalIdAsync(requestId, cancellationToken: cancellationToken);
+            if (requestDomain == null)
+            {
+                throw new NotFoundException(nameof(requestDomain));
+            }
+
+            if(requestDomain.User.GlobalId != userId)
+            {
+                throw new UnauthorizedAccessException(nameof(requestDomain));
+            }
+
+            _logger.LogInformation($"Found request Id: {requestId}");
+                
+            return RequestMapper.ToDto(requestDomain);
         }
 
-        public Task<Dtos.Request> RejectAsync(Guid companyId, Guid requestId, RejectRequest request, CancellationToken cancellationToken = default)
+        public async Task<Dtos.Request> RejectAsync(Guid companyId, Guid requestId, Dtos.RejectRequest request, CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            if (request == null)
+            {
+                throw new ArgumentNullException(nameof(request));
+            }
+            request.EnsureValidation();
+
+            if (companyId == default)
+            {
+                throw new ArgumentNullException(nameof(companyId));
+            }
+            var companyDomain = await _unitOfWork.CompanyRepository.FindByGlobalIdAsync(companyId, cancellationToken: cancellationToken);
+            if (companyDomain == null)
+            {
+                throw new NotFoundException(nameof(companyDomain));
+            }
+
+            var options = RepositoryOptions.AsNoTracking();
+            var requestDomain = await _unitOfWork.RequestRepository.FindByGlobalIdAsync(requestId, options);
+            if (requestDomain == null)
+            {
+                throw new NotFoundException(nameof(requestDomain));
+            }
+
+            var queryable = _userManager.Users.AsQueryable();
+            queryable = queryable.Where(u => u.Company.GlobalId == companyId && u.GlobalId == request.ApproverId);
+            var approver = queryable.ToList().FirstOrDefault();
+            if (approver == null)
+            {
+                throw new NotFoundException(nameof(approver));
+            }
+
+            requestDomain.Approver = approver;
+            requestDomain.Status = request.Status;
+
+            _logger.LogInformation($"Rejected request Id: {requestId}");
+
+            _unitOfWork.RequestRepository.Update(requestDomain);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            return RequestMapper.ToDto(requestDomain);
         }
 
-        public Task<Dtos.Request> UpdateAsync(Guid companyId, Guid requestId, Dtos.Request request, CancellationToken cancellationToken = default)
+        public async Task<Dtos.Request> UpdateAsync(Guid companyId, Guid requestId, Dtos.Request request, CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            Guid userId = Guid.Empty;       
+            if (request == null)
+            {
+                throw new ArgumentNullException(nameof(request));
+            }
+            request.EnsureValidation();
+
+            if (companyId == default)
+            {
+                throw new ArgumentNullException(nameof(companyId));
+            }
+            var companyDomain = await _unitOfWork.CompanyRepository.FindByGlobalIdAsync(companyId, cancellationToken: cancellationToken);
+            if (companyDomain == null)
+            {
+                throw new NotFoundException(nameof(companyDomain));
+            }
+
+            var options = RepositoryOptions.AsNoTracking();
+            var requestDomain = await _unitOfWork.RequestRepository.FindByGlobalIdAsync(requestId, options);
+            if (requestDomain == null)
+            {
+                throw new NotFoundException(nameof(requestDomain));
+            }
+
+            var queryable = _userManager.Users.AsQueryable();
+            queryable = queryable.Where(u => u.Company.GlobalId == companyId && u.GlobalId == userId);
+            var userDomain = queryable.ToList().FirstOrDefault();
+            if (userDomain == null)
+            {
+                throw new NotFoundException(nameof(userDomain));
+            }
+
+            if(userDomain.Company.GlobalId != companyDomain.GlobalId)
+            {
+                throw new UnauthorizedAccessException(nameof(userDomain));
+            }
+
+            if(userDomain.Id != requestDomain.UserId)
+            {
+                throw new UnauthorizedAccessException(nameof(userDomain));
+            }
+
+            requestDomain.StartDate = request.StartDate;
+            requestDomain.EndDate = request.EndDate;
+            requestDomain.Note = request.Note;
+            requestDomain.OnBehalfOf = userDomain;
+
+            _logger.LogInformation($"Updated request Id: {requestId}");
+
+            _unitOfWork.RequestRepository.Update(requestDomain);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            return RequestMapper.ToDto(requestDomain);
         }
     }
 }
