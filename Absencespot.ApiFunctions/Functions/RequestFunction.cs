@@ -17,6 +17,7 @@ namespace Absencespot.ApiFunctions
 
         public RequestFunction(ILogger<RequestFunction> logger, IRequestService requestService) : base(logger)
         {
+            _logger = logger;
             _requestService = requestService;
         }
 
