@@ -16,6 +16,7 @@ namespace Absencespot.ApiFunctions.Functions
 
         public TrackRecordFunctions(ILogger<RequestFunction> logger, ITrackRecordService trackRecordService) : base(logger)
         {
+            _logger = logger;
             _trackRecordService = trackRecordService;
         }
 
@@ -34,9 +35,23 @@ namespace Absencespot.ApiFunctions.Functions
             return response;
         }
 
+        [Function(nameof(GetTrackRecordMetrics))]
+        public async Task<HttpResponseData> GetTrackRecordMetrics([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "companies/{companyId}/track-records/metrics/all")]
+        HttpRequestData req, Guid companyId)
+        {
+            _logger.LogInformation("C# HTTP trigger function processed a request.");
 
-        [Function(nameof(GetRequestById))]
-        public async Task<HttpResponseData> GetRequestById([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "companies/{companyId}/track-records/{trackRecordId}")]
+            var trackRecordResponse = await _trackRecordService.GetMetricsByUserIdAsync(companyId, new Guid("B0BB1E63-3688-4CEC-A592-2D9EBE3C88F2"));
+
+            var response = req.CreateResponse(HttpStatusCode.OK);
+            await response.WriteAsJsonAsync(trackRecordResponse, _objectSerializer)
+                          .ConfigureAwait(false);
+            return response;
+        }
+
+
+        [Function(nameof(GetTrackRecordById))]
+        public async Task<HttpResponseData> GetTrackRecordById([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "companies/{companyId}/track-records/{trackRecordId}")]
         HttpRequestData req, Guid companyId, Guid trackRecordId)
         {
             _logger.LogInformation("C# HTTP trigger function processed a request.");
@@ -49,8 +64,8 @@ namespace Absencespot.ApiFunctions.Functions
             return response;
         }
 
-        [Function(nameof(GetAllRequests))]
-        public async Task<HttpResponseData> GetAllRequests([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "companies/{companyId}/track-records")] HttpRequestData req, Guid companyId)
+        [Function(nameof(GetAllTrackRecords))]
+        public async Task<HttpResponseData> GetAllTrackRecords([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "companies/{companyId}/track-records")] HttpRequestData req, Guid companyId)
         {
             _logger.LogInformation("C# HTTP trigger function processed a request.");
 
@@ -63,8 +78,8 @@ namespace Absencespot.ApiFunctions.Functions
         }
 
 
-        [Function(nameof(UpdateRequest))]
-        public async Task<HttpResponseData> UpdateRequest([HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = "companies/{companyId}/track-records/{trackRecordId}")]
+        [Function(nameof(UpdateTrackRecord))]
+        public async Task<HttpResponseData> UpdateTrackRecord([HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = "companies/{companyId}/track-records/{trackRecordId}")]
         HttpRequestData req, Guid companyId, Guid trackRecordId)
         {
             _logger.LogInformation("C# HTTP trigger function processed a request.");
@@ -79,24 +94,8 @@ namespace Absencespot.ApiFunctions.Functions
         }
 
 
-        [Function(nameof(GetRequestMetrics))]
-        public async Task<HttpResponseData> GetRequestMetrics([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "companies/{companyId}/track-records/{trackRecordId}/metrics")]
-        HttpRequestData req, Guid companyId, Guid trackRecordId)
-        {
-            _logger.LogInformation("C# HTTP trigger function processed a request.");
-
-            var trackRecordBody = JsonSerializer.Deserialize<Dtos.ApproveRequest>(req.Body, _jsonSerializerOptions);
-            var trackRecordResponse = await _trackRecordService.GetMetricsByUserIdAsync(companyId, trackRecordId);
-
-            var response = req.CreateResponse(HttpStatusCode.OK);
-            await response.WriteAsJsonAsync(trackRecordResponse, _objectSerializer)
-                          .ConfigureAwait(false);
-            return response;
-        }
-
-
-        [Function(nameof(DeleteRequest))]
-        public async Task<HttpResponseData> DeleteRequest([HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "companies/{companyId}/track-records/{trackRecordId}")]
+        [Function(nameof(DeleteTrackRecord))]
+        public async Task<HttpResponseData> DeleteTrackRecord([HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "companies/{companyId}/track-records/{trackRecordId}")]
         HttpRequestData req, Guid companyId, Guid trackRecordId)
         {
             _logger.LogInformation("C# HTTP trigger function processed a request.");
