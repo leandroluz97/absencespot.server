@@ -18,7 +18,7 @@ namespace Absencespot.Domain
         public string TimeFormat { get; set; }
         public string TimeZone { get; set; }
         public string FirstDayOfTheWeek { get; set; }
-        public string DisplayBirthday { get; set; }
+        public bool DisplayBirthday { get; set; }
 
         public int CompanyId { get; set; }
         public Company Company { get; set; }
