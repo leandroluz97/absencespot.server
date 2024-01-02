@@ -11,6 +11,8 @@ namespace Absencespot.Dtos
     {
         public StatusType Status { get; set; }
         public Guid ApproverId { get; set; }
+        public Guid UserId { get; set; }
+        public Guid OfficeId { get; set; }
 
         public void EnsureValidation()
         {
