@@ -26,7 +26,7 @@ namespace Absencespot.Services
 
         public async Task<Dtos.Request> ApproveAsync(Guid companyId, Guid requestId, Dtos.ApproveRequest request, CancellationToken cancellationToken = default)
         {
-            if(request == null)
+            if (request == null)
             {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -42,6 +42,12 @@ namespace Absencespot.Services
                 throw new NotFoundException(nameof(companyDomain));
             }
 
+            var officeDomain = await _unitOfWork.OfficeRepository.FindByGlobalIdAsync(request.OfficeId, cancellationToken: cancellationToken);
+            if (companyDomain == null)
+            {
+                throw new NotFoundException(nameof(companyDomain));
+            }
+
             var options = RepositoryOptions.AsNoTracking();
             var requestDomain = await _unitOfWork.RequestRepository.FindByGlobalIdAsync(requestId, options);
             if (requestDomain == null)
@@ -49,13 +55,8 @@ namespace Absencespot.Services
                 throw new NotFoundException(nameof(requestDomain));
             }
 
-            var queryable = _userManager.Users.AsQueryable();
-            queryable = queryable.Where(u => u.Company.GlobalId == companyId && u.GlobalId == request.ApproverId);
-            var approver= queryable.ToList().FirstOrDefault();
-            if (approver == null)
-            {
-                throw new NotFoundException(nameof(approver));
-            }
+            var approverDomain = await LoadUserByIdAsync(companyId, request.ApproverId);
+            var userDomain = await LoadUserByIdAsync(companyId, request.UserId);
 
             //TODO: validate user role/permission
             //if(approver.Role != "Approver")
@@ -63,10 +64,75 @@ namespace Absencespot.Services
             //    throw new UnauthorizedAccessException();
             //}
 
-            requestDomain.Approver = approver;
+            requestDomain.Approver = approverDomain;
             requestDomain.Status = request.Status;
 
-            _logger.LogInformation($"Rejected request Id: {requestId}");
+            var userAvailableLeaves = await _unitOfWork.AvailableLeaveRepository.FindByUserIdAsync(requestDomain.UserId, options);
+            if (!userAvailableLeaves.Any())
+            {
+                throw new NotFoundException(nameof(userAvailableLeaves));
+            }
+
+            var officeResetMonth = officeDomain.StartDate.Month;
+            var officeResetday = officeDomain.StartDate.Day;
+            var thisYear = new DateTime(DateTime.Today.Year, officeResetMonth, officeResetday);
+            var nextYear = new DateTime(DateTime.Today.AddYears(1).Year, officeResetMonth, officeResetday);
+
+            Domain.AvailableLeave? userAvailableLeave = null;
+
+            if (requestDomain.StartDate.Year == thisYear.Year && requestDomain.EndDate.Year == thisYear.Year)
+            {
+                userAvailableLeave = userAvailableLeaves.Where(a => a.Period.Year == DateTime.Today.Year).FirstOrDefault();
+            }
+            else if (requestDomain.StartDate.Year == nextYear.Year && thisYear.Year == nextYear.Year)
+            {
+                userAvailableLeave = userAvailableLeaves.Where(a => a.Period.Year == DateTime.Today.AddYears(1).Year).FirstOrDefault();
+            }
+
+            if (userAvailableLeave != null)
+            {
+                var sumOfRequestDays = requestDomain.EndDate - requestDomain.StartDate;
+                if (userAvailableLeave.AvailableDays < sumOfRequestDays.Days)
+                {
+                    throw new InvalidOperationException(nameof(userAvailableLeave.AvailableDays));
+                }
+                userAvailableLeave.AvailableDays -= sumOfRequestDays.TotalDays;
+            }
+
+            if (requestDomain.StartDate < nextYear && requestDomain.EndDate > nextYear)
+            {
+                var userAvailableLeavesThisYear = userAvailableLeaves.Where(a => a.Period >= thisYear && a.Period <= nextYear);
+                foreach (Domain.AvailableLeave item in userAvailableLeavesThisYear)
+                {
+                    if (item.Period >= thisYear)
+                    {
+                        var requestStartDateTillOfficeResetDate = nextYear - requestDomain.StartDate;
+                        if (requestStartDateTillOfficeResetDate.TotalDays > item.AvailableDays)
+                        {
+                            throw new InvalidOperationException(nameof(item.AvailableDays));
+                        }
+                        item.AvailableDays -= requestStartDateTillOfficeResetDate.TotalDays;
+                        _unitOfWork.AvailableLeaveRepository.Update(item);
+                    }
+                }
+
+                var userAvailableLeavesNextYear = userAvailableLeaves.Where(a => a.Period >= nextYear);
+                foreach (Domain.AvailableLeave item in userAvailableLeavesThisYear)
+                {
+                    if (item.Period >= nextYear)
+                    {
+                        var sumOfDaysOfNextYearRequest = requestDomain.EndDate - nextYear;
+                        if (sumOfDaysOfNextYearRequest.TotalDays > item.AvailableDays)
+                        {
+                            throw new InvalidOperationException(nameof(item.AvailableDays));
+                        }
+                        item.AvailableDays -= sumOfDaysOfNextYearRequest.TotalDays;
+                        _unitOfWork.AvailableLeaveRepository.Update(item);
+                    }
+                }
+            }
+
+            _logger.LogInformation($"Approve request Id: {requestId}");
 
             _unitOfWork.RequestRepository.Update(requestDomain);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
@@ -74,9 +140,10 @@ namespace Absencespot.Services
             return RequestMapper.ToDto(requestDomain);
         }
 
+
         public async Task<Dtos.Request> CreateAsync(Guid companyId, Dtos.Request request, CancellationToken cancellationToken = default)
         {
-            Guid userId = Guid.NewGuid();
+            Guid userId = new Guid("B0BB1E63-3688-4CEC-A592-2D9EBE3C88F2");
             if (companyId == default)
             {
                 throw new ArgumentNullException(nameof(companyId));
@@ -196,7 +263,7 @@ namespace Absencespot.Services
 
         public async Task DeleteAsync(Guid companyId, Guid requestId, CancellationToken cancellationToken = default)
         {
-            Guid userId = Guid.NewGuid();
+            Guid userId = new Guid("B0BB1E63-3688-4CEC-A592-2D9EBE3C88F2");
             if (companyId == default)
             {
                 throw new ArgumentNullException(nameof(companyId));
@@ -222,12 +289,12 @@ namespace Absencespot.Services
                 throw new NotFoundException($"Not found {nameof(requestId)} {requestId}");
             }
 
-            if(requestDomain.Status != StatusType.Pending)
+            if (requestDomain.Status != StatusType.Pending)
             {
                 throw new ConflictException(nameof(requestDomain.Status));
             }
 
-            if(requestDomain.User.GlobalId != userId)
+            if (requestDomain.User.GlobalId != userId)
             {
                 throw new UnauthorizedAccessException(nameof(requestDomain.User.GlobalId));
             }
@@ -283,7 +350,7 @@ namespace Absencespot.Services
 
         public async Task<Dtos.Request> GetByIdAsync(Guid companyId, Guid requestId, CancellationToken cancellationToken = default)
         {
-            Guid userId = Guid.NewGuid();
+            Guid userId = new Guid("B0BB1E63-3688-4CEC-A592-2D9EBE3C88F2");
             if (companyId == default)
             {
                 throw new ArgumentNullException(nameof(companyId));
@@ -305,13 +372,13 @@ namespace Absencespot.Services
                 throw new NotFoundException(nameof(requestDomain));
             }
 
-            if(requestDomain.User.GlobalId != userId)
+            if (requestDomain.User.GlobalId != userId)
             {
                 throw new UnauthorizedAccessException(nameof(requestDomain));
             }
 
             _logger.LogInformation($"Found request Id: {requestId}");
-                
+
             return RequestMapper.ToDto(requestDomain);
         }
 
@@ -361,7 +428,7 @@ namespace Absencespot.Services
 
         public async Task<Dtos.Request> UpdateAsync(Guid companyId, Guid requestId, Dtos.Request request, CancellationToken cancellationToken = default)
         {
-            Guid userId = Guid.Empty;       
+            Guid userId = Guid.Empty;
             if (request == null)
             {
                 throw new ArgumentNullException(nameof(request));
@@ -393,12 +460,12 @@ namespace Absencespot.Services
                 throw new NotFoundException(nameof(userDomain));
             }
 
-            if(userDomain.Company.GlobalId != companyDomain.GlobalId)
+            if (userDomain.Company.GlobalId != companyDomain.GlobalId)
             {
                 throw new UnauthorizedAccessException(nameof(userDomain));
             }
 
-            if(userDomain.Id != requestDomain.UserId)
+            if (userDomain.Id != requestDomain.UserId)
             {
                 throw new UnauthorizedAccessException(nameof(userDomain));
             }
@@ -414,6 +481,20 @@ namespace Absencespot.Services
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             return RequestMapper.ToDto(requestDomain);
+        }
+
+        private async Task<Domain.User> LoadUserByIdAsync(Guid companyId, Guid userId)
+        {
+            var queryable = _userManager.Users.AsQueryable();
+            queryable = queryable.Where(u => u.Company.GlobalId == companyId && u.GlobalId == userId);
+            var user = queryable.ToList().FirstOrDefault();
+
+            if (user == null)
+            {
+                throw new NotFoundException(nameof(userId));
+            }
+
+            return user;
         }
     }
 }
