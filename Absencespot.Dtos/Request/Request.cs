@@ -1,30 +1,25 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Absencespot.Domain.Enums;
+using System.Text.Json.Serialization;
+using Absencespot.Utils;
 
 namespace Absencespot.Dtos
 {
     public class Request
     {
+
+        //[JsonConverter(typeof(JsonDateTimeConverter))]
         public DateTime StartDate { get; set; }
+       // [JsonConverter(typeof(JsonDateTimeConverter))]
         public DateTime EndDate { get; set; }
         public string Note { get; set; }
         public string File { get; set; }
-        public int Status { get; set; }
+        public StatusType Status { get; set; }
 
-        public int? LeaveId { get; set; }
-        public Leave? Leave { get; set; }
-
-        public int UserId { get; set; }
-        public User User { get; set; }
-
-        public int? OnBehalfOfId { get; set; }
-        public User? OnBehalfOf { get; set; }
-
-        public int? ApproverId { get; set; }
-        public User? Approver { get; set; }
+        public Guid LeaveId { get; set; }
+        public Guid UserId { get; set; }
+        public Guid OnBehalfOfId { get; set; }
+        public Guid OfficeId { get; set; }
+        public Guid? ApproverId { get; set; }
 
 
         public void EnsureValidation()
