@@ -10,8 +10,8 @@ namespace Absencespot.Dtos
     {
         public double AvailableDays { get; set; }
         public DateTime Period { get; set; }
-        public int? AbsenceId { get; set; }
-        public Absence? Absence { get; set; }
+        public Guid AbsenceId { get; set; }
+        public Guid? LeaveId { get; set; }
 
     }
 }
