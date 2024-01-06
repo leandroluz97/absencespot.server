@@ -16,21 +16,24 @@ namespace Absencespot.Services.Mappers
                 StartDate = dto.StartDate,
                 Note = dto.Note,
                 Status =  dto.Status,
+                File = dto.File,
             };
         }
         public static Dtos.Request ToDto(Domain.Request domain)
         {
             return new Dtos.Request() 
             { 
+                Id = domain.GlobalId,
                 StartDate = domain.StartDate,
                 EndDate = domain.EndDate,
                 Note = domain.Note,
+                File = domain.File,
                 Status = domain.Status,
                 LeaveId = domain.Leave.GlobalId,
-                ApproverId = domain.Approver.GlobalId,
+                ApproverId = domain.Approver?.GlobalId,
                 OnBehalfOfId = domain.OnBehalfOf.GlobalId,
                 UserId = domain.User.GlobalId,
-                OfficeId = domain.User.Office.GlobalId,
+                OfficeId = domain.User.Office == null ? Guid.Empty : domain.User.Office.GlobalId,
             };
         }
     }
