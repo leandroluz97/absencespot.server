@@ -43,7 +43,7 @@ namespace Absencespot.Services
             }
 
             var officeDomain = await _unitOfWork.OfficeRepository.FindByGlobalIdAsync(request.OfficeId, cancellationToken: cancellationToken);
-            if (companyDomain == null)
+            if (officeDomain == null)
             {
                 throw new NotFoundException(nameof(companyDomain));
             }
@@ -65,7 +65,7 @@ namespace Absencespot.Services
             //}
 
             requestDomain.Approver = approverDomain;
-            requestDomain.Status = request.Status;
+            requestDomain.Status = StatusType.Approved;
 
             var userAvailableLeaves = await _unitOfWork.AvailableLeaveRepository.FindByUserIdAsync(requestDomain.UserId, options);
             if (!userAvailableLeaves.Any())
@@ -80,7 +80,7 @@ namespace Absencespot.Services
 
             Domain.AvailableLeave? userAvailableLeave = null;
 
-            if (requestDomain.StartDate.Year == thisYear.Year && requestDomain.EndDate.Year == thisYear.Year)
+            if (requestDomain.StartDate.Year <= thisYear.Year && requestDomain.EndDate.Year <= thisYear.Year)
             {
                 userAvailableLeave = userAvailableLeaves.Where(a => a.Period.Year == DateTime.Today.Year).FirstOrDefault();
             }
@@ -97,6 +97,7 @@ namespace Absencespot.Services
                     throw new InvalidOperationException(nameof(userAvailableLeave.AvailableDays));
                 }
                 userAvailableLeave.AvailableDays -= sumOfRequestDays.TotalDays;
+                _unitOfWork.AvailableLeaveRepository.Update(userAvailableLeave);
             }
 
             if (requestDomain.StartDate < nextYear && requestDomain.EndDate > nextYear)
@@ -183,14 +184,20 @@ namespace Absencespot.Services
                 throw new NotFoundException(nameof(userDomain));
             }
 
-            var officeDomain = await _unitOfWork.OfficeRepository.FindByGlobalIdAsync(userDomain.Office.GlobalId);
+            var officeDomain = await _unitOfWork.OfficeRepository.FindByIdAsync((int)userDomain.OfficeId);
             if (officeDomain == null)
             {
                 throw new NotFoundException(nameof(officeDomain));
             }
 
+            var leaveDomain = await _unitOfWork.LeaveRepository.FindByGlobalIdAsync(request.LeaveId, RepositoryOptions.AsTracking());
+            if (leaveDomain == null)
+            {
+                throw new NotFoundException(nameof(leaveDomain));
+            }
+
             var userAvailableLeaves = await _unitOfWork.AvailableLeaveRepository.FindByUserIdAsync(userDomain.Id);
-            if (userAvailableLeaves == null)
+            if (userAvailableLeaves == null || !userAvailableLeaves.Any())
             {
                 throw new NotFoundException(nameof(userAvailableLeaves));
             }
@@ -200,7 +207,7 @@ namespace Absencespot.Services
             var thisYear = new DateTime(DateTime.Today.Year, officeResetMonth, officeResetday);
             var nextYear = new DateTime(DateTime.Today.AddYears(1).Year, officeResetMonth, officeResetday);
 
-            userAvailableLeaves = userAvailableLeaves.Where(a => a.Absence.LeaveId == request.LeaveId);
+            userAvailableLeaves = userAvailableLeaves.Where(a => a.Absence.Leave.GlobalId == request.LeaveId);
             Domain.AvailableLeave? userAvailableLeave = null;
 
             if (request.StartDate.Year == thisYear.Year && request.EndDate.Year == thisYear.Year)
@@ -251,6 +258,9 @@ namespace Absencespot.Services
             }
 
             var requestDomain = RequestMapper.ToDomain(request);
+            requestDomain.Leave = leaveDomain;
+            requestDomain.User = userDomain;
+            requestDomain.OnBehalfOf = userDomain;
 
             requestDomain = _unitOfWork.RequestRepository.Add(requestDomain);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
@@ -334,6 +344,10 @@ namespace Absencespot.Services
 
             var totalOffices = queryable.Count();
             queryable = queryable.Skip((pageNumber - 1) * pageSize).Take(pageSize);
+            queryable = _unitOfWork.RequestRepository.Include(queryable, x => x.Leave);
+            queryable = _unitOfWork.RequestRepository.Include(queryable, x => x.OnBehalfOf);
+            queryable = _unitOfWork.RequestRepository.Include(queryable, x => x.User);
+            queryable = _unitOfWork.RequestRepository.Include(queryable, x => x.Approver);
             var offices = await _unitOfWork.RequestRepository.ToListAsync(queryable, cancellationToken);
 
             _logger.LogInformation($"Get office pageSize: {pageSize}, pageNumber: {pageNumber}");
