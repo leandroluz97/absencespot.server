@@ -29,7 +29,7 @@ namespace Absencespot.Services
         }
         public async Task<Dtos.TrackRecord> CreateAsync(Guid companyId, Dtos.TrackRecord trackRecord, CancellationToken cancellationToken = default)
         {
-            Guid userId = Guid.Empty;
+            Guid userId = new Guid("B0BB1E63-3688-4CEC-A592-2D9EBE3C88F2");
             if (companyId == default)
             {
                 throw new ArgumentNullException(nameof(companyId));
@@ -50,18 +50,55 @@ namespace Absencespot.Services
             trackRecordDomain = _unitOfWork.TrackRecordRepository.Add(trackRecordDomain);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            _logger.LogInformation($"Created track record Id {trackRecordDomain.Id}");
+            _logger.LogInformation($"Created track record Id {trackRecordDomain.GlobalId}");
             return TrackRecordMapper.ToDto(trackRecordDomain);
         }
 
-        public Task DeleteAsync(Guid companyId, Guid trackRecordId, CancellationToken cancellationToken = default)
+        public async Task DeleteAsync(Guid companyId, Guid trackRecordId, CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            Guid userId = new Guid("B0BB1E63-3688-4CEC-A592-2D9EBE3C88F2");
+
+            if (companyId == default)
+            {
+                throw new ArgumentNullException(nameof(companyId));
+            }
+
+            await LoadCompanyByIdAsync(companyId, cancellationToken);
+            var userDomain = await LoadUserByIdAsync(companyId, userId);
+
+            if (trackRecordId == default)
+            {
+                throw new ArgumentNullException(nameof(trackRecordId));
+            }
+
+            var trackRecordDomain = await _unitOfWork.TrackRecordRepository.FindByGlobalIdAsync(trackRecordId);
+            if (trackRecordDomain == null)
+            {
+                throw new NotFoundException(nameof(trackRecordDomain));
+            }
+
+            //if(userDomain.Role == "User")
+            //{
+            //    if (trackRecordDomain.UserId != userDomain.Id)
+            //    {
+            //        throw new UnauthorizedAccessException();
+            //    }
+            //}
+
+            if (trackRecordDomain.UserId != userDomain.Id)
+            {
+                throw new UnauthorizedAccessException();
+            }
+
+            _unitOfWork.TrackRecordRepository.Remove(trackRecordDomain);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation($"Deleted trackRecord Id: {trackRecordId}");
         }
 
         public async Task<Pagination<Dtos.TrackRecord>> GetAllAsync(Guid companyId, int pageNumber = 1, int pageSize = 50, CancellationToken cancellationToken = default)
         {
-            Guid userId = Guid.NewGuid();
+            Guid userId = new Guid("B0BB1E63-3688-4CEC-A592-2D9EBE3C88F2");
             if (companyId == default)
             {
                 throw new ArgumentNullException(nameof(companyId));
@@ -76,7 +113,7 @@ namespace Absencespot.Services
             }
 
             var companyDomain = await LoadCompanyByIdAsync(companyId, cancellationToken);
-            var userDomain = await LoadUserByIdAsync(userId, companyId);
+            var userDomain = await LoadUserByIdAsync(companyId, userId);
 
             //var queryable = _unitOfWork.TrackRecordRepository.AsQueryable(RepositoryOptions.AsNoTracking());
 
@@ -92,7 +129,7 @@ namespace Absencespot.Services
             var queryable = _unitOfWork.TrackRecordRepository.AsQueryable(RepositoryOptions.AsNoTracking());
             queryable = queryable.Where(l => l.User.GlobalId == userDomain.GlobalId);
 
-            var totalOffices = queryable.Count();
+            var totalTrackRecords = queryable.Count();
             queryable = queryable.Skip((pageNumber - 1) * pageSize).Take(pageSize);
             var trackRecords = await _unitOfWork.TrackRecordRepository.ToListAsync(queryable, cancellationToken);
 
@@ -100,8 +137,8 @@ namespace Absencespot.Services
 
             return new Pagination<Dtos.TrackRecord>()
             {
-                TotalRecords = totalOffices,
-                TotalPages = (int)Math.Ceiling((decimal)totalOffices / (decimal)pageSize),
+                TotalRecords = totalTrackRecords,
+                TotalPages = (int)Math.Ceiling((decimal)totalTrackRecords / (decimal)pageSize),
                 PageNumber = pageNumber,
                 PageSize = pageSize,
                 Items = trackRecords.Select(TrackRecordMapper.ToDto)
@@ -110,7 +147,7 @@ namespace Absencespot.Services
 
         public async Task<TrackRecord> GetByIdAsync(Guid companyId, Guid trackRecordId, CancellationToken cancellationToken = default)
         {
-            Guid userId = Guid.NewGuid();
+            Guid userId = new Guid("B0BB1E63-3688-4CEC-A592-2D9EBE3C88F2");
 
             if (companyId == default)
             {
@@ -165,21 +202,21 @@ namespace Absencespot.Services
             queryable = queryable.Where(x => x.Date >= startDateOfCurrentMonth || x.Date <= endDateOfCurrentMonth);
             var trackRecords = await _unitOfWork.TrackRecordRepository.ToListAsync(queryable, cancellationToken);
 
-            if(!userDomain.WorkScheduleId.HasValue)
+            if (!userDomain.WorkScheduleId.HasValue)
             {
                 throw new InvalidOperationException(nameof(userDomain.WorkScheduleId));
             }
 
             int workscheduleId = (int)userDomain.WorkScheduleId;
             var workSchedule = await _unitOfWork.WorkScheduleRepository.FindByIdAsync(workscheduleId, cancellationToken);
-            if(workSchedule == null)
+            if (workSchedule == null)
             {
                 throw new NotFoundException(nameof(workSchedule));
             }
 
-            double requiredMonthlyDays = 0; 
-            double trackTimeCurrentMonth = 0; 
-            double overtimeTrackTimeCurrentMonth = 0; 
+            double requiredMonthlyDays = 0;
+            double trackTimeCurrentMonth = 0;
+            double overtimeTrackTimeCurrentMonth = 0;
 
             if (workSchedule.IsDefault)
             {
@@ -204,13 +241,13 @@ namespace Absencespot.Services
             {
                 OvertimeTrackTimeCurrentMonth = overtimeTrackTimeCurrentMonth > 0 ? overtimeTrackTimeCurrentMonth : 0,
                 RequiredMonthlyDays = requiredMonthlyDays,
-                TrackTimeCurrentMonth  = trackTimeCurrentMonth
+                TrackTimeCurrentMonth = trackTimeCurrentMonth
             };
         }
 
-        public async  Task<Dtos.TrackRecord> UpdateAsync(Guid companyId, Guid trackRecordId, Dtos.TrackRecord trackRecord, CancellationToken cancellationToken = default)
+        public async Task<Dtos.TrackRecord> UpdateAsync(Guid companyId, Guid trackRecordId, Dtos.TrackRecord trackRecord, CancellationToken cancellationToken = default)
         {
-            Guid userId = Guid.NewGuid();
+            Guid userId = new Guid("B0BB1E63-3688-4CEC-A592-2D9EBE3C88F2");
             var options = RepositoryOptions.AsTracking();
             if (trackRecord == null)
             {
@@ -221,7 +258,7 @@ namespace Absencespot.Services
             {
                 throw new ArgumentNullException(nameof(companyId));
             }
-            
+
             await LoadCompanyByIdAsync(companyId, cancellationToken);
 
             var userDomain = await LoadUserByIdAsync(companyId, userId);
@@ -266,7 +303,7 @@ namespace Absencespot.Services
 
             return user;
         }
-        
+
         private async Task<Domain.Company> LoadCompanyByIdAsync(Guid companyId, CancellationToken cancellationToken = default)
         {
             var companyDomain = await _unitOfWork.CompanyRepository.FindByGlobalIdAsync(companyId, cancellationToken: cancellationToken);
