@@ -6,10 +6,8 @@ namespace Absencespot.Dtos
 {
     public class Request
     {
-
-        //[JsonConverter(typeof(JsonDateTimeConverter))]
+        public Guid Id { get; set; }
         public DateTime StartDate { get; set; }
-       // [JsonConverter(typeof(JsonDateTimeConverter))]
         public DateTime EndDate { get; set; }
         public string Note { get; set; }
         public string File { get; set; }
