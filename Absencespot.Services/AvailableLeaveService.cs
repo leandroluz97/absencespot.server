@@ -1,16 +1,10 @@
 ﻿using Absencespot.Business.Abstractions;
-using Absencespot.Dtos;
 using Absencespot.Infrastructure.Abstractions;
 using Absencespot.Services.Exceptions;
 using Absencespot.Services.Mappers;
 using Absencespot.Utils;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Absencespot.Services
 {
@@ -46,7 +40,9 @@ namespace Absencespot.Services
                 throw new NotFoundException(nameof(userDomain));
             }
 
-            var officeDomain = await _unitOfWork.OfficeRepository.FindByGlobalIdAsync(userDomain.Office.GlobalId);
+            var officeId = new Guid("CF9D943B-3727-4DDA-A5F9-7BFEF755C493");
+
+            var officeDomain = await _unitOfWork.OfficeRepository.FindByGlobalIdAsync(officeId, RepositoryOptions.AsTracking());
             if (officeDomain == null)
             {
                 throw new NotFoundException(nameof(officeDomain));
@@ -59,23 +55,36 @@ namespace Absencespot.Services
 
             var availableLeaveQueryable = _unitOfWork.AvailableLeaveRepository.AsQueryable();
             availableLeaveQueryable = availableLeaveQueryable.Where(a => a.Period.Year >= thisYear.Year && a.Period.Year <= nextYear.Year);
+            availableLeaveQueryable = _unitOfWork.AvailableLeaveRepository.Include(availableLeaveQueryable, x => x.Absence);
+            availableLeaveQueryable = _unitOfWork.AvailableLeaveRepository.IncludeThen<Domain.Absence, Domain.Leave>(availableLeaveQueryable, x => x.Leave);
             List<Domain.AvailableLeave> availableLeaves = availableLeaveQueryable.ToList();
 
             if (!availableLeaves.Any())
             {
                 foreach (var absence in officeDomain.Absences)
                 {
-                    var availableLeaveDomain = new Domain.AvailableLeave()
-                    {
-                        Period = thisYear,
-                        AvailableDays = absence.Allowance,
-                        Absence = absence,
-                        User = userDomain,
-                    };
-                    availableLeaves.Add(availableLeaveDomain);
+                    availableLeaves.AddRange(
+                        new List<Domain.AvailableLeave>()
+                        {
+                             new Domain.AvailableLeave()
+                             {
+                                 Period = thisYear,
+                                 AvailableDays = absence.Allowance,
+                                 Absence = absence,
+                                 User = userDomain,
+                             },
+                             new Domain.AvailableLeave()
+                             {
+                                 Period = nextYear,
+                                 AvailableDays = absence.Allowance,
+                                 Absence = absence,
+                                 User = userDomain,
+                             },
+                        }
+                    );
                 }
                 _unitOfWork.AvailableLeaveRepository.AddRange(availableLeaves);
-               await _unitOfWork.SaveChangesAsync(cancellationToken);
+                await _unitOfWork.SaveChangesAsync(cancellationToken);
             }
 
             return availableLeaves.Select(AvailableLeaveMapper.ToDto);
