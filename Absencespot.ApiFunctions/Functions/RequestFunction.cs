@@ -82,7 +82,7 @@ namespace Absencespot.ApiFunctions
 
 
         [Function(nameof(ApproveRequest))]
-        public async Task<HttpResponseData> ApproveRequest([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "companies/{companyId}/requests/{requestId}/approve")]
+        public async Task<HttpResponseData> ApproveRequest([HttpTrigger(AuthorizationLevel.Anonymous, "patch", Route = "companies/{companyId}/requests/{requestId}/approve")]
         HttpRequestData req, Guid companyId, Guid requestId)
         {
             _logger.LogInformation("C# HTTP trigger function processed a request.");
@@ -98,7 +98,7 @@ namespace Absencespot.ApiFunctions
 
 
         [Function(nameof(RejectRequest))]
-        public async Task<HttpResponseData> RejectRequest([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "companies/{companyId}/requests/{requestId}/reject")]
+        public async Task<HttpResponseData> RejectRequest([HttpTrigger(AuthorizationLevel.Anonymous, "patch", Route = "companies/{companyId}/requests/{requestId}/reject")]
         HttpRequestData req, Guid companyId, Guid requestId)
         {
             _logger.LogInformation("C# HTTP trigger function processed a request.");
