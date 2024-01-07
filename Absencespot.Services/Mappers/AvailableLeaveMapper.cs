@@ -13,7 +13,8 @@ namespace Absencespot.Services.Mappers
             return new Domain.AvailableLeave() 
             { 
                 AvailableDays = dto.AvailableDays,
-                Period = dto.Period,
+                StartDate = dto.StartDate,
+                EndDate = dto.EndDate,
             };
         }
         public static Dtos.AvailableLeave ToDto(Domain.AvailableLeave domain)
@@ -21,7 +22,8 @@ namespace Absencespot.Services.Mappers
             return new Dtos.AvailableLeave() 
             { 
                 AvailableDays = domain.AvailableDays,
-                Period = domain.Period,
+                StartDate = domain.StartDate,
+                EndDate = domain.EndDate,
                 AbsenceId = domain.Absence.GlobalId,
                 LeaveId = domain.Absence.Leave.GlobalId,
             };
