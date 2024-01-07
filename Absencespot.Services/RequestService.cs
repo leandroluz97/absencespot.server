@@ -83,14 +83,14 @@ namespace Absencespot.Services
 
             if (requestDomain.StartDate > startCurrentYear && requestDomain.EndDate <= endCurrentYear)
             {
-                userAvailableLeave = userAvailableLeaves.Where(a => a.Period >= startCurrentYear && a.Period <= endCurrentYear)
-                    .OrderBy(a => a.Period)
+                userAvailableLeave = userAvailableLeaves.Where(a => a.StartDate >= startCurrentYear && a.EndDate <= endCurrentYear)
+                    .OrderBy(a => a.StartDate)
                     .FirstOrDefault();
             }
             else if (requestDomain.StartDate > startNextYear && requestDomain.EndDate <= endNextYear)
             {
-                userAvailableLeave = userAvailableLeaves.Where(a => a.Period > startNextYear && a.Period <= endNextYear)
-                    .OrderByDescending(a => a.Period)
+                userAvailableLeave = userAvailableLeaves.Where(a => a.StartDate > startNextYear && a.EndDate <= endNextYear)
+                    .OrderByDescending(a => a.StartDate)
                     .FirstOrDefault();
             }
 
@@ -105,10 +105,10 @@ namespace Absencespot.Services
 
             if (requestDomain.StartDate < startNextYear && requestDomain.EndDate > startNextYear)
             {
-                var userAvailableLeavesThisYear = userAvailableLeaves.Where(a => a.Period >= startCurrentYear && a.Period <= startNextYear);
+                var userAvailableLeavesThisYear = userAvailableLeaves.Where(a => a.StartDate >= startCurrentYear && a.EndDate <= startNextYear);
                 foreach (Domain.AvailableLeave item in userAvailableLeavesThisYear)
                 {
-                    if (item.Period <= startNextYear)
+                    if (item.EndDate <= startNextYear)
                     {
                         var sumOfRequestDays = requestDomain.EndDate - requestDomain.StartDate;
                         if (sumOfRequestDays.Days > item.AvailableDays)
@@ -120,10 +120,10 @@ namespace Absencespot.Services
                     }
                 }
 
-                var userAvailableLeavesNextYear = userAvailableLeaves.Where(a => a.Period >= endNextYear);
+                var userAvailableLeavesNextYear = userAvailableLeaves.Where(a => a.EndDate >= endNextYear);
                 foreach (Domain.AvailableLeave item in userAvailableLeavesNextYear)
                 {
-                    if (item.Period > startNextYear)
+                    if (item.EndDate > startNextYear)
                     {
                         var sumOfDaysOfNextYearRequest = requestDomain.EndDate - startNextYear;
                         if (sumOfDaysOfNextYearRequest.Days > item.AvailableDays)
@@ -192,29 +192,39 @@ namespace Absencespot.Services
                 throw new NotFoundException(nameof(userAvailableLeaves));
             }
 
+            userAvailableLeaves = userAvailableLeaves.Where(a => a.Absence.Leave.GlobalId == request.LeaveId);
             var officeResetMonth = officeDomain.StartDate.Month;
             var officeResetDay = officeDomain.StartDate.Day;
             var startCurrentYear = new DateTime(DateTime.Today.AddYears(-1).Year, officeResetMonth, officeResetDay);
+            var endCurrentYear = new DateTime(DateTime.Today.Year, officeResetMonth, officeResetDay).AddDays(-1);
             var startNextYear = new DateTime(DateTime.Today.Year, officeResetMonth, officeResetDay);
-            var endCurrentYear = new DateTime(DateTime.Today.Year, officeResetMonth, officeResetDay);
-            var endNextYear = new DateTime(DateTime.Today.AddYears(1).Year, officeResetMonth, officeResetDay);
+            var endNextYear = new DateTime(DateTime.Today.AddYears(1).Year, officeResetMonth, officeResetDay).AddDays(-1);
 
-            userAvailableLeaves = userAvailableLeaves.Where(a => a.Absence.Leave.GlobalId == request.LeaveId);
-            Domain.AvailableLeave? userAvailableLeave = null;
-
-            if (request.StartDate > startCurrentYear && request.EndDate <= endCurrentYear)
+            if (startNextYear <= DateTime.Now)
             {
-                userAvailableLeave = userAvailableLeaves.Where(a => a.Period >= startCurrentYear && a.Period <= endCurrentYear)
-                    .OrderBy(a => a.Period)
-                    .FirstOrDefault();
-            }
-            else if (request.StartDate > startNextYear && request.EndDate <= endNextYear)
-            {
-                userAvailableLeave = userAvailableLeaves.Where(a => a.Period > startNextYear && a.Period <= endNextYear)
-                    .OrderByDescending(a => a.Period)
-                    .FirstOrDefault();
+                startCurrentYear = new DateTime(DateTime.Today.Year, officeResetMonth, officeResetDay);
+                endCurrentYear = new DateTime(DateTime.Today.AddYears(1).Year, officeResetMonth, officeResetDay).AddDays(-1);
+                startNextYear = new DateTime(DateTime.Today.AddYears(1).Year, officeResetMonth, officeResetDay);
+                endNextYear = new DateTime(DateTime.Today.AddYears(2).Year, officeResetMonth, officeResetDay).AddDays(-1);
             }
 
+            //Domain.AvailableLeave? userAvailableLeave = null;
+
+            //if (request.StartDate >= startCurrentYear && request.EndDate <= endCurrentYear)
+            //{        
+            //    userAvailableLeave = userAvailableLeaves.Where(a => a.StartDate >= startCurrentYear && a.EndDate <= endCurrentYear)
+            //        .OrderBy(a => a.StartDate)
+            //        .FirstOrDefault();
+            //}
+            //else if (request.StartDate >= startNextYear && request.EndDate <= endNextYear)
+            //{
+            //    userAvailableLeave = userAvailableLeaves.Where(a => a.StartDate > startNextYear && a.EndDate <= endNextYear)
+            //        .OrderByDescending(a => a.StartDate)
+            //        .FirstOrDefault();
+            
+
+
+            var userAvailableLeave = userAvailableLeaves.FirstOrDefault(a => a.StartDate >= request.StartDate && a.EndDate <= request.EndDate);
             if (userAvailableLeave != null)
             {
                 var sumOfRequestDays = request.EndDate - request.StartDate;
@@ -224,12 +234,12 @@ namespace Absencespot.Services
                 }
             }
 
-            if (request.StartDate < startNextYear && request.EndDate > startNextYear)
+            if (request.StartDate < startNextYear && request.EndDate >= startNextYear)
             {
-                var userAvailableLeavesThisYear = userAvailableLeaves.Where(a => a.Period >= startCurrentYear && a.Period <= startNextYear);
+                var userAvailableLeavesThisYear = userAvailableLeaves.Where(a => request.StartDate >= a.StartDate && a.EndDate < startNextYear);
                 foreach (Domain.AvailableLeave item in userAvailableLeavesThisYear)
                 {
-                    if (item.Period <= startNextYear)
+                    if (item.EndDate < startNextYear)
                     {
                         var requestStartDateTillOfficeResetDate = startNextYear - request.StartDate;
                         if (requestStartDateTillOfficeResetDate.Days > item.AvailableDays)
@@ -239,10 +249,10 @@ namespace Absencespot.Services
                     }
                 }
 
-                var userAvailableLeavesNextYear = userAvailableLeaves.Where(a => a.Period >= endNextYear);
+                var userAvailableLeavesNextYear = userAvailableLeaves.Where(a => a.EndDate >= startNextYear);
                 foreach (Domain.AvailableLeave item in userAvailableLeavesNextYear)
                 {
-                    if (item.Period > startNextYear)
+                    if (item.EndDate >= startNextYear)
                     {
                         var sumOfDaysOfNextYearRequest = request.EndDate - startNextYear;
                         if (sumOfDaysOfNextYearRequest.Days > item.AvailableDays)
@@ -252,6 +262,35 @@ namespace Absencespot.Services
                     }
                 }
             }
+
+            //if (request.StartDate < startNextYear && request.EndDate > startNextYear)
+            //{
+            //    var userAvailableLeavesThisYear = userAvailableLeaves.Where(a => a.StartDate >= startCurrentYear && a.EndDate <= startNextYear);
+            //    foreach (Domain.AvailableLeave item in userAvailableLeavesThisYear)
+            //    {
+            //        if (item.EndDate <= startNextYear)
+            //        {
+            //            var requestStartDateTillOfficeResetDate = startNextYear - request.StartDate;
+            //            if (requestStartDateTillOfficeResetDate.Days > item.AvailableDays)
+            //            {
+            //                throw new InvalidOperationException(nameof(item.AvailableDays));
+            //            }
+            //        }
+            //    }
+
+            //    var userAvailableLeavesNextYear = userAvailableLeaves.Where(a => a.EndDate >= endNextYear);
+            //    foreach (Domain.AvailableLeave item in userAvailableLeavesNextYear)
+            //    {
+            //        if (item.EndDate > startNextYear)
+            //        {
+            //            var sumOfDaysOfNextYearRequest = request.EndDate - startNextYear;
+            //            if (sumOfDaysOfNextYearRequest.Days > item.AvailableDays)
+            //            {
+            //                throw new InvalidOperationException(nameof(item.AvailableDays));
+            //            }
+            //        }
+            //    }
+            //}
 
             var requestDomain = RequestMapper.ToDomain(request);
             requestDomain.Leave = leaveDomain;

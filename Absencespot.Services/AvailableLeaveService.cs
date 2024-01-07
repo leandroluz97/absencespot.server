@@ -49,12 +49,22 @@ namespace Absencespot.Services
             }
 
             var officeResetMonth = officeDomain.StartDate.Month;
-            var officeResetday = officeDomain.StartDate.Day;
-            var thisYear = new DateTime(DateTime.Today.Year, officeResetMonth, officeResetday);
-            var nextYear = new DateTime(DateTime.Today.AddYears(1).Year, officeResetMonth, officeResetday);
+            var officeResetDay = officeDomain.StartDate.Day;
+            var startCurrentYear = new DateTime(DateTime.Today.AddYears(-1).Year, officeResetMonth, officeResetDay);
+            var endCurrentYear = new DateTime(DateTime.Today.Year, officeResetMonth, officeResetDay).AddDays(-1);
+            var startNextYear = new DateTime(DateTime.Today.Year, officeResetMonth, officeResetDay);
+            var endNextYear = new DateTime(DateTime.Today.AddYears(1).Year, officeResetMonth, officeResetDay).AddDays(-1);
+
+            if (startNextYear <= DateTime.Now) 
+            {
+                startCurrentYear = new DateTime(DateTime.Today.Year, officeResetMonth, officeResetDay);
+                endCurrentYear = new DateTime(DateTime.Today.AddYears(1).Year, officeResetMonth, officeResetDay).AddDays(-1);
+                startNextYear = new DateTime(DateTime.Today.AddYears(1).Year, officeResetMonth, officeResetDay);
+                endNextYear = new DateTime(DateTime.Today.AddYears(2).Year, officeResetMonth, officeResetDay).AddDays(-1);
+            }
 
             var availableLeaveQueryable = _unitOfWork.AvailableLeaveRepository.AsQueryable();
-            availableLeaveQueryable = availableLeaveQueryable.Where(a => a.Period.Year >= thisYear.Year && a.Period.Year <= nextYear.Year);
+            availableLeaveQueryable = availableLeaveQueryable.Where(a => a.StartDate >= startCurrentYear && a.EndDate <= endNextYear);
             availableLeaveQueryable = _unitOfWork.AvailableLeaveRepository.Include(availableLeaveQueryable, x => x.Absence);
             availableLeaveQueryable = _unitOfWork.AvailableLeaveRepository.IncludeThen<Domain.Absence, Domain.Leave>(availableLeaveQueryable, x => x.Leave);
             List<Domain.AvailableLeave> availableLeaves = availableLeaveQueryable.ToList();
@@ -68,14 +78,17 @@ namespace Absencespot.Services
                         {
                              new Domain.AvailableLeave()
                              {
-                                 Period = thisYear,
+                                 StartDate = startCurrentYear,
+                                 EndDate = endCurrentYear,
+                                 //AvailableDays = absence.MonthlyAccrual * (startNextYear - DateTime.Now), use month diff
                                  AvailableDays = absence.Allowance,
                                  Absence = absence,
                                  User = userDomain,
                              },
                              new Domain.AvailableLeave()
                              {
-                                 Period = nextYear,
+                                 StartDate = startNextYear,
+                                 EndDate = endNextYear,
                                  AvailableDays = absence.Allowance,
                                  Absence = absence,
                                  User = userDomain,
