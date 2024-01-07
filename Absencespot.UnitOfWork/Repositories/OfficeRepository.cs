@@ -16,7 +16,7 @@ namespace Absencespot.UnitOfWork.Repositories
         {
         }
 
-         public override async Task<Office?> FindByGlobalIdAsync(Guid globalId, RepositoryOptions? options = null, CancellationToken cancellationToken = default)
+        public override async Task<Office?> FindByGlobalIdAsync(Guid globalId, RepositoryOptions? options = null, CancellationToken cancellationToken = default)
         {
             IQueryable<Office> source = AsQueryable(options);
             source = source.Where(s => s.GlobalId == globalId);

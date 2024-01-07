@@ -8,7 +8,7 @@ using System.Linq.Expressions;
 
 namespace Absencespot.UnitOfWork.Repositories
 {
-    public class BaseRepository<T>  : IBaseRepository<T> where T : Entity
+    public class BaseRepository<T> : IBaseRepository<T> where T : Entity
     {
         protected readonly ApplicationDbContext _dbContext;
         private readonly DbSet<T> _dbSet;
@@ -21,7 +21,7 @@ namespace Absencespot.UnitOfWork.Repositories
 
         public IQueryable<T> AsQueryable(RepositoryOptions? options = null)
         {
-            if(options != null && options.Tracking)
+            if (options != null && options.Tracking)
             {
                 return _dbSet.AsTracking().AsQueryable();
             }
@@ -52,7 +52,7 @@ namespace Absencespot.UnitOfWork.Repositories
         {
             return await queryable.ToListAsync(cancellationToken);
         }
-         public async Task<T?> FirstOrDefaultAsync(IQueryable<T> queryable, CancellationToken cancellationToken = default)
+        public async Task<T?> FirstOrDefaultAsync(IQueryable<T> queryable, CancellationToken cancellationToken = default)
         {
             return await queryable.FirstOrDefaultAsync(cancellationToken);
         }
@@ -60,7 +60,7 @@ namespace Absencespot.UnitOfWork.Repositories
         virtual public async Task<T?> FindByGlobalIdAsync(Guid globalId, RepositoryOptions? options = null, CancellationToken cancellationToken = default)
         {
             IQueryable<T> source = AsQueryable(options);
-            source = source.Where(s  => s.GlobalId == globalId);
+            source = source.Where(s => s.GlobalId == globalId);
             var result = await FirstOrDefaultAsync(source, cancellationToken).ConfigureAwait(false);
             return result;
         }
@@ -139,7 +139,7 @@ namespace Absencespot.UnitOfWork.Repositories
 
         public T Update(T entity)
         {
-          var result = _dbContext.Update(entity);
+            var result = _dbContext.Update(entity);
             return result.Entity;
         }
 
