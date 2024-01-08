@@ -1,4 +1,4 @@
-using System;
+    using System;
 using System.Net;
 using System.Threading.Tasks;
 using Absencespot.Business.Abstractions;
@@ -17,7 +17,7 @@ namespace Absencespot.ApiFunctions.Functions
         {
             _logger = logger;
             _availableLeaveService = availableLeaveService;
-        }
+        }  
 
 
         [Function(nameof(GetAllAvailableLeaves))]
