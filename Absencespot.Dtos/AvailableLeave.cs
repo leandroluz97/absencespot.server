@@ -9,7 +9,9 @@ namespace Absencespot.Dtos
     public class AvailableLeave
     {
         public double AvailableDays { get; set; }
-        public DateTime Period { get; set; }
+        //public DateTime Period { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
         public Guid AbsenceId { get; set; }
         public Guid? LeaveId { get; set; }
 
