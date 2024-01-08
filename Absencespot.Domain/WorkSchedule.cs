@@ -19,8 +19,8 @@ namespace Absencespot.Domain
         public DateTime? EndHour { get; set; }
 
         //flexible
-        public int? TotalWorkDays { get; set; }
-        public int? Hours { get; set; }
+        public double? TotalWorkDays { get; set; }
+        public double? Hours { get; set; }
 
 
         public int CompanyId { get; set; }

@@ -19,8 +19,8 @@ namespace Absencespot.Dtos
         public DateTime? EndHour { get; set; }
 
         //flexible
-        public int? TotalWorkDays { get; set; }
-        public int? Hours { get; set; }
+        public double? TotalWorkDays { get; set; }
+        public double? Hours { get; set; }
 
         virtual public void EnsureValidation()
         {
