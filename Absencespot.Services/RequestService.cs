@@ -1,5 +1,6 @@
 ﻿using Absencespot.Business.Abstractions;
 using Absencespot.Domain.Enums;
+using Absencespot.Dtos;
 using Absencespot.Infrastructure.Abstractions;
 using Absencespot.Services.Exceptions;
 using Absencespot.Services.Mappers;
@@ -14,6 +15,7 @@ namespace Absencespot.Services
         private readonly ILogger<RequestService> _logger;
         private readonly IUnitOfWork _unitOfWork;
         private readonly UserManager<Domain.User> _userManager;
+        private const int _sumOfWeekDays = 7;
 
         public RequestService(ILogger<RequestService> logger, UserManager<Domain.User> userManager, IUnitOfWork unitOfWork)
         {
@@ -188,6 +190,13 @@ namespace Absencespot.Services
                 throw new NotFoundException(nameof(userAvailableLeaves));
             }
 
+            var workscheduleDomain = await _unitOfWork.WorkScheduleRepository.FindByIdAsync((int)userDomain.WorkScheduleId!);
+            if (workscheduleDomain == null)
+            {
+                throw new NotFoundException(nameof(workscheduleDomain));
+            }
+            var workschedule = WorkScheduleMapper.ToDto(workscheduleDomain);
+
             userAvailableLeaves = userAvailableLeaves.Where(a => a.Absence.Leave.GlobalId == request.LeaveId);
             var officeResetMonth = officeDomain.StartDate.Month;
             var officeResetDay = officeDomain.StartDate.Day;
@@ -204,11 +213,12 @@ namespace Absencespot.Services
                 endNextYear = new DateTime(DateTime.Today.AddYears(2).Year, officeResetMonth, officeResetDay).AddDays(-1);
             }
 
+
             var userAvailableLeave = userAvailableLeaves.FirstOrDefault(a => request.StartDate >= a.StartDate && request.EndDate <= a.EndDate);
             if (userAvailableLeave != null)
             {
-                var sumOfRequestDays = request.EndDate - request.StartDate;
-                if (userAvailableLeave.AvailableDays < sumOfRequestDays.Days)
+                var totalRequestedDays = GetWorkableDays(request.StartDate, request.EndDate, workschedule);
+                if (userAvailableLeave.AvailableDays < totalRequestedDays)
                 {
                     throw new InvalidOperationException(nameof(userAvailableLeave.AvailableDays));
                 }
@@ -221,8 +231,9 @@ namespace Absencespot.Services
                 {
                     if (item.EndDate < startNextYear)
                     {
-                        var requestStartDateTillOfficeResetDate = startNextYear - request.StartDate;
-                        if (requestStartDateTillOfficeResetDate.Days > item.AvailableDays)
+                        //var requestStartDateTillOfficeResetDate = startNextYear - request.StartDate;
+                        var totalRequestedDays = GetWorkableDays(request.StartDate, startNextYear, workschedule);
+                        if (totalRequestedDays > item.AvailableDays)
                         {
                             throw new InvalidOperationException(nameof(item.AvailableDays));
                         }
@@ -234,8 +245,9 @@ namespace Absencespot.Services
                 {
                     if (item.EndDate >= startNextYear)
                     {
-                        var sumOfDaysOfNextYearRequest = request.EndDate - startNextYear;
-                        if (sumOfDaysOfNextYearRequest.Days > item.AvailableDays)
+                        //var sumOfDaysOfNextYearRequest = request.EndDate - startNextYear;
+                        var sumOfDaysOfNextYearRequest = GetWorkableDays(startNextYear, request.EndDate, workschedule);
+                        if (sumOfDaysOfNextYearRequest > item.AvailableDays)
                         {
                             throw new InvalidOperationException(nameof(item.AvailableDays));
                         }
@@ -495,6 +507,32 @@ namespace Absencespot.Services
             }
 
             return user;
+        }
+
+        private double GetWorkableDays(DateTime startDate, DateTime endDate, Dtos.WorkSchedule workschedule)
+        {
+            double nonWorkableDays = 0;
+            var sumOfRequestDays = endDate - startDate;
+            var workDays = workschedule.WorkDays!.Select(Enum.Parse<DayOfWeek>);
+
+            if (workschedule.IsDefault)
+            {
+                for (DateTime currentDate = startDate; currentDate <= endDate; currentDate = currentDate.AddDays(1))
+                {
+                    if (!workDays.Contains(currentDate.DayOfWeek))
+                    {
+                        nonWorkableDays++;
+                    }
+                }
+            }
+            else
+            {
+                var totalWeeksOfVacation = sumOfRequestDays.TotalDays / _sumOfWeekDays;
+                var totalWorkDaysInWeek = (double)workschedule!.TotalWorkDays;
+                nonWorkableDays = totalWeeksOfVacation * (_sumOfWeekDays - totalWorkDaysInWeek);
+            }
+
+            return sumOfRequestDays.TotalDays - nonWorkableDays;
         }
     }
 }
