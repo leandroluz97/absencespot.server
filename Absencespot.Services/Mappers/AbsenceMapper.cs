@@ -24,7 +24,7 @@ namespace Absencespot.Services.Mappers
         {
             return new Dtos.Absence()
             {
-                LeaveId = domain.Office.GlobalId,
+                LeaveId = domain.Leave.GlobalId,
                 Allowance = Math.Round(domain.Allowance, 2),
                 MonthCarryOverExpiresAfter = Math.Round(domain.MonthCarryOverExpiresAfter, 2),
                 MonthMaxCarryOver = Math.Round(domain.MonthMaxCarryOver, 2),
