@@ -58,6 +58,19 @@ namespace Absencespot.Services
             var approverDomain = await LoadUserByIdAsync(companyId, request.ApproverId);
             var userDomain = await LoadUserByIdAsync(companyId, request.UserId);
 
+            var workscheduleDomain = await _unitOfWork.WorkScheduleRepository.FindByIdAsync((int)userDomain.WorkScheduleId!);
+            if (workscheduleDomain == null)
+            {
+                throw new NotFoundException(nameof(workscheduleDomain));
+            }
+            var workschedule = WorkScheduleMapper.ToDto(workscheduleDomain);
+
+            var leaveDomain = await _unitOfWork.LeaveRepository.FindByGlobalIdAsync(request.LeaveId, RepositoryOptions.AsTracking());
+            if (leaveDomain == null)
+            {
+                throw new NotFoundException(nameof(leaveDomain));
+            }
+
             //TODO: validate user role/permission
             //if(approver.Role != "Approver")
             //{
@@ -92,45 +105,101 @@ namespace Absencespot.Services
             var userAvailableLeave = userAvailableLeaves.FirstOrDefault(a => requestDomain.StartDate >= a.StartDate && requestDomain.EndDate <= a.EndDate);
             if (userAvailableLeave != null)
             {
-                var sumOfRequestDays = requestDomain.EndDate - requestDomain.StartDate;
-                if (userAvailableLeave.AvailableDays < sumOfRequestDays.TotalDays)
+                var sumOfRequestDays = GetWorkableDays(requestDomain.StartDate, requestDomain.EndDate, workschedule);
+                if (userAvailableLeave.AvailableDays < sumOfRequestDays)
                 {
-                    throw new InvalidOperationException(nameof(userAvailableLeave.AvailableDays));
+                    //throw new InvalidOperationException(nameof(userAvailableLeave.AvailableDays));
+                    var absence = officeDomain.Absences.FirstOrDefault(x => x.Leave.GlobalId == leaveDomain.GlobalId);
+                    if (absence == null)
+                    {
+                        throw new NotFoundException(nameof(absence));   
+                    }
+                    if (absence.MonthMaxCarryOver < requestDomain.EndDate.Month)
+                    {
+                        throw new InvalidOperationException(nameof(userAvailableLeave.AvailableDays));
+                    }
+
+                    DateTime startDate = userAvailableLeave.StartDate.AddYears(-1);
+                    DateTime endDate = userAvailableLeave.EndDate.AddYears(-1);
+                    userAvailableLeave = userAvailableLeaves.FirstOrDefault(a => startDate >= a.StartDate && endDate <= a.EndDate);
+                    if (userAvailableLeave == null)
+                    {
+                        throw new NotFoundException(nameof(userAvailableLeave));
+                    }
+                    if (userAvailableLeave.AvailableDays < sumOfRequestDays)
+                    {
+                        throw new InvalidOperationException(nameof(userAvailableLeave));
+                    }
                 }
-                userAvailableLeave.AvailableDays -= sumOfRequestDays.TotalDays;
+                userAvailableLeave.AvailableDays -= sumOfRequestDays;
                 _unitOfWork.AvailableLeaveRepository.Update(userAvailableLeave);
             }
 
             if (requestDomain.StartDate < startNextYear && requestDomain.EndDate >= startNextYear)
             {
-                var userAvailableLeavesThisYear = userAvailableLeaves.Where(a => requestDomain.StartDate >= a.StartDate && a.EndDate < startNextYear);
-                foreach (Domain.AvailableLeave item in userAvailableLeavesThisYear)
+                userAvailableLeave = userAvailableLeaves.FirstOrDefault(a => requestDomain.StartDate >= a.StartDate && a.EndDate < startNextYear);
+                if (userAvailableLeave != null)
                 {
-                    if (item.EndDate < startNextYear)
+                    var requestStartDateTillOfficeResetDate = GetWorkableDays(requestDomain.StartDate, startNextYear, workschedule);
+                    if (requestStartDateTillOfficeResetDate > userAvailableLeave.AvailableDays)
                     {
-                        var requestStartDateTillOfficeResetDate = startNextYear - requestDomain.StartDate;
-                        if (requestStartDateTillOfficeResetDate.TotalDays > item.AvailableDays)
+                        var absence = officeDomain.Absences.FirstOrDefault(x => x.Leave.GlobalId == leaveDomain.GlobalId);
+                        if (absence == null)
                         {
-                            throw new InvalidOperationException(nameof(item.AvailableDays));
+                            throw new NotFoundException(nameof(absence));
                         }
-                        item.AvailableDays -= requestStartDateTillOfficeResetDate.TotalDays;
-                        _unitOfWork.AvailableLeaveRepository.Update(item);
+                        if (absence.MonthMaxCarryOver < requestDomain.EndDate.Month)
+                        {
+                            throw new InvalidOperationException(nameof(userAvailableLeave.AvailableDays));
+                        }
+
+                        DateTime startDate = userAvailableLeave.StartDate.AddYears(-1);
+                        DateTime endDate = userAvailableLeave.EndDate.AddYears(-1);
+                        userAvailableLeave = userAvailableLeaves.FirstOrDefault(a => startDate >= a.StartDate && endDate <= a.EndDate);
+                        if (userAvailableLeave == null)
+                        {
+                            throw new NotFoundException(nameof(userAvailableLeave));
+                        }
+                        if (userAvailableLeave.AvailableDays < requestStartDateTillOfficeResetDate)
+                        {
+                            throw new InvalidOperationException(nameof(userAvailableLeave));
+                        }
                     }
+                    userAvailableLeave.AvailableDays -= requestStartDateTillOfficeResetDate;
+                    _unitOfWork.AvailableLeaveRepository.Update(userAvailableLeave);
                 }
 
-                var userAvailableLeavesNextYear = userAvailableLeaves.Where(a => a.EndDate >= startNextYear);
-                foreach (Domain.AvailableLeave item in userAvailableLeavesNextYear)
+                userAvailableLeave = userAvailableLeaves.FirstOrDefault(a => a.EndDate >= startNextYear && a.EndDate <= endNextYear);
+                if (userAvailableLeave != null)
                 {
-                    if (item.EndDate >= startNextYear)
+                    var sumOfDaysOfNextYearRequest = GetWorkableDays(startNextYear, requestDomain.EndDate, workschedule);
+                    if (sumOfDaysOfNextYearRequest > userAvailableLeave.AvailableDays)
                     {
-                        var sumOfDaysOfNextYearRequest = requestDomain.EndDate - startNextYear;
-                        if (sumOfDaysOfNextYearRequest.TotalDays > item.AvailableDays)
+                        var absence = officeDomain.Absences.FirstOrDefault(x => x.Leave.GlobalId == leaveDomain.GlobalId);
+                        if (absence == null)
                         {
-                            throw new InvalidOperationException(nameof(item.AvailableDays));
+                            throw new NotFoundException(nameof(absence));
                         }
-                        item.AvailableDays -= sumOfDaysOfNextYearRequest.TotalDays;
-                        _unitOfWork.AvailableLeaveRepository.Update(item);
+                        if (absence.MonthMaxCarryOver < requestDomain.EndDate.Month)
+                        {
+                            throw new InvalidOperationException(nameof(userAvailableLeave.AvailableDays));
+                        }
+
+                        DateTime startDate = userAvailableLeave.StartDate.AddYears(-1);
+                        DateTime endDate = userAvailableLeave.EndDate.AddYears(-1);
+                        userAvailableLeave = userAvailableLeaves.FirstOrDefault(a => startDate >= a.StartDate && endDate <= a.EndDate);
+                        if (userAvailableLeave == null)
+                        {
+                            throw new NotFoundException(nameof(userAvailableLeave));
+                        }
+                        if (userAvailableLeave.AvailableDays < sumOfDaysOfNextYearRequest)
+                        {
+                            throw new InvalidOperationException(nameof(userAvailableLeave));
+                        }
                     }
+                    userAvailableLeave.AvailableDays -= sumOfDaysOfNextYearRequest;
+                    _unitOfWork.AvailableLeaveRepository.Update(userAvailableLeave);
+
                 }
             }
 
@@ -172,7 +241,7 @@ namespace Absencespot.Services
                 throw new NotFoundException(nameof(userDomain));
             }
 
-            var officeDomain = await _unitOfWork.OfficeRepository.FindByIdAsync((int)userDomain.OfficeId);
+            var officeDomain = await _unitOfWork.OfficeRepository.FindByIdIncludedAsync((int)userDomain.OfficeId);
             if (officeDomain == null)
             {
                 throw new NotFoundException(nameof(officeDomain));
@@ -220,7 +289,27 @@ namespace Absencespot.Services
                 var totalRequestedDays = GetWorkableDays(request.StartDate, request.EndDate, workschedule);
                 if (userAvailableLeave.AvailableDays < totalRequestedDays)
                 {
-                    throw new InvalidOperationException(nameof(userAvailableLeave.AvailableDays));
+                    var absence = officeDomain.Absences.FirstOrDefault(x => x.Leave.GlobalId == leaveDomain.GlobalId);
+                    if (absence == null)
+                    {
+                        throw new NotFoundException(nameof(absence));
+                    }
+                    if (absence.MonthMaxCarryOver < request.EndDate.Month)
+                    {
+                        throw new InvalidOperationException(nameof(userAvailableLeave.AvailableDays));
+                    }
+
+                    DateTime startDate = userAvailableLeave.StartDate.AddYears(-1);
+                    DateTime endDate = userAvailableLeave.EndDate.AddYears(-1);
+                    userAvailableLeave = userAvailableLeaves.FirstOrDefault(a => startDate >= a.StartDate && endDate <= a.EndDate);
+                    if (userAvailableLeave == null)
+                    {
+                        throw new NotFoundException(nameof(userAvailableLeave));
+                    }
+                    if (userAvailableLeave.AvailableDays < totalRequestedDays)
+                    {
+                        throw new NotFoundException(nameof(userAvailableLeave));
+                    }
                 }
             }
 
@@ -231,25 +320,64 @@ namespace Absencespot.Services
                 {
                     if (item.EndDate < startNextYear)
                     {
-                        //var requestStartDateTillOfficeResetDate = startNextYear - request.StartDate;
                         var totalRequestedDays = GetWorkableDays(request.StartDate, startNextYear, workschedule);
                         if (totalRequestedDays > item.AvailableDays)
                         {
-                            throw new InvalidOperationException(nameof(item.AvailableDays));
+                            //throw new InvalidOperationException(nameof(item.AvailableDays));
+                            var absence = officeDomain.Absences.FirstOrDefault(x => x.Leave.GlobalId == leaveDomain.GlobalId);
+                            if (absence == null)
+                            {
+                                throw new NotFoundException(nameof(absence));
+                            }
+                            if (absence.MonthMaxCarryOver < startNextYear.Month)
+                            {
+                                throw new InvalidOperationException(nameof(item.AvailableDays));
+                            }
+
+                            DateTime startDate = item.StartDate.AddYears(-1);
+                            DateTime endDate = item.EndDate.AddYears(-1);
+                            var backupAvailableLeave = userAvailableLeave = userAvailableLeaves.FirstOrDefault(a => startDate >= a.StartDate && endDate <= a.EndDate);
+                            if (backupAvailableLeave == null)
+                            {
+                                throw new NotFoundException(nameof(backupAvailableLeave));
+                            }
+                            if (backupAvailableLeave.AvailableDays < totalRequestedDays)
+                            {
+                                throw new NotFoundException(nameof(backupAvailableLeave));
+                            }
                         }
                     }
                 }
 
-                var userAvailableLeavesNextYear = userAvailableLeaves.Where(a => a.EndDate >= startNextYear);
+                var userAvailableLeavesNextYear = userAvailableLeaves.Where(a => a.EndDate >= startNextYear && a.EndDate <= endNextYear);
                 foreach (Domain.AvailableLeave item in userAvailableLeavesNextYear)
                 {
                     if (item.EndDate >= startNextYear)
                     {
-                        //var sumOfDaysOfNextYearRequest = request.EndDate - startNextYear;
                         var sumOfDaysOfNextYearRequest = GetWorkableDays(startNextYear, request.EndDate, workschedule);
                         if (sumOfDaysOfNextYearRequest > item.AvailableDays)
                         {
-                            throw new InvalidOperationException(nameof(item.AvailableDays));
+                            var absence = officeDomain.Absences.FirstOrDefault(x => x.Leave.GlobalId == leaveDomain.GlobalId);
+                            if (absence == null)
+                            {
+                                throw new NotFoundException(nameof(absence));
+                            }
+                            if (absence.MonthMaxCarryOver < startNextYear.Month)
+                            {
+                                throw new InvalidOperationException(nameof(item.AvailableDays));
+                            }
+
+                            DateTime startDate = item.StartDate.AddYears(-1);
+                            DateTime endDate = item.EndDate.AddYears(-1);
+                            var backupAvailableLeave = userAvailableLeave = userAvailableLeaves.FirstOrDefault(a => startDate >= a.StartDate && endDate <= a.EndDate);
+                            if (backupAvailableLeave == null)
+                            {
+                                throw new NotFoundException(nameof(backupAvailableLeave));
+                            }
+                            if (backupAvailableLeave.AvailableDays < sumOfDaysOfNextYearRequest)
+                            {
+                                throw new NotFoundException(nameof(backupAvailableLeave));
+                            }
                         }
                     }
                 }
