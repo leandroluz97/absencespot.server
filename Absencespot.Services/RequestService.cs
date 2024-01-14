@@ -148,7 +148,7 @@ namespace Absencespot.Services
                         {
                             throw new NotFoundException(nameof(absence));
                         }
-                        if (absence.MonthMaxCarryOver < requestDomain.EndDate.Month)
+                        if (officeDomain.StartDate.AddMonths(Convert.ToInt32(absence.MonthMaxCarryOver)).Month < requestDomain.EndDate.Month)
                         {
                             throw new InvalidOperationException(nameof(userAvailableLeave.AvailableDays));
                         }
@@ -180,7 +180,7 @@ namespace Absencespot.Services
                         {
                             throw new NotFoundException(nameof(absence));
                         }
-                        if (absence.MonthMaxCarryOver < requestDomain.EndDate.Month)
+                        if (officeDomain.StartDate.AddMonths(Convert.ToInt32(absence.MonthMaxCarryOver)).Month < requestDomain.EndDate.Month)
                         {
                             throw new InvalidOperationException(nameof(userAvailableLeave.AvailableDays));
                         }
@@ -294,7 +294,7 @@ namespace Absencespot.Services
                     {
                         throw new NotFoundException(nameof(absence));
                     }
-                    if (absence.MonthMaxCarryOver < request.EndDate.Month)
+                    if (officeDomain.StartDate.AddMonths(Convert.ToInt32(absence.MonthMaxCarryOver)).Month < request.EndDate.Month)
                     {
                         throw new InvalidOperationException(nameof(userAvailableLeave.AvailableDays));
                     }
@@ -315,13 +315,13 @@ namespace Absencespot.Services
 
             if (request.StartDate < startNextYear && request.EndDate >= startNextYear)
             {
-                var userAvailableLeavesThisYear = userAvailableLeaves.Where(a => request.StartDate >= a.StartDate && a.EndDate < startNextYear);
-                foreach (Domain.AvailableLeave item in userAvailableLeavesThisYear)
+                userAvailableLeave = userAvailableLeaves.FirstOrDefault(a => request.StartDate >= a.StartDate && a.EndDate < startNextYear);
+                if (userAvailableLeave != null)
                 {
-                    if (item.EndDate < startNextYear)
+                    if (userAvailableLeave.EndDate < startNextYear)
                     {
                         var totalRequestedDays = GetWorkableDays(request.StartDate, startNextYear, workschedule);
-                        if (totalRequestedDays > item.AvailableDays)
+                        if (totalRequestedDays > userAvailableLeave.AvailableDays)
                         {
                             //throw new InvalidOperationException(nameof(item.AvailableDays));
                             var absence = officeDomain.Absences.FirstOrDefault(x => x.Leave.GlobalId == leaveDomain.GlobalId);
@@ -329,13 +329,13 @@ namespace Absencespot.Services
                             {
                                 throw new NotFoundException(nameof(absence));
                             }
-                            if (absence.MonthMaxCarryOver < startNextYear.Month)
+                            if (officeDomain.StartDate.AddMonths(Convert.ToInt32(absence.MonthMaxCarryOver)).Month < startNextYear.Month)
                             {
-                                throw new InvalidOperationException(nameof(item.AvailableDays));
+                                throw new InvalidOperationException(nameof(userAvailableLeave.AvailableDays));
                             }
 
-                            DateTime startDate = item.StartDate.AddYears(-1);
-                            DateTime endDate = item.EndDate.AddYears(-1);
+                            DateTime startDate = userAvailableLeave.StartDate.AddYears(-1);
+                            DateTime endDate = userAvailableLeave.EndDate.AddYears(-1);
                             var backupAvailableLeave = userAvailableLeave = userAvailableLeaves.FirstOrDefault(a => startDate >= a.StartDate && endDate <= a.EndDate);
                             if (backupAvailableLeave == null)
                             {
@@ -349,26 +349,26 @@ namespace Absencespot.Services
                     }
                 }
 
-                var userAvailableLeavesNextYear = userAvailableLeaves.Where(a => a.EndDate >= startNextYear && a.EndDate <= endNextYear);
-                foreach (Domain.AvailableLeave item in userAvailableLeavesNextYear)
+                userAvailableLeave = userAvailableLeaves.FirstOrDefault(a => a.EndDate >= startNextYear && a.EndDate <= endNextYear);
+                if (userAvailableLeave != null)
                 {
-                    if (item.EndDate >= startNextYear)
+                    if (userAvailableLeave.EndDate >= startNextYear)
                     {
                         var sumOfDaysOfNextYearRequest = GetWorkableDays(startNextYear, request.EndDate, workschedule);
-                        if (sumOfDaysOfNextYearRequest > item.AvailableDays)
+                        if (sumOfDaysOfNextYearRequest > userAvailableLeave.AvailableDays)
                         {
                             var absence = officeDomain.Absences.FirstOrDefault(x => x.Leave.GlobalId == leaveDomain.GlobalId);
                             if (absence == null)
                             {
                                 throw new NotFoundException(nameof(absence));
                             }
-                            if (absence.MonthMaxCarryOver < startNextYear.Month)
+                            if (officeDomain.StartDate.AddMonths(Convert.ToInt32(absence.MonthMaxCarryOver)).Month < startNextYear.Month)
                             {
-                                throw new InvalidOperationException(nameof(item.AvailableDays));
+                                throw new InvalidOperationException(nameof(userAvailableLeave.AvailableDays));
                             }
 
-                            DateTime startDate = item.StartDate.AddYears(-1);
-                            DateTime endDate = item.EndDate.AddYears(-1);
+                            DateTime startDate = userAvailableLeave.StartDate.AddYears(-1);
+                            DateTime endDate = userAvailableLeave.EndDate.AddYears(-1);
                             var backupAvailableLeave = userAvailableLeave = userAvailableLeaves.FirstOrDefault(a => startDate >= a.StartDate && endDate <= a.EndDate);
                             if (backupAvailableLeave == null)
                             {
