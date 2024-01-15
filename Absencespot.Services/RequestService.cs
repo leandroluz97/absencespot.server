@@ -108,7 +108,6 @@ namespace Absencespot.Services
                 var sumOfRequestDays = GetWorkableDays(requestDomain.StartDate, requestDomain.EndDate, workschedule);
                 if (userAvailableLeave.AvailableDays < sumOfRequestDays)
                 {
-                    //throw new InvalidOperationException(nameof(userAvailableLeave.AvailableDays));
                     var absence = officeDomain.Absences.FirstOrDefault(x => x.Leave.GlobalId == leaveDomain.GlobalId);
                     if (absence == null)
                     {
