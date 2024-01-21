@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Absencespot.Infrastructure.Abstractions.Clients
 {
-    public interface IPaymentClient
+    public interface ISubscriptionClient
     {
         public void CreateSubscription(int seat);
     }
