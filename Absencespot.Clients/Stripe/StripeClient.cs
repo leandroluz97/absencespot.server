@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Absencespot.Clients.Stripe
 {
-    public class StripeClient: IPaymentClient
+    public class StripeClient: ISubscriptionClient
     {
         public StripeClient()
         {
@@ -17,16 +17,16 @@ namespace Absencespot.Clients.Stripe
 
         public void CreateSubscription(int seat)
         {
-            var options = new SubscriptionCreateOptions
-            {
-                Customer = "cus_4fdAW5ftNQow1a",
-                Items = new List<SubscriptionItemOptions>
-                {
-                    new SubscriptionItemOptions { Price = "price_1OZNFpA0D3nIAUzqndEcS9Mj", Quantity = seat },
-                },
-            };
-            var service = new SubscriptionService();
-            service.Create(options);
+            //var options = new SubscriptionCreateOptions
+            //{
+            //    Customer = "cus_4fdAW5ftNQow1a",
+            //    Items = new List<SubscriptionItemOptions>
+            //    {
+            //        new SubscriptionItemOptions { Price = "price_1OZNFpA0D3nIAUzqndEcS9Mj", Quantity = seat },
+            //    },
+            //};
+            //var service = new SubscriptionService();
+            //service.Create(options);
             //var options = new PriceCreateOptions
             //{
             //    Nickname = "Standard Cost Per 5 Users",
