@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Stripe.net" Version="43.11.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Absencespot.Business.Abstractions\Absencespot.Business.Abstractions.csproj" />
     <ProjectReference Include="..\Absencespot.Clients\Absencespot.Clients.csproj" />
     <ProjectReference Include="..\Absencespot.Infrastructure.Abstractions\Absencespot.Infrastructure.Abstractions.csproj" />
