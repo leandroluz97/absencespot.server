@@ -4,6 +4,8 @@ using Microsoft.Azure.Functions.Worker.Configuration;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Stripe;
+using System;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -28,9 +30,10 @@ namespace Absencespot.ApiFunctions
                  })
                 .ConfigureServices((context, services) =>
                 {
+                    StripeConfiguration.ApiKey = context.Configuration["Stripe:ApiKey"];
                     services.AddPersistence(context.Configuration);
                     services.AddServices(context.Configuration);
-                   // services.AddHttpContextAccessor();
+                    // services.AddHttpContextAccessor();
                 })
                 .Build();
 
