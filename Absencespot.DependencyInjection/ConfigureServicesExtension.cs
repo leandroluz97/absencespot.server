@@ -51,24 +51,27 @@ namespace Absencespot.DependencyInjection
 
             return services;
         }
+
         public static IServiceCollection AddServices(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddSingleton<IConfiguration>(configuration);
             services.AddScoped<IUnitOfWork, Absencespot.UnitOfWork.UnitOfWork>();
-            services.AddTransient<IEmailClient, SendridClient>();
-            services.AddTransient<ICompanyService, CompanyService>();
-            services.AddTransient<IRequestService, RequestService>();
-            services.AddTransient<ILeaveService, LeaveService>();
-            services.AddTransient<IOfficeService, OfficeService>();
-            services.AddTransient<ITeamService, TeamService>();
-            services.AddTransient<IWorkScheduleService, WorkScheduleService>();
-            services.AddTransient<IAuthenticationService, AuthenticationService>();
-            services.AddTransient<ITrackRecordService, TrackRecordService>();
-            services.AddTransient<IAvailableLeaveService, AvailableLeaveService>();
-            services.AddTransient<ISettingsService, SettingsService>();
-            services.AddTransient<IIntegrationService, IntegrationService>();
+            services.AddScoped<IEmailClient, SendridClient>();
+            services.AddScoped<ICompanyService, CompanyService>();
+            services.AddScoped<IRequestService, RequestService>();
+            services.AddScoped<ILeaveService, LeaveService>();
+            services.AddScoped<IOfficeService, OfficeService>();
+            services.AddScoped<ITeamService, TeamService>();
+            services.AddScoped<IWorkScheduleService, WorkScheduleService>();
+            services.AddScoped<IAuthenticationService, AuthenticationService>();
+            services.AddScoped<ITrackRecordService, TrackRecordService>();
+            services.AddScoped<IAvailableLeaveService, AvailableLeaveService>();
+            services.AddScoped<ISettingsService, SettingsService>();
+            services.AddScoped<IIntegrationService, IntegrationService>();
+            services.AddScoped<ISubscriptionService, SubscriptionService>();
             services.AddSingleton(x => new BlobServiceClient(configuration.GetConnectionString("BlobStorageConnection")));
             services.AddSingleton<BlobStorageClient>();
+            //services.AddSingleton<ISubscriptionClient, StripeClient>();
 
             services.AddIdentity<User, Role>(options =>
             {
