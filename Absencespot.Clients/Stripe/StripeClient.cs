@@ -1,43 +1,128 @@
-﻿using Absencespot.Infrastructure.Abstractions.Clients;
-using Stripe;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Absencespot.Dtos;
+using Absencespot.Infrastructure.Abstractions.Clients;
+using Microsoft.Extensions.Configuration;
 
-namespace Absencespot.Clients.Stripe
+namespace Absencespot.Clients
 {
-    public class StripeClient: ISubscriptionClient
+    public class StripeClient : IStripeClient
     {
-        public StripeClient()
-        {
+        private readonly string _publicKey;
 
+        public StripeClient(IConfiguration configuration)
+        {
+            _publicKey = configuration["Stripe:PublishableKey"]!;
         }
 
-        public void CreateSubscription(int seat)
+        public async Task CancelAsync(Guid companyId, string subscriptionId, CancellationToken cancellationToken = default)
         {
-            //var options = new SubscriptionCreateOptions
-            //{
-            //    Customer = "cus_4fdAW5ftNQow1a",
-            //    Items = new List<SubscriptionItemOptions>
-            //    {
-            //        new SubscriptionItemOptions { Price = "price_1OZNFpA0D3nIAUzqndEcS9Mj", Quantity = seat },
-            //    },
-            //};
-            //var service = new SubscriptionService();
-            //service.Create(options);
-            //var options = new PriceCreateOptions
-            //{
-            //    Nickname = "Standard Cost Per 5 Users",
-            //    TransformQuantity = new PriceTransformQuantityOptions { DivideBy = 5, Round = "up" },
-            //    UnitAmount = 1000,
-            //    Currency = "usd",
-            //    Recurring = new PriceRecurringOptions { Interval = "month", UsageType = "licensed" },
-            //    Product = "{{PRODUCTIVITY_SUITE_ID}}",
-            //};
-            //var service = new PriceService();
-            //service.Create(options);
+            if (string.IsNullOrWhiteSpace(subscriptionId))
+            {
+                throw new ArgumentNullException(nameof(subscriptionId));
+            }
+
+            var subscriptionService = new Stripe.SubscriptionService();
+            await subscriptionService.CancelAsync(subscriptionId, cancellationToken: cancellationToken);
+        }
+
+        public async Task<Stripe.Subscription> CreateAsync(Guid companyId, CreateSubscription subscription, CancellationToken cancellationToken = default)
+        {
+            if (subscription == null)
+            {
+                throw new ArgumentNullException(nameof(subscription));
+            }
+            subscription.EnsureValidation();
+
+            // Automatically save the payment method to the subscription
+            // when the first payment is successful.
+            var paymentSettings = new Stripe.SubscriptionPaymentSettingsOptions
+            {
+                SaveDefaultPaymentMethod = "on_subscription",
+            };
+
+            var options = new Stripe.SubscriptionCreateOptions
+            {
+                Customer = subscription.CustomerId,
+                Items = new List<Stripe.SubscriptionItemOptions>
+                {
+                    new Stripe.SubscriptionItemOptions { Price = subscription.PriceId },
+                },
+                PaymentSettings = paymentSettings,
+                PaymentBehavior = "default_incomplete",
+            };
+
+            //subscription.LatestInvoice.PaymentIntent.ClientSecret
+            options.AddExpand("latest_invoice.payment_intent"); 
+
+            var subscriptionService = new Stripe.SubscriptionService();
+            var stripeSubscribe = await subscriptionService.CreateAsync(options, cancellationToken: cancellationToken);
+
+            return stripeSubscribe;
+        }
+
+        public async Task<Stripe.Customer> CreateCustomerAsync(Guid companyId, Customer customer, CancellationToken cancellationToken = default)
+        {
+            if (customer == null)
+            {
+                throw new ArgumentNullException(nameof(customer));
+            }
+            customer.EnsureValidation();
+
+            var options = new Stripe.CustomerCreateOptions
+            {
+                Name = customer.Name,
+                Email = customer.Email,
+            };
+            var service = new Stripe.CustomerService();
+            var stripeCustomer = await service.CreateAsync(options, cancellationToken: cancellationToken);
+
+            return stripeCustomer;
+        }
+
+        public Task Events<D>(D intent, CancellationToken cancellationToken = default)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<Stripe.Subscription?> GetByIdAsync(Guid companyId, string subscriptionId, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(subscriptionId))
+            {
+                throw new ArgumentNullException(nameof(subscriptionId));
+            }
+
+            var subscriptionService = new Stripe.SubscriptionService();
+            var stripeSubscription = await subscriptionService.GetAsync(subscriptionId, cancellationToken: cancellationToken);
+
+            return stripeSubscription;
+        }
+
+        public async Task<IEnumerable<Stripe.Price>> GetPricesAsync(CancellationToken cancellationToken = default)
+        {
+            var priceService = new Stripe.PriceService();
+            var stripePrices = await priceService.ListAsync(cancellationToken: cancellationToken);
+            return stripePrices;
+        }
+
+        public async Task<IEnumerable<Stripe.Subscription>> ListAll(Guid companyId, string customerId, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(customerId))
+            {
+                throw new ArgumentNullException(nameof(customerId));
+            }
+
+            var options = new Stripe.SubscriptionSearchOptions
+            {
+                Query = $"status:'active' AND customer:'{customerId}'",
+            };
+            var subscriptionService = new Stripe.SubscriptionService();
+            var stripeSubscriptions = await subscriptionService.SearchAsync(options, cancellationToken: cancellationToken);
+  
+            return stripeSubscriptions;
+        }
+
+        public string GetPublishableKeyAsync(CancellationToken cancellationToken = default)
+        {
+            return _publicKey;
         }
     }
 }
