@@ -89,7 +89,7 @@ namespace Absencespot.Services
             {
                 Name = customer.Name,
                 Email = customer.Email,
-                PaymentMethod = "card"
+                //PaymentMethod = "card"
             };
             var service = new CustomerService();
             var stripeCustomer = await service.CreateAsync(options, cancellationToken: cancellationToken);
@@ -145,7 +145,7 @@ namespace Absencespot.Services
         public async Task<IEnumerable<Dtos.Price>> GetPricesAsync(CancellationToken cancellationToken = default)
         {
             var priceService = new PriceService();
-            var stripePrices = await priceService.SearchAsync(cancellationToken: cancellationToken);
+            var stripePrices = await priceService.ListAsync(cancellationToken: cancellationToken);
             if (stripePrices == null)
             {
                 throw new NotFoundException(nameof(stripePrices));
@@ -154,7 +154,9 @@ namespace Absencespot.Services
             return stripePrices.Select(p => new Dtos.Price()
             {
                 Id = p.Id,
-                UnitAmount = (decimal)p?.UnitAmountDecimal,
+                UnitAmount = (decimal)p?.UnitAmount / 100,
+                ProductId = p.ProductId,
+                Currency = p.Currency,
             });
         }
 
