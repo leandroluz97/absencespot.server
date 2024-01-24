@@ -44,13 +44,16 @@ namespace Absencespot.Clients
                 Customer = subscription.CustomerId,
                 Items = new List<Stripe.SubscriptionItemOptions>
                 {
-                    new Stripe.SubscriptionItemOptions { Price = subscription.PriceId },
+                    new Stripe.SubscriptionItemOptions 
+                    { 
+                        Price = subscription.PriceId, 
+                        Quantity = 3  
+                    },
                 },
                 PaymentSettings = paymentSettings,
                 PaymentBehavior = "default_incomplete",
             };
 
-            //subscription.LatestInvoice.PaymentIntent.ClientSecret
             options.AddExpand("latest_invoice.payment_intent"); 
 
             var subscriptionService = new Stripe.SubscriptionService();
