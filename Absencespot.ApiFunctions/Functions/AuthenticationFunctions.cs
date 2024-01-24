@@ -15,7 +15,6 @@ namespace Absencespot.ApiFunctions.Functions
 {
     public class AuthenticationFunctions : BaseFunction
     {
-        private readonly ILogger _logger;
         private readonly IAuthenticationService _authenticationService;
         private readonly SignInManager<Domain.User> _signInManager;
 
@@ -25,7 +24,6 @@ namespace Absencespot.ApiFunctions.Functions
             SignInManager<Domain.User> signInManager
             ) : base(logger)
         {
-            _logger = logger;
             _authenticationService = authenticationService;
             _signInManager = signInManager;
         }
