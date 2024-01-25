@@ -1,5 +1,6 @@
 ﻿using Absencespot.Azure;
 using Absencespot.Business.Abstractions;
+using Absencespot.Clients;
 using Absencespot.Clients.Sendgrid;
 using Absencespot.Domain;
 using Absencespot.Infrastructure.Abstractions;
@@ -69,9 +70,9 @@ namespace Absencespot.DependencyInjection
             services.AddScoped<ISettingsService, SettingsService>();
             services.AddScoped<IIntegrationService, IntegrationService>();
             services.AddScoped<ISubscriptionService, SubscriptionService>();
+            services.AddScoped<IStripeClient, StripeClient>();
             services.AddSingleton(x => new BlobServiceClient(configuration.GetConnectionString("BlobStorageConnection")));
             services.AddSingleton<BlobStorageClient>();
-            //services.AddSingleton<ISubscriptionClient, StripeClient>();
 
             services.AddIdentity<User, Role>(options =>
             {
