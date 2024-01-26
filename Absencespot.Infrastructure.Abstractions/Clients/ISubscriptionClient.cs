@@ -7,9 +7,10 @@ using System.Threading.Tasks;
 
 namespace Absencespot.Infrastructure.Abstractions.Clients
 {
-    public interface ISubscriptionClient<T, D> where T : class where D : class
+    public interface ISubscriptionClient<T, D, B> where T : class where D : class
     {
         Task<T> CreateAsync(Guid companyId, D subscription, CancellationToken cancellationToken = default);
+        Task<T> UpdateAsync(Guid companyId, B subscription, CancellationToken cancellationToken = default);
         Task CancelAsync(Guid companyId, string customerId, CancellationToken cancellationToken = default);
         Task<T> GetByIdAsync(Guid companyId, string customerId, CancellationToken cancellationToken = default);    
         Task<IEnumerable<T>> ListAll(Guid companyId, string customerId, CancellationToken cancellationToken = default);    

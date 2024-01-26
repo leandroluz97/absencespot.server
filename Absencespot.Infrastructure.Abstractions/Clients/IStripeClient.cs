@@ -9,7 +9,7 @@ using Stripe;
 
 namespace Absencespot.Infrastructure.Abstractions.Clients
 {
-    public interface IStripeClient : ISubscriptionClient<Stripe.Subscription, CreateSubscription>
+    public interface IStripeClient : ISubscriptionClient<Stripe.Subscription, CreateSubscription, UpdateSubscription>
     {
         public string GetPublishableKeyAsync(CancellationToken cancellationToken = default);
         Task<Stripe.Customer> CreateCustomerAsync(Guid companyId, Dtos.Customer customer, CancellationToken cancellationToken = default);
