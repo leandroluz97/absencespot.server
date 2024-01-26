@@ -62,6 +62,32 @@ namespace Absencespot.Clients
             return stripeSubscribe;
         }
 
+        public async Task<Stripe.Subscription> UpdateAsync(Guid companyId, UpdateSubscription subscription, CancellationToken cancellationToken = default)
+        {
+            if (subscription == null)
+            {
+                throw new ArgumentNullException(nameof(subscription));
+            }
+            subscription.EnsureValidation();
+
+            var options = new Stripe.SubscriptionUpdateOptions
+            {
+                Items = new List<Stripe.SubscriptionItemOptions>
+                {
+                    new Stripe.SubscriptionItemOptions
+                    {
+                        Price = subscription.PriceId,
+                        Quantity = subscription.Quantity
+                    },
+                },
+            };
+
+            var subscriptionService = new Stripe.SubscriptionService();
+            var stripeSubscribe = await subscriptionService.UpdateAsync(subscription.SubscriptionId, options, cancellationToken: cancellationToken);
+
+            return stripeSubscribe;
+        }
+
         public async Task<Stripe.Customer> CreateCustomerAsync(Guid companyId, Customer customer, CancellationToken cancellationToken = default)
         {
             if (customer == null)
