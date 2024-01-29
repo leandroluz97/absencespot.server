@@ -37,6 +37,7 @@ namespace Absencespot.Clients
             var paymentSettings = new Stripe.SubscriptionPaymentSettingsOptions
             {
                 SaveDefaultPaymentMethod = "on_subscription",
+                PaymentMethodTypes = new List<string>(){ "card" }
             };
 
             var options = new Stripe.SubscriptionCreateOptions
@@ -52,6 +53,7 @@ namespace Absencespot.Clients
                 },
                 PaymentSettings = paymentSettings,
                 PaymentBehavior = "default_incomplete",
+                
             };
 
             options.AddExpand("latest_invoice.payment_intent"); 
@@ -100,6 +102,7 @@ namespace Absencespot.Clients
             {
                 Name = customer.Name,
                 Email = customer.Email,
+                PreferredLocales = new List<string> { "en"}
             };
             var service = new Stripe.CustomerService();
             var stripeCustomer = await service.CreateAsync(options, cancellationToken: cancellationToken);
@@ -125,11 +128,34 @@ namespace Absencespot.Clients
             return stripeSubscription;
         }
 
-        public async Task<IEnumerable<Stripe.Price>> GetPricesAsync(CancellationToken cancellationToken = default)
+        public async Task<IEnumerable<Stripe.Product>> GetProductsAsync(CancellationToken cancellationToken = default)
         {
-            var priceService = new Stripe.PriceService();
-            var stripePrices = await priceService.ListAsync(cancellationToken: cancellationToken);
-            return stripePrices;
+            var productService = new Stripe.ProductService();
+            var options = new Stripe.ProductListOptions
+            {
+                Expand = new List<string> { "data.default_price" } // Expand the price field
+            };
+
+            var stripeProducts = await productService.ListAsync(options, cancellationToken: cancellationToken);
+            return stripeProducts;
+        }
+        
+        public async Task<IEnumerable<Stripe.PaymentIntent>> GetPaymentIntentsAsync(string customerId, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(customerId))
+            {
+                throw new ArgumentNullException(nameof(customerId));
+            }
+
+            var options = new Stripe.PaymentIntentListOptions 
+            { 
+                Limit = 100 
+            };
+
+            var paymentIntentService = new Stripe.PaymentIntentService();
+            var stripePaymentIntents = await paymentIntentService.ListAsync(options, cancellationToken: cancellationToken);
+
+            return stripePaymentIntents;
         }
 
         public async Task<IEnumerable<Stripe.Subscription>> ListAll(Guid companyId, string customerId, CancellationToken cancellationToken = default)
