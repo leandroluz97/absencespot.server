@@ -21,6 +21,31 @@ namespace Absencespot.ApiFunctions.Functions
             _subscriptionService = subscriptionService;
         }
 
+
+        [Function(nameof(GetAllSubscriptions))]
+        public async Task<HttpResponseData> GetAllSubscriptions([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "companies/{companyId}/subscriptions")]
+        HttpRequestData req, Guid companyId)
+        {
+            _logger.LogInformation("C# HTTP trigger function processed a request.");
+
+            var query = System.Web.HttpUtility.ParseQueryString(req.Url.Query);
+            if (string.IsNullOrWhiteSpace(query["customerId"]))
+            {
+                throw new ArgumentNullException("customerId");
+            }
+            if (string.IsNullOrWhiteSpace(query["priceId"]))
+            {
+                throw new ArgumentNullException("priceId");
+            }
+
+            var result = await _subscriptionService.GetAllAsync(companyId, query["customerId"], query["priceId"]);
+
+            var response = req.CreateResponse(HttpStatusCode.OK);
+            await response.WriteAsJsonAsync(result, _objectSerializer)
+              .ConfigureAwait(false);
+            return response;
+        }
+
         [Function(nameof(CreateCustomer))]
         public async Task<HttpResponseData> CreateCustomer([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "companies/{companyId}/subscriptions/customer")]
         HttpRequestData req, Guid companyId)
@@ -69,7 +94,7 @@ namespace Absencespot.ApiFunctions.Functions
 
         [Function(nameof(CancelSubscription))]
         public async Task<HttpResponseData> CancelSubscription([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "companies/{companyId}/subscriptions/{subscriptionId}/cancel")]
-        HttpRequestData req, Guid companyId, string subscriptionId)
+        HttpRequestData req, Guid companyId, string subscriptionId) 
         {
             _logger.LogInformation("C# HTTP trigger function processed a request.");
 
@@ -94,8 +119,8 @@ namespace Absencespot.ApiFunctions.Functions
         }
 
 
-        [Function(nameof(GetPrices))]
-        public async Task<HttpResponseData> GetPrices([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "companies/{companyId}/subscriptions/prices")]
+        [Function(nameof(GetProducts))]
+        public async Task<HttpResponseData> GetProducts([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "companies/{companyId}/subscriptions/products")]
         HttpRequestData req, Guid companyId)
         {
             _logger.LogInformation("C# HTTP trigger function processed a request.");
