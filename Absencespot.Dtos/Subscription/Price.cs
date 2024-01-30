@@ -10,7 +10,7 @@ namespace Absencespot.Dtos
     {
         public string Id { get; set; }
         public decimal UnitAmount { get; set; }
-        public string ProductId { get; set; }
+        public string Product { get; set; }
         public string Currency { get; set; }
     }
 }
