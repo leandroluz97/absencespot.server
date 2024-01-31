@@ -47,7 +47,7 @@ namespace Absencespot.ApiFunctions.Functions
         }
 
         [Function(nameof(CreateCustomer))]
-        public async Task<HttpResponseData> CreateCustomer([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "companies/{companyId}/subscriptions/customer")]
+        public async Task<HttpResponseData> CreateCustomer([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "companies/{companyId}/customer")]
         HttpRequestData req, Guid companyId)
         {
             _logger.LogInformation("C# HTTP trigger function processed a request.");
@@ -61,21 +61,6 @@ namespace Absencespot.ApiFunctions.Functions
             return response;
         }
 
-        //[Function(nameof(CreatePaymentIntent))]
-        //public async Task<HttpResponseData> CreatePaymentIntent([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "companies/{companyId}/subscriptions/payment-intents")]
-        //HttpRequestData req, Guid companyId)
-        //{
-        //    _logger.LogInformation("C# HTTP trigger function processed a request.");
-
-        //    var subscriptionBody = JsonSerializer.Deserialize<Dtos.CreatePaymentIntent>(req.Body, _jsonSerializerOptions);
-        //    var result = await _subscriptionService.CreatePaymentIntentAsync(companyId, subscriptionBody);
-
-        //    var response = req.CreateResponse(HttpStatusCode.OK);
-        //    await response.WriteAsJsonAsync(result, _objectSerializer)
-        //                  .ConfigureAwait(false);
-        //    return response;
-        //}
-
         [Function(nameof(CreateSubscription))]
         public async Task<HttpResponseData> CreateSubscription([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "companies/{companyId}/subscriptions")]
         HttpRequestData req, Guid companyId)
@@ -84,6 +69,35 @@ namespace Absencespot.ApiFunctions.Functions
 
             var subscriptionBody = JsonSerializer.Deserialize<Dtos.CreateSubscription>(req.Body, _jsonSerializerOptions);
             var result = await _subscriptionService.CreateAsync(companyId, subscriptionBody);
+
+            var response = req.CreateResponse(HttpStatusCode.Created);
+            await response.WriteAsJsonAsync(result, _objectSerializer)
+                .ConfigureAwait(false);
+            return response;
+        }
+
+        [Function(nameof(UpdateSubscription))]
+        public async Task<HttpResponseData> UpdateSubscription([HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = "companies/{companyId}/subscriptions/{subscriptionId}")]
+        HttpRequestData req, Guid companyId)
+        {
+            _logger.LogInformation("C# HTTP trigger function processed a request.");
+
+            var subscriptionBody = JsonSerializer.Deserialize<Dtos.UpdateSubscription>(req.Body, _jsonSerializerOptions);
+             await _subscriptionService.UpdateAsync(companyId, subscriptionBody);
+
+            var response = req.CreateResponse(HttpStatusCode.OK);
+            return response;
+        }
+
+
+        [Function(nameof(UpgradeSubscription))]
+        public async Task<HttpResponseData> UpgradeSubscription([HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = "companies/{companyId}/subscriptions/{subscriptionId}/upgrade")]
+        HttpRequestData req, Guid companyId)
+        {
+            _logger.LogInformation("C# HTTP trigger function processed a request.");
+
+            var subscriptionBody = JsonSerializer.Deserialize<Dtos.UpgradeSubscription>(req.Body, _jsonSerializerOptions);
+            var result = await _subscriptionService.UpgradeAsync(companyId, subscriptionBody);
 
             var response = req.CreateResponse(HttpStatusCode.Created);
             await response.WriteAsJsonAsync(result, _objectSerializer)
@@ -118,9 +132,8 @@ namespace Absencespot.ApiFunctions.Functions
             return response;
         }
 
-
         [Function(nameof(GetProducts))]
-        public async Task<HttpResponseData> GetProducts([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "companies/{companyId}/subscriptions/products")]
+        public async Task<HttpResponseData> GetProducts([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "companies/{companyId}/subscriptions/prices")]
         HttpRequestData req, Guid companyId)
         {
             _logger.LogInformation("C# HTTP trigger function processed a request.");
@@ -133,5 +146,18 @@ namespace Absencespot.ApiFunctions.Functions
             return response;
         }
 
+        [Function(nameof(GetPaymentHistory))]
+        public async Task<HttpResponseData> GetPaymentHistory([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "companies/{companyId}/payment-history")]
+        HttpRequestData req, Guid companyId)
+        {
+            _logger.LogInformation("C# HTTP trigger function processed a request.");
+
+            var result = await _subscriptionService.GetPaymentIntentsAsync(companyId);
+
+            var response = req.CreateResponse(HttpStatusCode.OK);
+            await response.WriteAsJsonAsync(result, _objectSerializer)
+                .ConfigureAwait(false);
+            return response;
+        }
     }
 }
