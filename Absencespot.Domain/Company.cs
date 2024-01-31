@@ -10,6 +10,7 @@ namespace Absencespot.Domain
         public string? EmailContact { get; set; }
         public string Industry { get; set; }
         public bool IsActive { get; set; }
+        public string? customerId { get; set; }
         public Settings Settings { get; set; }
 
         public int SubcriptionId { get; set; }
