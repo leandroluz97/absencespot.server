@@ -132,8 +132,8 @@ namespace Absencespot.ApiFunctions.Functions
             return response;
         }
 
-        [Function(nameof(GetProducts))]
-        public async Task<HttpResponseData> GetProducts([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "companies/{companyId}/subscriptions/prices")]
+        [Function(nameof(GetPrices))]
+        public async Task<HttpResponseData> GetPrices([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "companies/{companyId}/subscriptions/prices")]
         HttpRequestData req, Guid companyId)
         {
             _logger.LogInformation("C# HTTP trigger function processed a request.");

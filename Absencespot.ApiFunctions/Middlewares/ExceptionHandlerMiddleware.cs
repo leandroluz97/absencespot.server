@@ -28,6 +28,7 @@ namespace Absencespot.ApiFunctions.Middlewares
             }
         }
 
+
         private async Task<HttpResponseData> HandleExceptionAsync(FunctionContext context, Exception exception)
         {
             var httpRequestData = GetHttpRequestData(context);
