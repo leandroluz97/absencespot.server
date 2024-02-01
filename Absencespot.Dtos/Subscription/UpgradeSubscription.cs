@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 
 namespace Absencespot.Dtos
 {
-    public class UpdateSubscription
+    public class UpgradeSubscription
     {
         public string SubscriptionId { get; set; }
-        public string subscriptionItemId { get; set; }
+        public string SubscriptionItemId { get; set; }
         public string PriceId { get; set; }
         public int Quantity { get; set; }
 

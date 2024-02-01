@@ -8,6 +8,7 @@ namespace Absencespot.Dtos
 {
     public class ResponsePaymentIntent
     {
+        public IEnumerable<object> Lines { get; set; }
         public decimal Amount { get; set; }
         public string? Currency { get; set; }
         public string? Status { get; set; }
