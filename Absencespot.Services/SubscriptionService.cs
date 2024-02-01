@@ -1,48 +1,72 @@
 ﻿using Absencespot.Business.Abstractions;
-using Absencespot.Dtos;
+using Absencespot.Infrastructure.Abstractions;
+using Absencespot.Infrastructure.Abstractions.Clients;
 using Absencespot.Services.Exceptions;
 using Microsoft.Extensions.Configuration;
 using Stripe;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
 
 namespace Absencespot.Services
 {
     public class SubscriptionService : ISubscriptionService
     {
         private readonly IConfiguration _configuration;
-        public SubscriptionService(IConfiguration configuration)
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly Infrastructure.Abstractions.Clients.IStripeClient _stripeClient;
+        public SubscriptionService(IConfiguration configuration, Infrastructure.Abstractions.Clients.IStripeClient stripeClient, IUnitOfWork unitOfWork)
         {
             _configuration = configuration;
+            _stripeClient = stripeClient;
+            _unitOfWork = unitOfWork;
         }
 
-        public async Task<Dtos.ResponseSubscription> GetAsync(Guid companyId, string customerId, CancellationToken cancellationToken = default)
+        public async Task<IEnumerable<Dtos.ResponseSubscription>> GetAllAsync(Guid companyId, string customerId, string priceId, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(customerId))
             {
                 throw new ArgumentNullException(nameof(customerId));
             }
-
-            var options = new SubscriptionSearchOptions
+            if (string.IsNullOrWhiteSpace(priceId))
             {
-                Query = "status:'active' AND customer:'customerId'",
-            };
-            var subscriptionService = new Stripe.SubscriptionService();
+                throw new ArgumentNullException(nameof(priceId));
+            }
 
-            var stripeSubscriptions = await subscriptionService.SearchAsync(options, cancellationToken: cancellationToken);
-            var stripeSubscription = stripeSubscriptions.FirstOrDefault();
+            var stripeSubscription = await _stripeClient.ListAll(companyId, customerId, cancellationToken);
 
             if (stripeSubscription == null)
             {
-                return null;
+                throw new NotFoundException(nameof(stripeSubscription));
+            }
+
+            return stripeSubscription.Select(s =>
+                new Dtos.ResponseSubscription()
+                {
+                    Id = s.Id,
+                    ClientSecret = s.LatestInvoice.PaymentIntent.ClientSecret,
+                    PriceId = s.Items.Select(i => i.Price.Id).FirstOrDefault()!,
+                    Ids = s.Items.Select(i => i.Id)
+                });
+        }
+
+        public async Task<Dtos.ResponseSubscription> GetAsync(Guid companyId, string subscriptionId, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(subscriptionId))
+            {
+                throw new ArgumentNullException(nameof(subscriptionId));
+            }
+
+            var stripeSubscription = await _stripeClient.GetByIdAsync(companyId, subscriptionId, cancellationToken);
+
+            if (stripeSubscription == null)
+            {
+                throw new NotFoundException(nameof(stripeSubscription));
             }
 
             return new Dtos.ResponseSubscription()
             {
                 Id = stripeSubscription.Id,
+                ClientSecret = stripeSubscription.LatestInvoice.PaymentIntent.ClientSecret,
+                Ids = stripeSubscription.Items.Select(i => i.Id)
             };
         }
 
@@ -53,11 +77,10 @@ namespace Absencespot.Services
                 throw new ArgumentNullException(nameof(subscriptionId));
             }
 
-            var subscriptionService = new Stripe.SubscriptionService();
-            await subscriptionService.CancelAsync(subscriptionId, cancellationToken: cancellationToken);
+            await _stripeClient.CancelAsync(companyId, subscriptionId, cancellationToken);
         }
 
-        public async Task CreateAsync(Guid companyId, Dtos.CreateSubscription subscription, CancellationToken cancellationToken = default)
+        public async Task<Dtos.ResponseSubscription> CreateAsync(Guid companyId, Dtos.CreateSubscription subscription, CancellationToken cancellationToken = default)
         {
             if (subscription == null)
             {
@@ -65,16 +88,51 @@ namespace Absencespot.Services
             }
             subscription.EnsureValidation();
 
-            var options = new SubscriptionCreateOptions
+            var stripeSubscription = await _stripeClient.CreateAsync(companyId, subscription, cancellationToken);
+            if (stripeSubscription == null)
             {
-                Customer = subscription.CustomerId,
-                Items = new List<SubscriptionItemOptions>
-                {
-                    new SubscriptionItemOptions { Price = subscription.PriceId },
-                },
+                throw new InvalidOperationException();
+            }
+
+            return new Dtos.ResponseSubscription()
+            {
+                Id = stripeSubscription.Id,
+                ClientSecret = stripeSubscription.LatestInvoice.PaymentIntent.ClientSecret,
+                Ids = stripeSubscription.Items.Select(i => i.Id)
             };
-            var service = new Stripe.SubscriptionService();
-            await service.CreateAsync(options, cancellationToken: cancellationToken);
+        }
+
+        public async Task UpdateAsync(Guid companyId, Dtos.UpdateSubscription subscription, CancellationToken cancellationToken = default)
+        {
+            if (subscription == null)
+            {
+                throw new ArgumentNullException(nameof(subscription));
+            }
+            subscription.EnsureValidation();
+
+            await _stripeClient.UpdateAsync(companyId, subscription, cancellationToken);
+        }
+
+        public async Task<Dtos.ResponseSubscription> UpgradeAsync(Guid companyId, Dtos.UpgradeSubscription subscription, CancellationToken cancellationToken = default)
+        {
+            if (subscription == null)
+            {
+                throw new ArgumentNullException(nameof(subscription));
+            }
+            subscription.EnsureValidation();
+
+            var stripeSubscription = await _stripeClient.UpgradeAsync(companyId, subscription, cancellationToken);
+            if (stripeSubscription == null)
+            {
+                throw new InvalidOperationException();
+            }
+
+            return new Dtos.ResponseSubscription()
+            {
+                Id = stripeSubscription.Id,
+                Ids = stripeSubscription.Items.Select(i => i.Id),
+                PriceId = stripeSubscription.Items.Select(i => i.Price.Id).FirstOrDefault()!
+            };
         }
 
         public async Task<Dtos.Customer> CreateCustomerAsync(Guid companyId, Dtos.Customer customer, CancellationToken cancellationToken = default)
@@ -85,14 +143,11 @@ namespace Absencespot.Services
             }
             customer.EnsureValidation();
 
-            var options = new CustomerCreateOptions
+            var stripeCustomer = await _stripeClient.CreateCustomerAsync(companyId, customer, cancellationToken);
+            if (stripeCustomer == null)
             {
-                Name = customer.Name,
-                Email = customer.Email,
-                //PaymentMethod = "card"
-            };
-            var service = new CustomerService();
-            var stripeCustomer = await service.CreateAsync(options, cancellationToken: cancellationToken);
+                throw new InvalidOperationException(nameof(stripeCustomer));
+            }
 
             return new Dtos.Customer()
             {
@@ -102,39 +157,27 @@ namespace Absencespot.Services
             };
         }
 
-        public async Task<Dtos.ResponsePaymentIntent> CreatePaymentIntentAsync(Guid companyId, Dtos.CreatePaymentIntent intent, CancellationToken cancellationToken = default)
+
+        public async Task<IEnumerable<Dtos.ResponsePaymentIntent>> GetPaymentIntentsAsync(Guid companyId, CancellationToken cancellationToken = default)
         {
-            if (intent == null)
-            {
-                throw new ArgumentNullException(nameof(intent));
-            }
-            intent.EnsureValidation();
+            var companyDomain = await LoadCompanyByIdAsync(companyId);
 
-            var priceService = new PriceService();
-            var stripePrice = await priceService.GetAsync(intent.PriceId, cancellationToken: cancellationToken);
-            if (stripePrice == null)
-            {
-                throw new NotFoundException(nameof(stripePrice));
-            }
+            var paymentHistory = await _stripeClient.GetPaymentIntentsAsync(companyDomain.customerId!);
 
-            var options = new PaymentIntentCreateOptions
+            return paymentHistory.Select(p => new Dtos.ResponsePaymentIntent()
             {
-                Amount = stripePrice.UnitAmount * 1,
-                Customer = intent.CustomerId,
-                Currency = "usd",
-                AutomaticPaymentMethods = new PaymentIntentAutomaticPaymentMethodsOptions
-                {
-                    Enabled = true,
-                },
-            };
-
-            var paymentService = new PaymentIntentService();
-            var paymentIntent = await paymentService.CreateAsync(options, cancellationToken: cancellationToken);
-
-            return new Dtos.ResponsePaymentIntent()
-            {
-                ClientSecret = paymentIntent.ClientSecret
-            };
+                Lines = p.Invoice.Lines.Select(x => new { Quantity = x.Quantity.Value, priceId = x.Price.Id})!,
+                Amount = p.Amount,
+                Currency = p.Currency,
+                PaymentMethod = p.PaymentMethodTypes,
+                Tax = p.Invoice?.Tax,
+                CreatedAt = p.Invoice?.Created,
+                DueDate = p.Invoice?.DueDate,
+                InvoiceNumber = p.Invoice?.Number,
+                Total = p.Invoice?.Total,
+                TotalExcludingTax = p.Invoice?.TotalExcludingTax,
+                Status = p.Invoice?.Status,
+            });
         }
 
         public async Task Events(Dtos.CreatePaymentIntent intent, CancellationToken cancellationToken = default)
@@ -144,8 +187,7 @@ namespace Absencespot.Services
 
         public async Task<IEnumerable<Dtos.Price>> GetPricesAsync(CancellationToken cancellationToken = default)
         {
-            var priceService = new PriceService();
-            var stripePrices = await priceService.ListAsync(cancellationToken: cancellationToken);
+            var stripePrices = await _stripeClient.GetPricesAsync(cancellationToken);
             if (stripePrices == null)
             {
                 throw new NotFoundException(nameof(stripePrices));
@@ -154,18 +196,38 @@ namespace Absencespot.Services
             return stripePrices.Select(p => new Dtos.Price()
             {
                 Id = p.Id,
-                UnitAmount = (decimal)p?.UnitAmount / 100,
-                ProductId = p.ProductId,
+                UnitAmount = (decimal)p.Tiers.FirstOrDefault()?.UnitAmount!,
+                Product = new Dtos.Product()
+                {
+                    Description = p.Product?.Description,
+                    Metadata = p.Product?.Metadata,
+                    Name = p.Product.Name,
+                },
                 Currency = p.Currency,
             });
         }
 
         public async Task<Dtos.ResponsePublishableKey> GetPublishableKeyAsync(CancellationToken cancellationToken = default)
         {
+            var publicKey = _stripeClient.GetPublishableKeyAsync(cancellationToken);
             return new Dtos.ResponsePublishableKey()
             {
-                Key = _configuration["Stripe:PublishableKey"]!   
+                Key = publicKey
             };
+        }
+
+        private async Task<Domain.Company> LoadCompanyByIdAsync(Guid companyId, CancellationToken cancellationToken = default)
+        {
+            if (companyId == default)
+            {
+                throw new ArgumentNullException(nameof(companyId));
+            }
+            var companyDomain = await _unitOfWork.CompanyRepository.FindByGlobalIdAsync(companyId, cancellationToken: cancellationToken);
+            if (companyDomain == null)
+            {
+                throw new NotFoundException(nameof(companyDomain));
+            }
+            return companyDomain;
         }
 
     }
