@@ -37,7 +37,7 @@ namespace Absencespot.Clients
             var paymentSettings = new Stripe.SubscriptionPaymentSettingsOptions
             {
                 SaveDefaultPaymentMethod = "on_subscription",
-                PaymentMethodTypes = new List<string>(){ "card" }
+                PaymentMethodTypes = new List<string>() { "card" }
             };
 
             var options = new Stripe.SubscriptionCreateOptions
@@ -45,18 +45,17 @@ namespace Absencespot.Clients
                 Customer = subscription.CustomerId,
                 Items = new List<Stripe.SubscriptionItemOptions>
                 {
-                    new Stripe.SubscriptionItemOptions 
-                    { 
-                        Price = subscription.PriceId, 
-                        Quantity = 3  
+                    new Stripe.SubscriptionItemOptions
+                    {
+                        Price = subscription.PriceId,
+                        Quantity = 1
                     },
                 },
                 PaymentSettings = paymentSettings,
                 PaymentBehavior = "default_incomplete",
-                
             };
 
-            options.AddExpand("latest_invoice.payment_intent"); 
+            options.AddExpand("latest_invoice.payment_intent");
 
             var subscriptionService = new Stripe.SubscriptionService();
             var stripeSubscribe = await subscriptionService.CreateAsync(options, cancellationToken: cancellationToken);
@@ -64,7 +63,25 @@ namespace Absencespot.Clients
             return stripeSubscribe;
         }
 
-        public async Task<Stripe.Subscription> UpdateAsync(Guid companyId, UpdateSubscription subscription, CancellationToken cancellationToken = default)
+        public async Task UpdateAsync(Guid companyId, UpdateSubscription subscription, CancellationToken cancellationToken = default)
+        {
+            if (subscription == null)
+            {
+                throw new ArgumentNullException(nameof(subscription));
+            }
+            subscription.EnsureValidation();
+
+            var options = new Stripe.SubscriptionItemUpdateOptions
+            {
+                Price = subscription.PriceId,
+                Quantity = subscription.Quantity
+            };
+
+            var subscriptionService = new Stripe.SubscriptionItemService();
+            var stripeSubscribe = await subscriptionService.UpdateAsync(subscription.subscriptionItemId, options, cancellationToken: cancellationToken);
+        }
+
+        public async Task<Stripe.Subscription> UpgradeAsync(Guid companyId, UpgradeSubscription subscription, CancellationToken cancellationToken = default)
         {
             if (subscription == null)
             {
@@ -76,6 +93,11 @@ namespace Absencespot.Clients
             {
                 Items = new List<Stripe.SubscriptionItemOptions>
                 {
+                    new Stripe.SubscriptionItemOptions
+                    {
+                        Id = subscription.SubscriptionItemId,
+                        Deleted = true
+                    },
                     new Stripe.SubscriptionItemOptions
                     {
                         Price = subscription.PriceId,
@@ -102,7 +124,7 @@ namespace Absencespot.Clients
             {
                 Name = customer.Name,
                 Email = customer.Email,
-                PreferredLocales = new List<string> { "en"}
+                PreferredLocales = new List<string> { "en" },
             };
             var service = new Stripe.CustomerService();
             var stripeCustomer = await service.CreateAsync(options, cancellationToken: cancellationToken);
@@ -128,18 +150,31 @@ namespace Absencespot.Clients
             return stripeSubscription;
         }
 
-        public async Task<IEnumerable<Stripe.Product>> GetProductsAsync(CancellationToken cancellationToken = default)
+        public async Task<IEnumerable<Stripe.Price>> GetPricesAsync(CancellationToken cancellationToken = default)
         {
+            var priceService = new Stripe.PriceService();
             var productService = new Stripe.ProductService();
-            var options = new Stripe.ProductListOptions
+            var options = new Stripe.PriceListOptions
             {
-                Expand = new List<string> { "data.default_price" } // Expand the price field
+                Expand = new List<string> { "data.tiers" } // Expand the price field
             };
 
-            var stripeProducts = await productService.ListAsync(options, cancellationToken: cancellationToken);
-            return stripeProducts;
+            var stripePrices = await priceService.ListAsync(options, cancellationToken: cancellationToken);
+
+            List<Stripe.Price> prices = new List<Stripe.Price>();
+            foreach (var price in stripePrices)
+            {
+                var product = await productService.GetAsync(price.ProductId);
+                if (product == null)
+                {
+                    continue;
+                }
+                price.Product = product;
+                prices.Add(price);
+            }
+            return prices;
         }
-        
+
         public async Task<IEnumerable<Stripe.PaymentIntent>> GetPaymentIntentsAsync(string customerId, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(customerId))
@@ -147,15 +182,35 @@ namespace Absencespot.Clients
                 throw new ArgumentNullException(nameof(customerId));
             }
 
-            var options = new Stripe.PaymentIntentListOptions 
-            { 
-                Limit = 100 
+            var options = new Stripe.PaymentIntentListOptions
+            {
+                Customer = customerId,
+                Limit = 100,
+                Expand = new List<string> { "data.invoice" }
             };
 
             var paymentIntentService = new Stripe.PaymentIntentService();
             var stripePaymentIntents = await paymentIntentService.ListAsync(options, cancellationToken: cancellationToken);
 
-            return stripePaymentIntents;
+            var invoiceService = new Stripe.InvoiceService();
+
+            List<Stripe.PaymentIntent> paymentIntents = new List<Stripe.PaymentIntent>();
+            foreach (var paymentIntent in stripePaymentIntents)
+            {
+                if (string.IsNullOrWhiteSpace(paymentIntent.InvoiceId))
+                {
+                    continue;
+                }
+                var invoice = await invoiceService.GetAsync(paymentIntent.InvoiceId);
+                if (invoice == null)
+                {
+                    continue;
+                }
+                paymentIntent.Invoice = invoice;
+                paymentIntents.Add(paymentIntent);
+            }
+
+            return paymentIntents;
         }
 
         public async Task<IEnumerable<Stripe.Subscription>> ListAll(Guid companyId, string customerId, CancellationToken cancellationToken = default)
@@ -165,13 +220,16 @@ namespace Absencespot.Clients
                 throw new ArgumentNullException(nameof(customerId));
             }
 
-            var options = new Stripe.SubscriptionSearchOptions
+            var options = new Stripe.SubscriptionListOptions
             {
-                Query = $"status:'active' AND customer:'{customerId}'",
+                Customer = customerId,
+                Status = "active",
+                Expand = new List<string>(){ "data.latest_invoice.payment_intent" }
             };
+
             var subscriptionService = new Stripe.SubscriptionService();
-            var stripeSubscriptions = await subscriptionService.SearchAsync(options, cancellationToken: cancellationToken);
-  
+            var stripeSubscriptions = await subscriptionService.ListAsync(options, cancellationToken: cancellationToken);
+
             return stripeSubscriptions;
         }
 
