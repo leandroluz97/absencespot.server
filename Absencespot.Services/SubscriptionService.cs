@@ -207,6 +207,36 @@ namespace Absencespot.Services
             });
         }
 
+        public async Task<IEnumerable<Dtos.Invoice>> GetInvoicesAsync(Guid companyId, CancellationToken cancellationToken = default)
+        {
+            var companyDomain = await LoadCompanyByIdAsync(companyId);
+
+            var stripeInvoices = await _stripeClient.GetInvoicesAsync(companyDomain.customerId!, cancellationToken);
+
+            if (stripeInvoices == null)
+            {
+                throw new NotFoundException(nameof(stripeInvoices));
+            }
+
+            return stripeInvoices.Select(i => new Dtos.Invoice()
+            {
+                Status = i.Status,
+                Currency = i.Currency,
+                CreatedAt = i.Created,
+                DueDate = i.DueDate,
+                Description = i.Description,
+                Number = i.Number,
+                Subtotal = i.Subtotal,
+                SubtotalExcludingTax = i.SubtotalExcludingTax,
+                Tax = i.Tax,
+                Total = i.Total,
+                TotalExcludingTax = i.TotalExcludingTax,
+                //TotalTaxAmounts = i.TotalTaxAmounts,
+                PaymentMethodBrand = i.PaymentIntent?.PaymentMethod?.Card?.Brand,
+                //TaxRates = i.DefaultTaxRates             
+            });
+        }
+
         public async Task<Dtos.ResponsePublishableKey> GetPublishableKeyAsync(CancellationToken cancellationToken = default)
         {
             var publicKey = _stripeClient.GetPublishableKeyAsync(cancellationToken);
