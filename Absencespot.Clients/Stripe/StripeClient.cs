@@ -175,6 +175,46 @@ namespace Absencespot.Clients
             return prices;
         }
 
+        public async Task<IEnumerable<Stripe.Invoice>> GetInvoicesAsync(string customerId, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(customerId))
+            {
+                throw new ArgumentNullException(nameof(customerId));
+            }
+
+            var options = new Stripe.InvoiceListOptions()
+            {
+                Customer = customerId,
+                Limit = 50,
+                Expand = new List<string> { "data.payment_intent" }
+            };
+
+            var invoiceService = new Stripe.InvoiceService();
+            var stripeInvoices = await invoiceService.ListAsync(options, cancellationToken: cancellationToken);
+            var paymentIntentService = new Stripe.PaymentIntentService();
+
+            var paymentIntentOptions = new Stripe.PaymentIntentGetOptions()
+            {
+                Expand = new List<string> { "payment_method" }
+            };
+
+            List<Stripe.Invoice> invoices = new List<Stripe.Invoice>();
+            foreach (var invoice in stripeInvoices)
+            {
+                if (!string.IsNullOrWhiteSpace(invoice.PaymentIntentId))
+                {
+                    var paymentIntent = await paymentIntentService.GetAsync(invoice.PaymentIntentId, paymentIntentOptions);
+                    if (paymentIntent != null)
+                    {
+                        invoice.PaymentIntent = paymentIntent;
+                    }
+                }
+                invoices.Add(invoice);
+            }
+
+            return invoices;
+        }
+
         public async Task<IEnumerable<Stripe.PaymentIntent>> GetPaymentIntentsAsync(string customerId, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(customerId))
@@ -224,7 +264,7 @@ namespace Absencespot.Clients
             {
                 Customer = customerId,
                 Status = "active",
-                Expand = new List<string>(){ "data.latest_invoice.payment_intent" }
+                Expand = new List<string>() { "data.latest_invoice.payment_intent" }
             };
 
             var subscriptionService = new Stripe.SubscriptionService();
