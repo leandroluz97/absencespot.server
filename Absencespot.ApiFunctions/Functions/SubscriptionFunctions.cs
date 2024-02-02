@@ -152,7 +152,7 @@ namespace Absencespot.ApiFunctions.Functions
         {
             _logger.LogInformation("C# HTTP trigger function processed a request.");
 
-            var result = await _subscriptionService.GetPaymentIntentsAsync(companyId);
+            var result = await _subscriptionService.GetInvoicesAsync(companyId);
 
             var response = req.CreateResponse(HttpStatusCode.OK);
             await response.WriteAsJsonAsync(result, _objectSerializer)
