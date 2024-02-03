@@ -1,4 +1,6 @@
 using System;
+using System.IO;
+using System.Linq;
 using System.Net;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -28,17 +30,17 @@ namespace Absencespot.ApiFunctions.Functions
         {
             _logger.LogInformation("C# HTTP trigger function processed a request.");
 
-            var query = System.Web.HttpUtility.ParseQueryString(req.Url.Query);
-            if (string.IsNullOrWhiteSpace(query["customerId"]))
-            {
-                throw new ArgumentNullException("customerId");
-            }
-            if (string.IsNullOrWhiteSpace(query["priceId"]))
-            {
-                throw new ArgumentNullException("priceId");
-            }
+            //var query = System.Web.HttpUtility.ParseQueryString(req.Url.Query);
+            //if (string.IsNullOrWhiteSpace(query["customerId"]))
+            //{
+            //    throw new ArgumentNullException("customerId");
+            //}
+            //if (string.IsNullOrWhiteSpace(query["priceId"]))
+            //{
+            //    throw new ArgumentNullException("priceId");
+            //}
 
-            var result = await _subscriptionService.GetAllAsync(companyId, query["customerId"], query["priceId"]);
+            var result = await _subscriptionService.GetAllAsync(companyId);
 
             var response = req.CreateResponse(HttpStatusCode.OK);
             await response.WriteAsJsonAsync(result, _objectSerializer)
@@ -83,7 +85,7 @@ namespace Absencespot.ApiFunctions.Functions
             _logger.LogInformation("C# HTTP trigger function processed a request.");
 
             var subscriptionBody = JsonSerializer.Deserialize<Dtos.UpdateSubscription>(req.Body, _jsonSerializerOptions);
-             await _subscriptionService.UpdateAsync(companyId, subscriptionBody);
+            await _subscriptionService.UpdateAsync(companyId, subscriptionBody);
 
             var response = req.CreateResponse(HttpStatusCode.OK);
             return response;
@@ -108,7 +110,7 @@ namespace Absencespot.ApiFunctions.Functions
 
         [Function(nameof(CancelSubscription))]
         public async Task<HttpResponseData> CancelSubscription([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "companies/{companyId}/subscriptions/{subscriptionId}/cancel")]
-        HttpRequestData req, Guid companyId, string subscriptionId) 
+        HttpRequestData req, Guid companyId, string subscriptionId)
         {
             _logger.LogInformation("C# HTTP trigger function processed a request.");
 
@@ -155,6 +157,35 @@ namespace Absencespot.ApiFunctions.Functions
             var result = await _subscriptionService.GetInvoicesAsync(companyId);
 
             var response = req.CreateResponse(HttpStatusCode.OK);
+            await response.WriteAsJsonAsync(result, _objectSerializer)
+                .ConfigureAwait(false);
+            return response;
+        }
+
+
+        [Function(nameof(Events))]
+        public async Task<HttpResponseData> Events([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "events")]
+        HttpRequestData req, Guid companyId)
+        {
+            _logger.LogInformation("C# HTTP trigger function processed a request.");
+
+            var json = await new StreamReader(req.Body)
+                .ReadToEndAsync();
+
+            const string endpointSecret = "whsec_...";
+
+            var stripeEvent = Stripe.EventUtility.ParseEvent(json);
+            if (req.Headers.TryGetValues("Stripe-Signature", out var values))
+            {
+                throw new ArgumentException("Stripe-Signature");
+            }
+            string signatureHeader = values.FirstOrDefault();
+
+            stripeEvent = Stripe.EventUtility.ConstructEvent(json, signatureHeader, endpointSecret);
+
+            var result = await _subscriptionService.Events(stripeEvent);
+
+            var response = req.CreateResponse(HttpStatusCode.Created);
             await response.WriteAsJsonAsync(result, _objectSerializer)
                 .ConfigureAwait(false);
             return response;
