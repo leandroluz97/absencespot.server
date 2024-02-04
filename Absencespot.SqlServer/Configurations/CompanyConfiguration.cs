@@ -29,7 +29,7 @@ namespace Absencespot.SqlServer.Configurations
 
             builder.HasMany<Leave>(c => c.Leaves)
                     .WithOne(i => i.Company)
-                    .HasForeignKey(o => o.CompanyId); ;
+                    .HasForeignKey(o => o.CompanyId);
 
             builder.HasMany<Office>(c => c.Offices)
                     .WithOne(i => i.Company)
@@ -47,6 +47,10 @@ namespace Absencespot.SqlServer.Configurations
             builder.HasOne(c => c.Settings)
                     .WithOne(i => i.Company)
                     .HasForeignKey<Settings>(o => o.CompanyId);
+
+            builder.HasOne(c => c.Subcription)
+                    .WithOne(i => i.Company)
+                    .HasForeignKey<Subscription>(o => o.CompanyId);
 
             base.Configure(builder);
         }
