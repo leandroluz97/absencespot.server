@@ -13,7 +13,7 @@ namespace Absencespot.Infrastructure.Abstractions.Clients
         Task UpdateAsync(B subscription, CancellationToken cancellationToken = default);
         Task<T> UpgradeAsync(C subscription, CancellationToken cancellationToken = default);
         Task CancelAsync(string customerId, CancellationToken cancellationToken = default);
-        Task<T> GetByIdAsync(string customerId, CancellationToken cancellationToken = default);    
+        Task<T> GetByIdAsync(string subscriptionId, CancellationToken cancellationToken = default);    
         Task<IEnumerable<T>> ListAll(string customerId, CancellationToken cancellationToken = default);    
     }
 }
