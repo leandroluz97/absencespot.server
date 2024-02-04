@@ -13,7 +13,6 @@ namespace Absencespot.Domain
         public string? CustomerId { get; set; }
         public Settings Settings { get; set; }
 
-        public int SubcriptionId { get; set; }
         public Subscription Subcription { get; set; }
         public ICollection<Integration> Integrations { get; set; }
         public ICollection<User> Users { get; set; }
