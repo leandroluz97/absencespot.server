@@ -3,7 +3,7 @@
     public class Company
     {
         public Guid Id { get; set; }
-        public Guid SubscriptionId { get; set; }
+        public string PlanId { get; set; }
         public string Name { get; set; }
         public string? FiscalNumber { get; set; }
         public string? EmailContact { get; set; }
@@ -20,9 +20,9 @@
             {
                 throw new ArgumentException(nameof(Industry));
             }
-            if (SubscriptionId == default)
+            if (string.IsNullOrWhiteSpace(PlanId))
             {
-                throw new ArgumentException(nameof(SubscriptionId));
+                throw new ArgumentException(nameof(PlanId));
             }
         }
     }
