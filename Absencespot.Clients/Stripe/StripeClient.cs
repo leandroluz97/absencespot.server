@@ -13,7 +13,7 @@ namespace Absencespot.Clients
             _publicKey = configuration["Stripe:PublishableKey"]!;
         }
 
-        public async Task CancelAsync(Guid companyId, string subscriptionId, CancellationToken cancellationToken = default)
+        public async Task CancelAsync(string subscriptionId, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(subscriptionId))
             {
@@ -24,7 +24,7 @@ namespace Absencespot.Clients
             await subscriptionService.CancelAsync(subscriptionId, cancellationToken: cancellationToken);
         }
 
-        public async Task<Stripe.Subscription> CreateAsync(Guid companyId, CreateSubscription subscription, CancellationToken cancellationToken = default)
+        public async Task<Stripe.Subscription> CreateAsync(CreateSubscription subscription, CancellationToken cancellationToken = default)
         {
             if (subscription == null)
             {
@@ -63,7 +63,7 @@ namespace Absencespot.Clients
             return stripeSubscribe;
         }
 
-        public async Task UpdateAsync(Guid companyId, UpdateSubscription subscription, CancellationToken cancellationToken = default)
+        public async Task UpdateAsync(UpdateSubscription subscription, CancellationToken cancellationToken = default)
         {
             if (subscription == null)
             {
@@ -81,7 +81,7 @@ namespace Absencespot.Clients
             var stripeSubscribe = await subscriptionService.UpdateAsync(subscription.subscriptionItemId, options, cancellationToken: cancellationToken);
         }
 
-        public async Task<Stripe.Subscription> UpgradeAsync(Guid companyId, UpgradeSubscription subscription, CancellationToken cancellationToken = default)
+        public async Task<Stripe.Subscription> UpgradeAsync(UpgradeSubscription subscription, CancellationToken cancellationToken = default)
         {
             if (subscription == null)
             {
@@ -112,7 +112,7 @@ namespace Absencespot.Clients
             return stripeSubscribe;
         }
 
-        public async Task<Stripe.Customer> CreateCustomerAsync(Guid companyId, Customer customer, CancellationToken cancellationToken = default)
+        public async Task<Stripe.Customer> CreateCustomerAsync(Customer customer, CancellationToken cancellationToken = default)
         {
             if (customer == null)
             {
@@ -137,7 +137,7 @@ namespace Absencespot.Clients
             throw new NotImplementedException();
         }
 
-        public async Task<Stripe.Subscription?> GetByIdAsync(Guid companyId, string subscriptionId, CancellationToken cancellationToken = default)
+        public async Task<Stripe.Subscription?> GetByIdAsync(string subscriptionId, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(subscriptionId))
             {
@@ -173,6 +173,19 @@ namespace Absencespot.Clients
                 prices.Add(price);
             }
             return prices;
+        }
+
+        public async Task<Stripe.PaymentMethod> GetPaymentMethodAsync(string paymentMethodId, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(paymentMethodId))
+            {
+                throw new ArgumentNullException(nameof(paymentMethodId));
+            }
+
+            var paymentMethodService = new Stripe.PaymentMethodService();
+            var stripePaymentMethod = await paymentMethodService.GetAsync(paymentMethodId);
+
+            return stripePaymentMethod;
         }
 
         public async Task<IEnumerable<Stripe.Invoice>> GetInvoicesAsync(string customerId, CancellationToken cancellationToken = default)
@@ -253,7 +266,7 @@ namespace Absencespot.Clients
             return paymentIntents;
         }
 
-        public async Task<IEnumerable<Stripe.Subscription>> ListAll(Guid companyId, string customerId, CancellationToken cancellationToken = default)
+        public async Task<IEnumerable<Stripe.Subscription>> ListAll(string customerId, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(customerId))
             {
