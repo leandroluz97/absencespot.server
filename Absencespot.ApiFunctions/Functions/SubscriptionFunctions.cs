@@ -134,6 +134,22 @@ namespace Absencespot.ApiFunctions.Functions
             return response;
         }
 
+
+        [Function(nameof(GetPaymentMethod))]
+        public async Task<HttpResponseData> GetPaymentMethod([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "companies/{companyId}/payment-method")]
+        HttpRequestData req, Guid companyId)
+        {
+            _logger.LogInformation("C# HTTP trigger function processed a request.");
+
+            var result = await _subscriptionService.GetPaymentMethodAsync(companyId);
+
+            var response = req.CreateResponse(HttpStatusCode.OK);
+            await response.WriteAsJsonAsync(result, _objectSerializer)
+              .ConfigureAwait(false);
+            return response;
+        }
+
+
         [Function(nameof(GetPrices))]
         public async Task<HttpResponseData> GetPrices([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "companies/{companyId}/subscriptions/prices")]
         HttpRequestData req, Guid companyId)
@@ -165,17 +181,17 @@ namespace Absencespot.ApiFunctions.Functions
 
         [Function(nameof(Events))]
         public async Task<HttpResponseData> Events([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "events")]
-        HttpRequestData req, Guid companyId)
+        HttpRequestData req)
         {
             _logger.LogInformation("C# HTTP trigger function processed a request.");
 
             var json = await new StreamReader(req.Body)
                 .ReadToEndAsync();
 
-            const string endpointSecret = "whsec_...";
+            const string endpointSecret = "whsec_2a5eab0370d685c4a9ebf9d24d08dd74bcf513304c38740ac33e5df93edaa08d";
 
             var stripeEvent = Stripe.EventUtility.ParseEvent(json);
-            if (req.Headers.TryGetValues("Stripe-Signature", out var values))
+            if (!req.Headers.TryGetValues("Stripe-Signature", out var values))
             {
                 throw new ArgumentException("Stripe-Signature");
             }
@@ -183,11 +199,9 @@ namespace Absencespot.ApiFunctions.Functions
 
             stripeEvent = Stripe.EventUtility.ConstructEvent(json, signatureHeader, endpointSecret);
 
-            var result = await _subscriptionService.Events(stripeEvent);
+            await _subscriptionService.Events(stripeEvent);
 
             var response = req.CreateResponse(HttpStatusCode.Created);
-            await response.WriteAsJsonAsync(result, _objectSerializer)
-                .ConfigureAwait(false);
             return response;
         }
     }
