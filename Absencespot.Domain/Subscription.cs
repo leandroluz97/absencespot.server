@@ -11,7 +11,10 @@ namespace Absencespot.Domain
     public class Subscription : Entity
     {
         public SubscriptionType Type { get; set; }
+        public string SubscriptionId { get; set; }
         public decimal UnitPrice { get; set; }
-        public ICollection<Company> Companies { get; set; }
+        public int Quantity { get; set; }
+        public int CompanyId { get; set; }
+        public Company Company { get; set; }
     }
 }
