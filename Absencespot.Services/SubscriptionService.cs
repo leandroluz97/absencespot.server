@@ -20,18 +20,11 @@ namespace Absencespot.Services
             _unitOfWork = unitOfWork;
         }
 
-        public async Task<IEnumerable<Dtos.ResponseSubscription>> GetAllAsync(Guid companyId, string customerId, string priceId, CancellationToken cancellationToken = default)
+        public async Task<IEnumerable<Dtos.ResponseSubscription>> GetAllAsync(Guid companyId, CancellationToken cancellationToken = default)
         {
-            if (string.IsNullOrWhiteSpace(customerId))
-            {
-                throw new ArgumentNullException(nameof(customerId));
-            }
-            if (string.IsNullOrWhiteSpace(priceId))
-            {
-                throw new ArgumentNullException(nameof(priceId));
-            }
+            var companyDomain = await LoadCompanyByIdAsync(companyId);
 
-            var stripeSubscription = await _stripeClient.ListAll(companyId, customerId, cancellationToken);
+            var stripeSubscription = await _stripeClient.ListAll(companyDomain.CustomerId!, cancellationToken);
 
             if (stripeSubscription == null)
             {
@@ -43,9 +36,13 @@ namespace Absencespot.Services
                 {
                     Id = s.Id,
                     ClientSecret = s.LatestInvoice.PaymentIntent.ClientSecret,
+                    Ids = s.Items.Select(i => i.Id),
                     PriceId = s.Items.Select(i => i.Price.Id).FirstOrDefault()!,
-                    Ids = s.Items.Select(i => i.Id)
-                });
+                    Status = s.Status,
+                    PaymentMethodId = s.DefaultPaymentMethodId,
+                    CanceledAt = s.CanceledAt,
+                }
+            );
         }
 
         public async Task<Dtos.ResponseSubscription> GetAsync(Guid companyId, string subscriptionId, CancellationToken cancellationToken = default)
@@ -55,7 +52,7 @@ namespace Absencespot.Services
                 throw new ArgumentNullException(nameof(subscriptionId));
             }
 
-            var stripeSubscription = await _stripeClient.GetByIdAsync(companyId, subscriptionId, cancellationToken);
+            var stripeSubscription = await _stripeClient.GetByIdAsync(subscriptionId, cancellationToken);
 
             if (stripeSubscription == null)
             {
@@ -66,7 +63,11 @@ namespace Absencespot.Services
             {
                 Id = stripeSubscription.Id,
                 ClientSecret = stripeSubscription.LatestInvoice.PaymentIntent.ClientSecret,
-                Ids = stripeSubscription.Items.Select(i => i.Id)
+                Ids = stripeSubscription.Items.Select(i => i.Id),
+                PriceId = stripeSubscription.Items.Select(i => i.Price.Id).FirstOrDefault()!,
+                Status = stripeSubscription.Status,
+                PaymentMethodId = stripeSubscription.DefaultPaymentMethodId,
+                CanceledAt = stripeSubscription.CanceledAt,
             };
         }
 
@@ -77,7 +78,7 @@ namespace Absencespot.Services
                 throw new ArgumentNullException(nameof(subscriptionId));
             }
 
-            await _stripeClient.CancelAsync(companyId, subscriptionId, cancellationToken);
+            await _stripeClient.CancelAsync(subscriptionId, cancellationToken);
         }
 
         public async Task<Dtos.ResponseSubscription> CreateAsync(Guid companyId, Dtos.CreateSubscription subscription, CancellationToken cancellationToken = default)
@@ -88,7 +89,7 @@ namespace Absencespot.Services
             }
             subscription.EnsureValidation();
 
-            var stripeSubscription = await _stripeClient.CreateAsync(companyId, subscription, cancellationToken);
+            var stripeSubscription = await _stripeClient.CreateAsync(subscription, cancellationToken);
             if (stripeSubscription == null)
             {
                 throw new InvalidOperationException();
@@ -98,7 +99,11 @@ namespace Absencespot.Services
             {
                 Id = stripeSubscription.Id,
                 ClientSecret = stripeSubscription.LatestInvoice.PaymentIntent.ClientSecret,
-                Ids = stripeSubscription.Items.Select(i => i.Id)
+                Ids = stripeSubscription.Items.Select(i => i.Id),
+                PriceId = stripeSubscription.Items.Select(i => i.Price.Id).FirstOrDefault()!,
+                Status = stripeSubscription.Status,
+                PaymentMethodId = stripeSubscription.DefaultPaymentMethodId,
+                CanceledAt = stripeSubscription.CanceledAt,
             };
         }
 
@@ -110,7 +115,7 @@ namespace Absencespot.Services
             }
             subscription.EnsureValidation();
 
-            await _stripeClient.UpdateAsync(companyId, subscription, cancellationToken);
+            await _stripeClient.UpdateAsync(subscription, cancellationToken);
         }
 
         public async Task<Dtos.ResponseSubscription> UpgradeAsync(Guid companyId, Dtos.UpgradeSubscription subscription, CancellationToken cancellationToken = default)
@@ -121,7 +126,7 @@ namespace Absencespot.Services
             }
             subscription.EnsureValidation();
 
-            var stripeSubscription = await _stripeClient.UpgradeAsync(companyId, subscription, cancellationToken);
+            var stripeSubscription = await _stripeClient.UpgradeAsync(subscription, cancellationToken);
             if (stripeSubscription == null)
             {
                 throw new InvalidOperationException();
@@ -130,8 +135,12 @@ namespace Absencespot.Services
             return new Dtos.ResponseSubscription()
             {
                 Id = stripeSubscription.Id,
+                ClientSecret = stripeSubscription.LatestInvoice.PaymentIntent.ClientSecret,
                 Ids = stripeSubscription.Items.Select(i => i.Id),
-                PriceId = stripeSubscription.Items.Select(i => i.Price.Id).FirstOrDefault()!
+                PriceId = stripeSubscription.Items.Select(i => i.Price.Id).FirstOrDefault()!,
+                Status = stripeSubscription.Status,
+                PaymentMethodId = stripeSubscription.DefaultPaymentMethodId,
+                CanceledAt = stripeSubscription.CanceledAt,
             };
         }
 
@@ -143,7 +152,7 @@ namespace Absencespot.Services
             }
             customer.EnsureValidation();
 
-            var stripeCustomer = await _stripeClient.CreateCustomerAsync(companyId, customer, cancellationToken);
+            var stripeCustomer = await _stripeClient.CreateCustomerAsync(customer, cancellationToken);
             if (stripeCustomer == null)
             {
                 throw new InvalidOperationException(nameof(stripeCustomer));
@@ -157,16 +166,15 @@ namespace Absencespot.Services
             };
         }
 
-
         public async Task<IEnumerable<Dtos.ResponsePaymentIntent>> GetPaymentIntentsAsync(Guid companyId, CancellationToken cancellationToken = default)
         {
             var companyDomain = await LoadCompanyByIdAsync(companyId);
 
-            var paymentHistory = await _stripeClient.GetPaymentIntentsAsync(companyDomain.customerId!);
+            var paymentHistory = await _stripeClient.GetPaymentIntentsAsync(companyDomain.CustomerId!);
 
             return paymentHistory.Select(p => new Dtos.ResponsePaymentIntent()
             {
-                Lines = p.Invoice.Lines.Select(x => new { Quantity = x.Quantity.Value, priceId = x.Price.Id})!,
+                Lines = p.Invoice.Lines.Select(x => new { Quantity = x.Quantity.Value, priceId = x.Price.Id })!,
                 Amount = p.Amount,
                 Currency = p.Currency,
                 PaymentMethod = p.PaymentMethodTypes,
@@ -178,11 +186,6 @@ namespace Absencespot.Services
                 TotalExcludingTax = p.Invoice?.TotalExcludingTax,
                 Status = p.Invoice?.Status,
             });
-        }
-
-        public async Task Events(Dtos.CreatePaymentIntent intent, CancellationToken cancellationToken = default)
-        {
-            throw new NotImplementedException();
         }
 
         public async Task<IEnumerable<Dtos.Price>> GetPricesAsync(CancellationToken cancellationToken = default)
@@ -211,7 +214,7 @@ namespace Absencespot.Services
         {
             var companyDomain = await LoadCompanyByIdAsync(companyId);
 
-            var stripeInvoices = await _stripeClient.GetInvoicesAsync(companyDomain.customerId!, cancellationToken);
+            var stripeInvoices = await _stripeClient.GetInvoicesAsync(companyDomain.CustomerId!, cancellationToken);
 
             if (stripeInvoices == null)
             {
@@ -245,6 +248,36 @@ namespace Absencespot.Services
                 Key = publicKey
             };
         }
+       
+        public async Task<Dtos.ResponsePaymentMethod> GetPaymentMethodAsync(Guid companyId, CancellationToken cancellationToken = default)
+        {
+            var companyDomain = await LoadCompanyByIdAsync(companyId);
+
+            var stripeSubscriptions = await _stripeClient.ListAll(companyDomain.CustomerId!, cancellationToken);
+            if (stripeSubscriptions == null || !stripeSubscriptions.Any())
+            {
+                throw new NotFoundException(nameof(stripeSubscriptions));
+            }
+
+            var stripeSubscription = stripeSubscriptions.ElementAt(0);
+
+            var stripePaymentMethod = await _stripeClient.GetPaymentMethodAsync(stripeSubscription.DefaultPaymentMethodId!, cancellationToken);
+            if (stripePaymentMethod == null)
+            {
+                throw new NotFoundException(nameof(stripePaymentMethod));
+            }
+
+            var today = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
+            var expirationDate = new DateTime((int)stripePaymentMethod.Card.ExpYear, (int)stripePaymentMethod.Card.ExpMonth, 1);
+
+            return new Dtos.ResponsePaymentMethod()
+            {
+                Id = stripePaymentMethod.Id,
+                Brand = stripePaymentMethod.Card.Brand,
+                IsExpired = today > expirationDate,
+                Number = stripePaymentMethod.Card.Last4,
+            };
+        }
 
         private async Task<Domain.Company> LoadCompanyByIdAsync(Guid companyId, CancellationToken cancellationToken = default)
         {
@@ -258,6 +291,29 @@ namespace Absencespot.Services
                 throw new NotFoundException(nameof(companyDomain));
             }
             return companyDomain;
+        }
+
+        public async Task Events(Stripe.Event events, CancellationToken cancellationToken = default)
+        {
+            //https://github.com/stripe-samples/subscription-use-cases/blob/main/usage-based-subscriptions/client/script.js
+            PaymentIntent? paymentIntent;
+            switch (events.Type)
+            {
+                case Stripe.Events.InvoicePaymentSucceeded:
+                    paymentIntent = events.Data.Object as PaymentIntent;
+                    Console.WriteLine("A successful payment for {0} was made.", paymentIntent.Amount);
+                    // handlePaymentIntentSucceeded(paymentIntent);
+                    break;
+                case Stripe.Events.InvoicePaymentFailed:
+                    paymentIntent = events.Data.Object as PaymentIntent;
+                    Console.WriteLine("A successful payment for {0} was made.", paymentIntent.Amount);
+                    // handlePaymentIntentSucceeded(paymentIntent);
+                    break;
+                default:
+                    break;
+            }
+
+            throw new NotImplementedException();
         }
 
     }
