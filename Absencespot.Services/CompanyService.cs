@@ -1,6 +1,7 @@
 ﻿using Absencespot.Business.Abstractions;
 using Absencespot.Dtos;
 using Absencespot.Infrastructure.Abstractions;
+using Absencespot.Infrastructure.Abstractions.Clients;
 using Absencespot.Services.Exceptions;
 using Absencespot.Services.Mappers;
 using Absencespot.UnitOfWork;
@@ -13,10 +14,12 @@ namespace Absencespot.Services
     {
         private readonly ILogger<CompanyService> _logger;
         private readonly IUnitOfWork _unitOfWork;
-        public CompanyService(ILogger<CompanyService> logger, IUnitOfWork unitOfWork)
+        private readonly IStripeClient _stripeClient;
+        public CompanyService(ILogger<CompanyService> logger, IUnitOfWork unitOfWork, IStripeClient stripeClient)
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
+            _stripeClient = stripeClient;
         }
         public async Task<Company> CreateAsync(Dtos.Company companyDto, CancellationToken cancellationToken = default)
         {
@@ -26,20 +29,56 @@ namespace Absencespot.Services
             }
             companyDto.EnsureValidation();
 
-            var subscription = await _unitOfWork.SubscriptionRepository.FindByGlobalIdAsync(
-                companyDto.SubscriptionId, 
-                RepositoryOptions.AsTracking(), 
-                cancellationToken);
-
-            if (subscription == null)
+            var stripePrices = await _stripeClient.GetPricesAsync();
+            if (stripePrices == null || !stripePrices.Any())
             {
-                throw new NotFoundException($"Could not find {nameof(subscription)}");
+                throw new NotFoundException($"Could not find price Id: {companyDto.PlanId}");
             }
 
-            var companyDomain = CompanyMapper.ToDomain(companyDto);
-            companyDomain.Subcription = subscription;
+            var chosenPrice = stripePrices.FirstOrDefault(p => p.Id == companyDto.PlanId);
+            if (chosenPrice == null)
+            {
+                throw new NotFoundException($"Could not find price Id: {companyDto.PlanId}");
+            }
 
+            var customer = new Customer()
+            {
+                Email = companyDto.EmailContact,
+                Name = companyDto.Name,
+            };
+            var stripeCustomer = await _stripeClient.CreateCustomerAsync(customer);
+
+            var subscription = new CreateSubscription()
+            {
+                CustomerId = stripeCustomer.Id,
+                PriceId = companyDto.PlanId,
+            };
+            var stripeSubscription = await _stripeClient.CreateAsync(subscription);
+
+            var companyDomain = CompanyMapper.ToDomain(companyDto);
+            companyDomain.CustomerId = customer.Id;
             companyDomain = _unitOfWork.CompanyRepository.Add(companyDomain);
+
+            Domain.Enums.SubscriptionType subscriptionType = Domain.Enums.SubscriptionType.Free;
+            if (chosenPrice.Product.Metadata["Identifier"] == "business")
+            {
+                subscriptionType = Domain.Enums.SubscriptionType.Business;
+            }
+            else if (chosenPrice.Product.Metadata["Identifier"] == "enterprise")
+            {
+                subscriptionType = Domain.Enums.SubscriptionType.Enterprise;
+            }
+
+            var subscriptionDomain = new Domain.Subscription()
+            {
+                Type = subscriptionType,
+                SubscriptionId = stripeSubscription.Id,
+                Quantity = 1,
+                UnitPrice = (decimal)chosenPrice.Tiers.FirstOrDefault()?.UnitAmount!,
+                Company = companyDomain,
+            };  
+
+            _unitOfWork.SubscriptionRepository.Add(subscriptionDomain);
             await _unitOfWork.SaveChangesAsync();
 
             _logger.LogInformation("Created company by Id:");
@@ -68,7 +107,7 @@ namespace Absencespot.Services
 
         public async Task<Dtos.Company> UpdateAsync(Guid companyId, Company companyDto, CancellationToken cancellationToken = default)
         {
-            if(companyId == default)
+            if (companyId == default)
             {
                 throw new ArgumentNullException(nameof(companyId));
             }
