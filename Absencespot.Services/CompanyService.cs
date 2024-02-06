@@ -1,4 +1,5 @@
 ﻿using Absencespot.Business.Abstractions;
+using Absencespot.Domain.Enums;
 using Absencespot.Dtos;
 using Absencespot.Infrastructure.Abstractions;
 using Absencespot.Infrastructure.Abstractions.Clients;
@@ -30,7 +31,7 @@ namespace Absencespot.Services
             companyDto.EnsureValidation();
 
             var stripePrices = await _stripeClient.GetPricesAsync();
-            if (stripePrices == null || !stripePrices.Any())
+            if (stripePrices == null)
             {
                 throw new NotFoundException($"Could not find price Id: {companyDto.PlanId}");
             }
@@ -59,29 +60,37 @@ namespace Absencespot.Services
             companyDomain.CustomerId = customer.Id;
             companyDomain = _unitOfWork.CompanyRepository.Add(companyDomain);
 
-            Domain.Enums.SubscriptionType subscriptionType = Domain.Enums.SubscriptionType.Free;
+            SubscriptionType subscriptionType = SubscriptionType.Free;
             if (chosenPrice.Product.Metadata["Identifier"] == "business")
             {
-                subscriptionType = Domain.Enums.SubscriptionType.Business;
+                subscriptionType = SubscriptionType.Business;
             }
             else if (chosenPrice.Product.Metadata["Identifier"] == "enterprise")
             {
-                subscriptionType = Domain.Enums.SubscriptionType.Enterprise;
+                subscriptionType = SubscriptionType.Enterprise;
             }
 
+            var tier = chosenPrice.Tiers.FirstOrDefault();
+            if (tier == null)
+            {
+                throw new NullReferenceException();
+            }
+
+            int startNumberOfUsers = 1;
+            decimal unitAmount = (decimal)tier.UnitAmount!;
             var subscriptionDomain = new Domain.Subscription()
             {
                 Type = subscriptionType,
                 SubscriptionId = stripeSubscription.Id,
-                Quantity = 1,
-                UnitPrice = (decimal)chosenPrice.Tiers.FirstOrDefault()?.UnitAmount!,
+                Quantity = startNumberOfUsers,
+                UnitPrice = unitAmount,
                 Company = companyDomain,
             };  
 
             _unitOfWork.SubscriptionRepository.Add(subscriptionDomain);
             await _unitOfWork.SaveChangesAsync();
 
-            _logger.LogInformation("Created company by Id:");
+            _logger.LogInformation($"Created company by Id: {companyDomain.GlobalId}");
 
             return CompanyMapper.ToDto(companyDomain);
         }
