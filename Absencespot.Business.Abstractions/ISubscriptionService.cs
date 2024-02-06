@@ -19,6 +19,7 @@ namespace Absencespot.Business.Abstractions
         Task<IEnumerable<Dtos.ResponseSubscription>> GetAllAsync(Guid companyId, CancellationToken cancellationToken = default);
         Task<Dtos.Customer> CreateCustomerAsync(Guid companyId, Dtos.Customer customer, CancellationToken cancellationToken = default);
         Task<IEnumerable<Dtos.Price>> GetPricesAsync(CancellationToken cancellationToken = default);
+        Task<Dtos.Price> GetPriceByIdAsync(string priceId, CancellationToken cancellationToken = default);
         Task<IEnumerable<Dtos.Invoice>> GetInvoicesAsync(Guid companyId, CancellationToken cancellationToken = default);
         Task<IEnumerable<Dtos.ResponsePaymentIntent>> GetPaymentIntentsAsync(Guid companyId, CancellationToken cancellationToken = default);
         Task Events(Stripe.Event events, CancellationToken cancellationToken = default);

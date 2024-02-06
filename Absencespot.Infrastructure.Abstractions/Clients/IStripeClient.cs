@@ -13,9 +13,12 @@ namespace Absencespot.Infrastructure.Abstractions.Clients
     {
         public string GetPublishableKeyAsync(CancellationToken cancellationToken = default);
         Task<IEnumerable<Stripe.Price>> GetPricesAsync(CancellationToken cancellationToken = default);
+        Task<Stripe.Price> GetPriceByIdAsync(string priceId, CancellationToken cancellationToken = default);
         Task<IEnumerable<Stripe.Invoice>> GetInvoicesAsync(string customerId, CancellationToken cancellationToken = default);
         Task<IEnumerable<Stripe.PaymentIntent>> GetPaymentIntentsAsync(string customerId, CancellationToken cancellationToken = default);
         Task<Stripe.PaymentMethod> GetPaymentMethodAsync(string paymentMethodId, CancellationToken cancellationToken = default);
+        Task<Stripe.SetupIntent> CreateSetupIntentAsync(string customerId, CancellationToken cancellationToken = default);
+        Task<Stripe.SetupIntent> AttachCustomerPaymentMethodAsync(string paymentMethodId, CancellationToken cancellationToken = default);
         Task<Stripe.Customer> CreateCustomerAsync(Dtos.Customer customer, CancellationToken cancellationToken = default);
         Task Events<D>(D intent, CancellationToken cancellationToken = default);    
     }
