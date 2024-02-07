@@ -290,5 +290,42 @@ namespace Absencespot.Clients
         {
             return _publicKey;
         }
+
+        public async Task<Stripe.Price> GetPriceByIdAsync(string priceId, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(priceId))
+            {
+                throw new ArgumentNullException(nameof(priceId));
+            }
+
+            var options = new Stripe.PriceGetOptions
+            {
+                Expand = new List<string> { "tiers", "product" } // Expand the price field
+            };
+
+            var priceService = new Stripe.PriceService();
+            var stripePrice = await priceService.GetAsync(priceId, options);
+
+            return stripePrice;
+        }
+
+        public async Task<Stripe.SetupIntent> CreateSetupIntentAsync(string customerId, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(customerId))
+            {
+                throw new ArgumentNullException(nameof(customerId));
+            }
+
+            var options = new Stripe.SetupIntentCreateOptions
+            {
+                Customer = customerId,
+                PaymentMethodTypes = new List<string> { "card" },
+            };
+
+            var setupIntentService = new Stripe.SetupIntentService();
+            var stripeSetupIntent = await setupIntentService.CreateAsync(options);
+
+            return stripeSetupIntent;
+        }
     }
 }
