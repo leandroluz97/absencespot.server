@@ -78,6 +78,21 @@ namespace Absencespot.ApiFunctions.Functions
             return response;
         }
 
+
+        [Function(nameof(CreateSetupIntent))]
+        public async Task<HttpResponseData> CreateSetupIntent([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "companies/{companyId}/subscriptions/setup-intent")]
+        HttpRequestData req, Guid companyId)
+        {
+            _logger.LogInformation("C# HTTP trigger function processed a request.");
+
+            var result = await _subscriptionService.CreateSetupIntentAsync(companyId);
+            
+            var response = req.CreateResponse(HttpStatusCode.Created);
+            await response.WriteAsJsonAsync(result, _objectSerializer, statusCode: HttpStatusCode.Created)
+                .ConfigureAwait(false);
+            return response;
+        }
+
         [Function(nameof(UpdateSubscription))]
         public async Task<HttpResponseData> UpdateSubscription([HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = "companies/{companyId}/subscriptions/{subscriptionId}")]
         HttpRequestData req, Guid companyId)
