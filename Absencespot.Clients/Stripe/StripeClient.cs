@@ -286,6 +286,41 @@ namespace Absencespot.Clients
             return stripeSubscriptions;
         }
 
+        public async Task AttachCustomerPaymentMethodAsync(string customerId, string paymentMethodId, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(customerId))
+            {
+                throw new ArgumentNullException(nameof(customerId));
+            }
+            if (string.IsNullOrWhiteSpace(paymentMethodId))
+            {
+                throw new ArgumentNullException(nameof(paymentMethodId));
+            }
+
+            var paymentMethodOptions = new Stripe.PaymentMethodAttachOptions
+            {
+                Customer = customerId
+            };
+            var paymentMethodService = new Stripe.PaymentMethodService();
+            var paymentMethod = await paymentMethodService.GetAsync(paymentMethodId);
+            if (paymentMethod == null)
+            {
+                throw new NullReferenceException(nameof(paymentMethod));
+            }
+            await paymentMethodService.AttachAsync(paymentMethodId, paymentMethodOptions);
+
+
+            var customerService = new Stripe.CustomerService();
+            var customerOptions = new Stripe.CustomerUpdateOptions
+            {
+                InvoiceSettings = new Stripe.CustomerInvoiceSettingsOptions
+                {
+                    DefaultPaymentMethod = paymentMethodId,
+                },
+            };
+            await customerService.UpdateAsync(customerId, customerOptions);
+        }
+
         public string GetPublishableKeyAsync(CancellationToken cancellationToken = default)
         {
             return _publicKey;
@@ -327,5 +362,6 @@ namespace Absencespot.Clients
 
             return stripeSetupIntent;
         }
+
     }
 }
