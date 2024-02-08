@@ -22,6 +22,7 @@ namespace Absencespot.Services
             _logger = logger;
             _stripeClient = stripeClient;
         }
+
         public async Task<Company> CreateAsync(Dtos.Company companyDto, CancellationToken cancellationToken = default)
         {
             if (companyDto == null)
@@ -30,14 +31,8 @@ namespace Absencespot.Services
             }
             companyDto.EnsureValidation();
 
-            var stripePrices = await _stripeClient.GetPricesAsync();
-            if (stripePrices == null)
-            {
-                throw new NotFoundException($"Could not find price Id: {companyDto.PlanId}");
-            }
-
-            var chosenPrice = stripePrices.FirstOrDefault(p => p.Id == companyDto.PlanId);
-            if (chosenPrice == null)
+            var price = await _stripeClient.GetPriceByIdAsync(companyDto.PlanId);
+            if (price == null)
             {
                 throw new NotFoundException($"Could not find price Id: {companyDto.PlanId}");
             }
@@ -57,20 +52,20 @@ namespace Absencespot.Services
             var stripeSubscription = await _stripeClient.CreateAsync(subscription);
 
             var companyDomain = CompanyMapper.ToDomain(companyDto);
-            companyDomain.CustomerId = customer.Id;
+            companyDomain.CustomerId = stripeCustomer.Id;
             companyDomain = _unitOfWork.CompanyRepository.Add(companyDomain);
 
             SubscriptionType subscriptionType = SubscriptionType.Free;
-            if (chosenPrice.Product.Metadata["Identifier"] == "business")
+            if (price.Product.Metadata["Identifier"] == "business")
             {
                 subscriptionType = SubscriptionType.Business;
             }
-            else if (chosenPrice.Product.Metadata["Identifier"] == "enterprise")
+            else if (price.Product.Metadata["Identifier"] == "enterprise")
             {
                 subscriptionType = SubscriptionType.Enterprise;
             }
 
-            var tier = chosenPrice.Tiers.FirstOrDefault();
+            var tier = price.Tiers.FirstOrDefault();
             if (tier == null)
             {
                 throw new NullReferenceException();
@@ -85,7 +80,7 @@ namespace Absencespot.Services
                 Quantity = startNumberOfUsers,
                 UnitPrice = unitAmount,
                 Company = companyDomain,
-            };  
+            };
 
             _unitOfWork.SubscriptionRepository.Add(subscriptionDomain);
             await _unitOfWork.SaveChangesAsync();
@@ -95,7 +90,7 @@ namespace Absencespot.Services
             return CompanyMapper.ToDto(companyDomain);
         }
 
-        public Task DeleteAsync(Guid companyId, CancellationToken cancellationToke)
+        public Task DeleteAsync(Guid companyId, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }

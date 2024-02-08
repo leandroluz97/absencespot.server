@@ -6,7 +6,7 @@
         public string PlanId { get; set; }
         public string Name { get; set; }
         public string? FiscalNumber { get; set; }
-        public string? EmailContact { get; set; }
+        public string EmailContact { get; set; }
         public string Industry { get; set; }
         public bool IsActive { get; set; }
 
