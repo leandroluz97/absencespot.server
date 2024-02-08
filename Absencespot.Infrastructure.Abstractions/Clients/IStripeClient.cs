@@ -18,6 +18,7 @@ namespace Absencespot.Infrastructure.Abstractions.Clients
         Task<IEnumerable<Stripe.PaymentIntent>> GetPaymentIntentsAsync(string customerId, CancellationToken cancellationToken = default);
         Task<Stripe.PaymentMethod> GetPaymentMethodAsync(string paymentMethodId, CancellationToken cancellationToken = default);
         Task<Stripe.SetupIntent> CreateSetupIntentAsync(string customerId, CancellationToken cancellationToken = default);
+        Task AttachCustomerPaymentMethodAsync(string customerId, string paymentMethodId, CancellationToken cancellationToken = default);
         Task<Stripe.Customer> CreateCustomerAsync(Dtos.Customer customer, CancellationToken cancellationToken = default);
         Task Events<D>(D intent, CancellationToken cancellationToken = default);    
     }
