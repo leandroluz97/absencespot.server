@@ -78,6 +78,18 @@ namespace Absencespot.ApiFunctions.Functions
             return response;
         }
 
+        [Function(nameof(AttachCustomerPaymentMethodAsync))]
+        public async Task<HttpResponseData> AttachCustomerPaymentMethodAsync([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "companies/{companyId}/payment-method")]
+        HttpRequestData req, Guid companyId)
+        {
+            _logger.LogInformation("C# HTTP trigger function processed a request.");
+
+            var paymentMethodBody = JsonSerializer.Deserialize<Dtos.AttachPaymentMethod>(req.Body, _jsonSerializerOptions);
+            await _subscriptionService.AttachCustomerPaymentMethodAsync(companyId, paymentMethodBody.PaymentMethodId);
+
+            var response = req.CreateResponse(HttpStatusCode.Created);
+            return response;
+        }
 
         [Function(nameof(CreateSetupIntent))]
         public async Task<HttpResponseData> CreateSetupIntent([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "companies/{companyId}/subscriptions/setup-intent")]
@@ -86,7 +98,7 @@ namespace Absencespot.ApiFunctions.Functions
             _logger.LogInformation("C# HTTP trigger function processed a request.");
 
             var result = await _subscriptionService.CreateSetupIntentAsync(companyId);
-            
+
             var response = req.CreateResponse(HttpStatusCode.Created);
             await response.WriteAsJsonAsync(result, _objectSerializer, statusCode: HttpStatusCode.Created)
                 .ConfigureAwait(false);
