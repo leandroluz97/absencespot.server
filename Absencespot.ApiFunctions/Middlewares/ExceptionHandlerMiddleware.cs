@@ -3,8 +3,10 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Azure.Functions.Worker.Middleware;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Protocols;
 using System;
 using System.Collections.Generic;
+using System.Drawing.Text;
 using System.Linq;
 using System.Net;
 using System.Reflection;
@@ -29,77 +31,71 @@ namespace Absencespot.ApiFunctions.Middlewares
         }
 
 
-        private async Task<HttpResponseData> HandleExceptionAsync(FunctionContext context, Exception exception)
+        private async Task HandleExceptionAsync(FunctionContext context, Exception exception)
         {
-            var httpRequestData = GetHttpRequestData(context);
-
+            var httpRequestData = await context.GetHttpRequestDataAsync();
             var traceId = context.InvocationId;
             var logger = context.GetLogger<ExceptionHandlerMiddleware>();
-            using (logger.BeginScope("Exception"))
-            {
-                var eventId = new EventId(1001, exception.InnerException?.Message);
-                logger.Log(LogLevel.Error, eventId, exception, exception.Message);
-            }
 
-            //GetInvocationResult()
-
-            var httpResponse = httpRequestData.CreateResponse(HttpStatusCode.InternalServerError);
-            await httpResponse.WriteAsJsonAsync(new { FooStatus = "Invocation failed!" });
-            return httpResponse;
-
-            if (exception is ArgumentNullException || exception is ArgumentNullException)
+            using (logger.BeginScope(new Dictionary<string, object>
             {
-                //var httpResponse = httpRequestData.CreateResponse(HttpStatusCode.InternalServerError);
-                //await httpResponse.WriteAsJsonAsync(new { FooStatus = "Invocation failed!" }, httpResponse.StatusCode);
-                //var invocationResult = GetHttpResponseData(context);
-                
-                // context.StatusCode = (int)statusCode;
-            }
-            if (exception is NotFoundException)
+                ["TraceId"] = traceId,
+                ["Exception"] = exception.GetType().Name,   
+            }))
             {
+                if (exception is NotFoundException)
+                {
+                    var httpResponse = httpRequestData.CreateResponse(HttpStatusCode.NotFound);
+                    var invocationResult = context.GetInvocationResult();
+                    invocationResult.Value = httpResponse;
+                    return;
+                }
+                else if (exception is ConflictException)
+                {
+                    var httpResponse = httpRequestData.CreateResponse(HttpStatusCode.Conflict);
+                    var invocationResult = context.GetInvocationResult();
+                    invocationResult.Value = httpResponse;
+                    return;
+                }
+                else if (exception is UnauthorizedAccessException)
+                {
+                    var httpResponse = httpRequestData.CreateResponse(HttpStatusCode.Unauthorized);
+                    var invocationResult = context.GetInvocationResult();
+                    invocationResult.Value = httpResponse;
+                    return;
+                }
+                else if (exception is ArgumentException || exception is ArgumentNullException)
+                {
+                    var ex = (ArgumentException)exception;
+                    var httpResponse = httpRequestData.CreateResponse(HttpStatusCode.BadRequest);
+                    await httpResponse.WriteAsJsonAsync(new
+                    {
+                        TraceId = traceId,
+                        StatusCode = HttpStatusCode.BadRequest,
+                        Parameter = ex.ParamName,
+                        exception.Message,
+                    }, HttpStatusCode.BadRequest);
 
-            }
-            if (exception is InvalidOperationException)
-            {
+                    var invocationResult = context.GetInvocationResult();
+                    invocationResult.Value = httpResponse;
+                    return;
+                }
+                else
+                {
+                    var eventId = new EventId(1001, exception.InnerException?.Message);
+                    logger.Log(LogLevel.Critical, eventId, exception, exception.Message);
 
-            }
+                    var httpResponse = httpRequestData.CreateResponse(HttpStatusCode.InternalServerError);
+                    await httpResponse.WriteAsJsonAsync(new
+                    {
+                        StatusCode = HttpStatusCode.InternalServerError,
+                        Message = "Internal Server Error.",
+                    }, HttpStatusCode.InternalServerError);
 
-        }
-
-        public HttpRequestData GetHttpRequestData(FunctionContext functionContext)
-        {
-            try
-            {
-                KeyValuePair<Type, object> keyValuePair = functionContext.Features.SingleOrDefault(f => f.Key.Name == "IFunctionBindingsFeature");
-                object functionBindingsFeature = keyValuePair.Value;
-                Type type = functionBindingsFeature.GetType();
-                var inputData = type.GetProperties().Single(p => p.Name == "InputData").GetValue(functionBindingsFeature) as IReadOnlyDictionary<string, object>;
-                return inputData?.Values.SingleOrDefault(o => o is HttpRequestData) as HttpRequestData;
-            }
-            catch
-            {
-                return null;
-            }
-        }
-
-        public  HttpResponseData GetHttpResponseData(FunctionContext functionContext)
-        {
-            try
-            {
-                var request = GetHttpRequestData(functionContext);
-                if (request == null) return null;
-                var response = HttpResponseData.CreateResponse(request);
-                var keyValuePair = functionContext.Features.FirstOrDefault(f => f.Key.Name == "IFunctionBindingsFeature");
-                if (keyValuePair.Equals(default(KeyValuePair<Type, object>))) return null;
-                object functionBindingsFeature = keyValuePair.Value;
-                if (functionBindingsFeature == null) return null;
-                PropertyInfo pinfo = functionBindingsFeature.GetType().GetProperty("InvocationResult");
-                pinfo.SetValue(functionBindingsFeature, response);
-                return response;
-            }
-            catch
-            {
-                return null;
+                    var invocationResult = context.GetInvocationResult();
+                    invocationResult.Value = httpResponse;
+                    return;
+                }
             }
         }
     }

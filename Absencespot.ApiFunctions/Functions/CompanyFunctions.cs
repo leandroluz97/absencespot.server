@@ -1,4 +1,5 @@
 using Absencespot.Business.Abstractions;
+using Absencespot.Services.Exceptions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
@@ -34,6 +35,8 @@ namespace Absencespot.ApiFunctions
             //{
             //    throw new ArgumentNullException(nameof(subscriptionId));
             //}
+
+            throw new NotFoundException("testesss");
 
             var companyBody = JsonSerializer.Deserialize<Dtos.Company>(req.Body, _jsonSerializerOptions);
             var companyResponse = await _companyService.CreateAsync(companyBody);
