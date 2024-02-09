@@ -1,14 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\Absencespot.Infrastructure.Abstractions\Absencespot.Infrastructure.Abstractions.csproj" />
     <ProjectReference Include="..\Absencespot.SqlServer\Absencespot.SqlServer.csproj" />
   </ItemGroup>
-
 </Project>

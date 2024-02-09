@@ -16,7 +16,7 @@ namespace Absencespot.ApiFunctions
         public static void Main()
         {
             var host = new HostBuilder()
-                .ConfigureFunctionsWorkerDefaults(builder =>
+                .ConfigureFunctionsWebApplication(builder =>
                 {
                     builder.UseMiddleware<ExceptionHandlerMiddleware>();
                     //builder.UseMiddleware<MyCustomMiddleware>();
