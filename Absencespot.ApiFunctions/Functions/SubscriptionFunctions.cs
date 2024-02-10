@@ -14,12 +14,10 @@ namespace Absencespot.ApiFunctions.Functions
 
     public class SubscriptionFunctions : BaseFunction
     {
-        private readonly ILogger _logger;
         private readonly ISubscriptionService _subscriptionService;
 
         public SubscriptionFunctions(ILogger<SettingsFunctions> logger, ISubscriptionService subscriptionService) : base(logger)
         {
-            _logger = logger;
             _subscriptionService = subscriptionService;
         }
 

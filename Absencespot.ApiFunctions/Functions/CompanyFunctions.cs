@@ -14,13 +14,11 @@ namespace Absencespot.ApiFunctions
 {
     public class CompanyFunctions : BaseFunction
     {
-        private readonly ILogger _logger;
         private readonly ICompanyService _companyService;
 
 
         public CompanyFunctions(ILogger<CompanyFunctions> logger, ICompanyService companyService) : base(logger)
         {
-            _logger = logger;
             _companyService = companyService;
         }
 
@@ -35,8 +33,6 @@ namespace Absencespot.ApiFunctions
             //{
             //    throw new ArgumentNullException(nameof(subscriptionId));
             //}
-
-            throw new NotFoundException("testesss");
 
             var companyBody = JsonSerializer.Deserialize<Dtos.Company>(req.Body, _jsonSerializerOptions);
             var companyResponse = await _companyService.CreateAsync(companyBody);
