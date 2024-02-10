@@ -40,33 +40,24 @@ namespace Absencespot.ApiFunctions.Middlewares
             using (logger.BeginScope(new Dictionary<string, object>
             {
                 ["TraceId"] = traceId,
-                ["Exception"] = exception.GetType().Name,   
+                ["Exception"] = exception.GetType().Name,
             }))
             {
                 if (exception is NotFoundException)
                 {
-                    var httpResponse = httpRequestData.CreateResponse(HttpStatusCode.NotFound);
-                    var invocationResult = context.GetInvocationResult();
-                    invocationResult.Value = httpResponse;
-                    return;
+                    InvokeResponseResult(context, httpRequestData, HttpStatusCode.NotFound);
                 }
                 else if (exception is ConflictException)
                 {
-                    var httpResponse = httpRequestData.CreateResponse(HttpStatusCode.Conflict);
-                    var invocationResult = context.GetInvocationResult();
-                    invocationResult.Value = httpResponse;
-                    return;
+                    InvokeResponseResult(context, httpRequestData, HttpStatusCode.Conflict);
                 }
                 else if (exception is UnauthorizedAccessException)
                 {
-                    var httpResponse = httpRequestData.CreateResponse(HttpStatusCode.Unauthorized);
-                    var invocationResult = context.GetInvocationResult();
-                    invocationResult.Value = httpResponse;
-                    return;
+                    InvokeResponseResult(context, httpRequestData, HttpStatusCode.Unauthorized);
                 }
                 else if (exception is ArgumentException || exception is ArgumentNullException)
                 {
-                    var ex = (ArgumentException)exception;
+                    var ex = exception as ArgumentException;
                     var httpResponse = httpRequestData.CreateResponse(HttpStatusCode.BadRequest);
                     await httpResponse.WriteAsJsonAsync(new
                     {
@@ -78,7 +69,6 @@ namespace Absencespot.ApiFunctions.Middlewares
 
                     var invocationResult = context.GetInvocationResult();
                     invocationResult.Value = httpResponse;
-                    return;
                 }
                 else
                 {
@@ -89,14 +79,24 @@ namespace Absencespot.ApiFunctions.Middlewares
                     await httpResponse.WriteAsJsonAsync(new
                     {
                         StatusCode = HttpStatusCode.InternalServerError,
-                        Message = "Internal Server Error.",
+                        Description = "Internal Server Error.",
                     }, HttpStatusCode.InternalServerError);
 
                     var invocationResult = context.GetInvocationResult();
                     invocationResult.Value = httpResponse;
-                    return;
                 }
             }
         }
+
+        private static void InvokeResponseResult(
+            FunctionContext context,
+            Microsoft.Azure.Functions.Worker.Http.HttpRequestData httpRequestData,
+            HttpStatusCode statusCode)
+        {
+            var httpResponse = httpRequestData.CreateResponse(statusCode);
+            var invocationResult = context.GetInvocationResult();
+            invocationResult.Value = httpResponse;
+        }
+
     }
 }
