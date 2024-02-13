@@ -34,7 +34,7 @@ namespace Absencespot.ApiFunctions.Functions
         {
             _logger.LogInformation($"{nameof(RegisterAsync)} HTTP trigger function processed a request.");
 
-            var registerBody = JsonSerializer.Deserialize<Dtos.Register>(req.Body, _jsonSerializerOptions);
+            var registerBody = await JsonSerializer.DeserializeAsync<Dtos.Register>(req.Body, _jsonSerializerOptions);
             await _authenticationService.Register(registerBody);
 
             var response = req.CreateResponse(HttpStatusCode.OK);
@@ -47,7 +47,7 @@ namespace Absencespot.ApiFunctions.Functions
         {
             _logger.LogInformation($"{nameof(ConfirmEmailAsync)} HTTP trigger function processed a request.");
 
-            var confirmEmailBody = JsonSerializer.Deserialize<Dtos.ConfirmEmail>(req.Body, _jsonSerializerOptions);
+            var confirmEmailBody = await JsonSerializer.DeserializeAsync<Dtos.ConfirmEmail>(req.Body, _jsonSerializerOptions);
             await _authenticationService.ConfirmEmail(confirmEmailBody);
 
             var response = req.CreateResponse(HttpStatusCode.OK);
@@ -60,7 +60,7 @@ namespace Absencespot.ApiFunctions.Functions
         {
             _logger.LogInformation($"{nameof(LoginAsync)} HTTP trigger function processed a request.");
 
-            var loginBody = JsonSerializer.Deserialize<Dtos.LoginRequest>(req.Body, _jsonSerializerOptions);
+            var loginBody = await JsonSerializer.DeserializeAsync<Dtos.LoginRequest>(req.Body, _jsonSerializerOptions);
             var loginResponse = await _authenticationService.Login(loginBody);
 
             var response = req.CreateResponse(HttpStatusCode.OK);
@@ -74,7 +74,7 @@ namespace Absencespot.ApiFunctions.Functions
         {
             _logger.LogInformation($"{nameof(RequestResetPasswordAsync)} HTTP trigger function processed a request.");
 
-            var requestResetPasswordBody = JsonSerializer.Deserialize<Dtos.PasswordReset>(req.Body, _jsonSerializerOptions);
+            var requestResetPasswordBody = await JsonSerializer.DeserializeAsync<Dtos.PasswordReset>(req.Body, _jsonSerializerOptions);
             await _authenticationService.RequestResetPassword(requestResetPasswordBody.Email);
 
             var response = req.CreateResponse(HttpStatusCode.OK);
@@ -86,7 +86,7 @@ namespace Absencespot.ApiFunctions.Functions
         {
             _logger.LogInformation($"{nameof(ResetPasswordAsync)} HTTP trigger function processed a request.");
 
-            var resetPasswordBody = JsonSerializer.Deserialize<Dtos.ResetPassword>(req.Body, _jsonSerializerOptions);
+            var resetPasswordBody = await JsonSerializer.DeserializeAsync<Dtos.ResetPassword>(req.Body, _jsonSerializerOptions);
             await _authenticationService.ResetPassword(resetPasswordBody);
 
             var response = req.CreateResponse(HttpStatusCode.OK);
