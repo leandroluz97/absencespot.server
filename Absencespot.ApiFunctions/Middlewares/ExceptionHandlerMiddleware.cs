@@ -21,11 +21,11 @@ namespace Absencespot.ApiFunctions.Middlewares
         {
             try
             {
-                await next(context);
+                await next(context)
+                      .ConfigureAwait(false);
             }
             catch (Exception ex)
             {
-                //HttpContext must not be null.
                 await HandleExceptionAsync(context, ex);
             }
         }
@@ -37,40 +37,40 @@ namespace Absencespot.ApiFunctions.Middlewares
             var traceId = context.InvocationId;
             var logger = context.GetLogger<ExceptionHandlerMiddleware>();
 
-            using (logger.BeginScope(new Dictionary<string, object>
+            if (exception is NotFoundException)
             {
-                ["TraceId"] = traceId,
-                ["Exception"] = exception.GetType().Name,
-            }))
+                InvokeResponseResult(context, httpRequestData, HttpStatusCode.NotFound);
+            }
+            else if (exception is ConflictException)
             {
-                if (exception is NotFoundException)
+                InvokeResponseResult(context, httpRequestData, HttpStatusCode.Conflict);
+            }
+            else if (exception is UnauthorizedAccessException)
+            {
+                InvokeResponseResult(context, httpRequestData, HttpStatusCode.Unauthorized);
+            }
+            else if (exception is ArgumentException || exception is ArgumentNullException)
+            {
+                var ex = exception as ArgumentException;
+                var httpResponse = httpRequestData.CreateResponse(HttpStatusCode.BadRequest);
+                await httpResponse.WriteAsJsonAsync(new
                 {
-                    InvokeResponseResult(context, httpRequestData, HttpStatusCode.NotFound);
-                }
-                else if (exception is ConflictException)
-                {
-                    InvokeResponseResult(context, httpRequestData, HttpStatusCode.Conflict);
-                }
-                else if (exception is UnauthorizedAccessException)
-                {
-                    InvokeResponseResult(context, httpRequestData, HttpStatusCode.Unauthorized);
-                }
-                else if (exception is ArgumentException || exception is ArgumentNullException)
-                {
-                    var ex = exception as ArgumentException;
-                    var httpResponse = httpRequestData.CreateResponse(HttpStatusCode.BadRequest);
-                    await httpResponse.WriteAsJsonAsync(new
-                    {
-                        TraceId = traceId,
-                        StatusCode = HttpStatusCode.BadRequest,
-                        Parameter = ex.ParamName,
-                        exception.Message,
-                    }, HttpStatusCode.BadRequest);
+                    TraceId = traceId,
+                    Code = HttpStatusCode.BadRequest.ToString(),
+                    Parameter = ex.ParamName,
+                    exception.Message,
+                }, HttpStatusCode.BadRequest);
 
-                    var invocationResult = context.GetInvocationResult();
-                    invocationResult.Value = httpResponse;
-                }
-                else
+                var invocationResult = context.GetInvocationResult();
+                invocationResult.Value = httpResponse;
+            }
+            else
+            {
+                using (logger.BeginScope(new Dictionary<string, object>
+                {
+                    ["TraceId"] = traceId,
+                    ["Exception"] = exception.GetType().Name,
+                }))
                 {
                     var eventId = new EventId(1001, exception.InnerException?.Message);
                     logger.Log(LogLevel.Critical, eventId, exception, exception.Message);
@@ -78,7 +78,7 @@ namespace Absencespot.ApiFunctions.Middlewares
                     var httpResponse = httpRequestData.CreateResponse(HttpStatusCode.InternalServerError);
                     await httpResponse.WriteAsJsonAsync(new
                     {
-                        StatusCode = HttpStatusCode.InternalServerError,
+                        Code = HttpStatusCode.InternalServerError.ToString(),
                         Description = "Internal Server Error.",
                     }, HttpStatusCode.InternalServerError);
 

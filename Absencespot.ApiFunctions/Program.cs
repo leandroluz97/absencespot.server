@@ -1,4 +1,5 @@
 using Absencespot.ApiFunctions.Middlewares;
+using Absencespot.ApiFunctions.Middlewares.JwtAuthentication;
 using Absencespot.DependencyInjection;
 using Microsoft.Azure.Functions.Worker.Configuration;
 using Microsoft.Extensions.Configuration;
@@ -19,7 +20,7 @@ namespace Absencespot.ApiFunctions
                 .ConfigureFunctionsWebApplication(builder =>
                 {
                     builder.UseMiddleware<ExceptionHandlerMiddleware>();
-                    //builder.UseMiddleware<MyCustomMiddleware>();
+                    builder.UseMiddleware<JwtAuthenticationMiddleware>();
                 })
                 .ConfigureAppConfiguration((hostingContext, config) =>
                  {
@@ -31,6 +32,9 @@ namespace Absencespot.ApiFunctions
                 .ConfigureServices((context, services) =>
                 {
                     StripeConfiguration.ApiKey = context.Configuration["Stripe:ApiKey"];
+                    services.AddOptions<JwtAuthenticationOptions>()
+                        .Bind(context.Configuration.GetSection("Jwt"));
+
                     services.AddPersistence(context.Configuration);
                     services.AddServices(context.Configuration);
                     // services.AddHttpContextAccessor();
