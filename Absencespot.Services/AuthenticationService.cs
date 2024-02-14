@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
+using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -310,15 +311,19 @@ namespace Absencespot.Services
 
         private Dtos.TokenResponse CreateJWT(Domain.User user)
         {
-            DateTime expiration = DateTime.UtcNow.AddMinutes(Convert.ToDouble(_configuration["Jwt:Exp_time"]));
+
+            //long unixTimestamp = DateTimeOffset.Now.ToUnixTimeSeconds();
+            var unixTimestamp = EpochTime.GetIntDate(DateTime.Now).ToString(CultureInfo.InvariantCulture);
+            DateTime expiration = DateTime.UtcNow.AddMinutes(Convert.ToDouble(_configuration["Jwt:ExpirationTime"]));
+
             Claim[] claims = new Claim[] {
-                new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()), //Subject (userId)
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()), //JWT unique ID
-                new Claim(JwtRegisteredClaimNames.Iat, DateTime.UtcNow.ToString()), //Issued at (date and timeof token generation)
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()), //Unit name Identifier of the user (Id or email)
+                new Claim(JwtRegisteredClaimNames.Sub, user.GlobalId.ToString()),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()), 
+                new Claim(JwtRegisteredClaimNames.Iat, unixTimestamp, ClaimValueTypes.Integer64),
+                new Claim(ClaimTypes.NameIdentifier, user.GlobalId.ToString()),
             };
 
-            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Secret_key"]));
+            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:SecretKey"]!));
 
             var signingCredentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
                 
