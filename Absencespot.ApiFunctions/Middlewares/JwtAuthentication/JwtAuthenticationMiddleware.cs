@@ -14,16 +14,16 @@ namespace Absencespot.ApiFunctions.Middlewares.JwtAuthentication
 {
     public class JwtAuthenticationMiddleware : IFunctionsWorkerMiddleware
     {
-        private readonly IOptions<JwtAuthenticationOptions> _options;
+        private readonly JwtAuthenticationOptions _options;
         public JwtAuthenticationMiddleware(IOptions<JwtAuthenticationOptions>  options)
         {
-            _options = options;
+            _options = options.Value;
         }
 
         public async Task Invoke(FunctionContext context, FunctionExecutionDelegate next)
         {
             var req = await context.GetHttpRequestDataAsync();
-            var token = TryGetTokenFromHeader(req);
+            var token = TryGetTokenFromHeaders(req);
 
             if (string.IsNullOrWhiteSpace(token))
             {
@@ -33,13 +33,13 @@ namespace Absencespot.ApiFunctions.Middlewares.JwtAuthentication
             var tokenHandler = new JwtSecurityTokenHandler();
             var validationParameters = new TokenValidationParameters
             {
-                ValidIssuer = _options.Value.Issuer,
-                ValidAudience = _options.Value.Audience,
-                ValidateIssuer = _options.Value.ValidateIssuer,
-                ValidateAudience = _options.Value.ValidateAudience,
-                ValidateLifetime = _options.Value.ValidateLifetime,
-                ValidateIssuerSigningKey = _options.Value.ValidateIssuerSigningKey,
-                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.Value.SecretKey))
+                ValidIssuer = _options.Issuer,
+                ValidAudience = _options.Audience,
+                ValidateIssuer = _options.ValidateIssuer,
+                ValidateAudience = _options.ValidateAudience,
+                ValidateLifetime = _options.ValidateLifetime,
+                ValidateIssuerSigningKey = _options.ValidateIssuerSigningKey,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.SecretKey))
             };
 
             var result = await tokenHandler.ValidateTokenAsync(token, validationParameters);
@@ -53,12 +53,13 @@ namespace Absencespot.ApiFunctions.Middlewares.JwtAuthentication
         }
 
         
-        private string TryGetTokenFromHeader(HttpRequestData req)
+        private string TryGetTokenFromHeaders(HttpRequestData req)
         {
             if (!req.Headers.TryGetValues("Authorization", out var authorizations))
             {
                 throw new UnauthorizedAccessException("Header must have an Authorization value.");
             }
+
             var authorization = authorizations.FirstOrDefault();
             if (authorization == null)
             {
