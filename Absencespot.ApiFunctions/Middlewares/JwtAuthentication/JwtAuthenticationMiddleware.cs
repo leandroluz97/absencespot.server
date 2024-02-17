@@ -30,8 +30,8 @@ namespace Absencespot.ApiFunctions.Middlewares.JwtAuthentication
                 throw new UnauthorizedAccessException("Header must have a Bearer token.");
             }
 
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var validationParameters = new TokenValidationParameters
+            JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
+            TokenValidationParameters tokenValidationParameters = new()
             {
                 ValidIssuer = _options.Issuer,
                 ValidAudience = _options.Audience,
@@ -42,7 +42,7 @@ namespace Absencespot.ApiFunctions.Middlewares.JwtAuthentication
                 IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.SecretKey))
             };
 
-            var result = await tokenHandler.ValidateTokenAsync(token, validationParameters);
+            TokenValidationResult result = await tokenHandler.ValidateTokenAsync(token, tokenValidationParameters);
             if(!result.IsValid)
             {
                 throw new UnauthorizedAccessException("Token is not valid.");
