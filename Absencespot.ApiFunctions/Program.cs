@@ -1,5 +1,6 @@
 using Absencespot.ApiFunctions.Middlewares;
 using Absencespot.ApiFunctions.Middlewares.JwtAuthentication;
+using Absencespot.Clients.GoogleCalendar.Options;
 using Absencespot.DependencyInjection;
 using Microsoft.Azure.Functions.Worker.Configuration;
 using Microsoft.Extensions.Configuration;
@@ -34,6 +35,8 @@ namespace Absencespot.ApiFunctions
                     StripeConfiguration.ApiKey = context.Configuration["Stripe:ApiKey"];
                     services.AddOptions<JwtAuthenticationOptions>()
                         .Bind(context.Configuration.GetSection("Jwt"));
+                    services.AddOptions<GoogleAuthOptions>()
+                        .Bind(context.Configuration.GetSection("GoogleAuth"));
 
                     services.AddPersistence(context.Configuration);
                     services.AddServices(context.Configuration);
