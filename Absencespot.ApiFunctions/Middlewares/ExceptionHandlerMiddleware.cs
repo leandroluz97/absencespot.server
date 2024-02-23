@@ -26,7 +26,14 @@ namespace Absencespot.ApiFunctions.Middlewares
             }
             catch (Exception ex)
             {
-                await HandleExceptionAsync(context, ex);
+                if(ex is AggregateException)
+                {
+                    await HandleExceptionAsync(context, ex.InnerException);
+                }
+                else
+                {
+                    await HandleExceptionAsync(context, ex);
+                }
             }
         }
 
