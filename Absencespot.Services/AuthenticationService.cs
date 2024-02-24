@@ -88,7 +88,6 @@ namespace Absencespot.Services
             _logger.LogInformation($"{nameof(Register)} send email: {user.Email}");
         }
 
-
         public async Task ConfirmEmail(Dtos.ConfirmEmail confirmEmail, CancellationToken cancellationToken = default)
         {
             _logger.LogInformation($"{nameof(ConfirmEmail)} param value {confirmEmail}");
@@ -122,7 +121,6 @@ namespace Absencespot.Services
             _logger.LogInformation($"{nameof(ConfirmEmail)} {user.Email}");
         }
 
-
         public async Task<Dtos.TokenResponse> Login(LoginRequest login, CancellationToken cancellationToken = default)
         {
             _logger.LogInformation($"{nameof(Login)} param value {login}");
@@ -149,7 +147,6 @@ namespace Absencespot.Services
 
             return CreateJWT(user);
         }
-
 
         public async Task<TokenResponse> ExternalLogin(ExternalLoginInfo externalLogin, CancellationToken cancellationToken = default)
         {
@@ -199,7 +196,6 @@ namespace Absencespot.Services
             return null;
         }
 
-
         public async Task LoginWithGoogle()
         {
             var info = await _signInManager.GetExternalLoginInfoAsync();
@@ -231,7 +227,6 @@ namespace Absencespot.Services
             }
         }
 
-
         public Task LoginWithMicrosoft()
         {
             throw new NotImplementedException();
@@ -241,7 +236,6 @@ namespace Absencespot.Services
         {
             throw new NotImplementedException();
         }
-
 
         public async Task RequestResetPassword(string email, CancellationToken cancellationToken = default)
         {
@@ -280,7 +274,6 @@ namespace Absencespot.Services
             _logger.LogInformation($"{nameof(RequestResetPassword)} {user}");
         }
 
-
         public async Task ResetPassword(ResetPassword resetPassword, CancellationToken cancellationToken = default)
         {
             _logger.LogInformation("{ResetPassword} param value {email}", nameof(ResetPassword), resetPassword);
@@ -307,7 +300,6 @@ namespace Absencespot.Services
 
             _logger.LogInformation($"{nameof(ResetPassword)} failed {user.Email}");
         }
-
 
         private Dtos.TokenResponse CreateJWT(Domain.User user)
         {
