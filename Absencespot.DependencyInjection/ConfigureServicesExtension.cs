@@ -1,10 +1,12 @@
 ﻿using Absencespot.Azure;
 using Absencespot.Business.Abstractions;
 using Absencespot.Clients;
+using Absencespot.Clients.GoogleCalendar;
 using Absencespot.Clients.Sendgrid;
 using Absencespot.Domain;
 using Absencespot.Infrastructure.Abstractions;
 using Absencespot.Infrastructure.Abstractions.Clients;
+using Absencespot.Infrastructure.Abstractions.Clients.Calendar;
 using Absencespot.Services;
 using Absencespot.SqlServer;
 using Azure.Storage.Blobs;
@@ -146,6 +148,11 @@ namespace Absencespot.DependencyInjection
             ////        CheckSameSite(cookieContext.Context, cookieContext.CookieOptions);
             ////});
 
+            return services;
+        }
+        public static IServiceCollection AddClients(this IServiceCollection services, IConfiguration configuration)
+        {
+            services.AddScoped<ICalendarClient, CalendarClient>();
             return services;
         }
 
