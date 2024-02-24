@@ -1,12 +1,15 @@
 ﻿using Absencespot.Business.Abstractions;
+using Absencespot.Clients.GoogleCalendar;
 using Absencespot.Domain.Enums;
 using Absencespot.Dtos;
 using Absencespot.Infrastructure.Abstractions;
 using Absencespot.Infrastructure.Abstractions.Clients;
+using Absencespot.Infrastructure.Abstractions.Clients.Calendar;
 using Absencespot.Services.Exceptions;
 using Absencespot.Services.Mappers;
 using Absencespot.UnitOfWork;
 using Absencespot.Utils;
+using Google.Apis.Calendar.v3.Data;
 using Microsoft.Extensions.Logging;
 
 namespace Absencespot.Services
@@ -16,11 +19,17 @@ namespace Absencespot.Services
         private readonly ILogger<CompanyService> _logger;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IStripeClient _stripeClient;
-        public CompanyService(ILogger<CompanyService> logger, IUnitOfWork unitOfWork, IStripeClient stripeClient)
+        private readonly ICalendarClient _calendarClient;
+        public CompanyService(
+            ILogger<CompanyService> logger, 
+            IUnitOfWork unitOfWork, 
+            IStripeClient stripeClient, 
+            ICalendarClient calendarClient)
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
             _stripeClient = stripeClient;
+            _calendarClient = calendarClient;
         }
 
         public async Task<Company> CreateAsync(Dtos.Company companyDto, CancellationToken cancellationToken = default)
@@ -102,6 +111,13 @@ namespace Absencespot.Services
                 throw new ArgumentNullException(nameof(companyId));
             }
 
+            var calendarEntry = new Calendar()
+            {
+                TimeZone = "Europe/Lisbon",
+                Summary = $"{companyId} calendar",
+                Description = "support@whistleway.com"
+            };
+            var calendar = await _calendarClient.CreateAsync(calendarEntry);
             var companyDomain = await LoadByIdAsync(companyId, cancellationToken);
 
             _logger.LogInformation($"Found company Id:{companyId}");
