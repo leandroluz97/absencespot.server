@@ -9,6 +9,7 @@ using Microsoft.Extensions.Hosting;
 using Stripe;
 using System;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Absencespot.ApiFunctions
@@ -21,7 +22,11 @@ namespace Absencespot.ApiFunctions
                 .ConfigureFunctionsWebApplication(builder =>
                 {
                     builder.UseMiddleware<ExceptionHandlerMiddleware>();
-                    builder.UseMiddleware<JwtAuthenticationMiddleware>();
+                    builder.UseWhen<JwtAuthenticationMiddleware>((context) =>
+                    {
+                        string[] allowedAnonymous = new string[] { "RegisterAsync", "LoginAsync" };
+                        return !allowedAnonymous.Contains(context.FunctionDefinition.Name);
+                    });
                 })
                 .ConfigureAppConfiguration((hostingContext, config) =>
                  {
@@ -40,6 +45,7 @@ namespace Absencespot.ApiFunctions
 
                     services.AddPersistence(context.Configuration);
                     services.AddServices(context.Configuration);
+                    services.AddClients(context.Configuration);
                     // services.AddHttpContextAccessor();
                 })
                 .Build();
