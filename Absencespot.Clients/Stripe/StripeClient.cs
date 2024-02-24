@@ -137,7 +137,7 @@ namespace Absencespot.Clients
             throw new NotImplementedException();
         }
 
-        public async Task<Stripe.Subscription?> GetByIdAsync(string subscriptionId, CancellationToken cancellationToken = default)
+        public async Task<Stripe.Subscription> GetByIdAsync(string subscriptionId, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(subscriptionId))
             {
