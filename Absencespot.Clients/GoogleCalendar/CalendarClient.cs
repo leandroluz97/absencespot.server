@@ -5,7 +5,6 @@ using Google.Apis.Calendar.v3;
 using Google.Apis.Calendar.v3.Data;
 using Google.Apis.Services;
 using Microsoft.Extensions.Options;
-using System.Threading;
 
 namespace Absencespot.Clients.GoogleCalendar
 {
@@ -17,37 +16,29 @@ namespace Absencespot.Clients.GoogleCalendar
         public CalendarClient(IOptions<GoogleAuthOptions> options)
         {
             _options = options.Value;
+            _services = Initialize();
         }
 
-        private async Task InitializeAsync(CancellationToken cancellationToken = default)
+        private CalendarService Initialize()
         {
-            var credential = await GoogleWebAuthorizationBroker.AuthorizeAsync(
-                new ClientSecrets()
-                {
-                    ClientId = _options.ClientId,
-                    ClientSecret = _options.ClientSecret
-                },
-                _options.Scopes.Split(""),
-                _options.User,
-                cancellationToken);
+            var credential = GoogleCredential.FromFile(_options.KeyFilePath)
+                .CreateScoped(CalendarService.Scope.Calendar);
 
-            _services = new CalendarService(new BaseClientService.Initializer()
+            return new CalendarService(new BaseClientService.Initializer()
             {
                 HttpClientInitializer = credential,
                 ApplicationName = _options.ApplicationName,
             });
         }
 
-        public async Task<CalendarListEntry> CreateAsync(CalendarListEntry options, CancellationToken cancellationToken = default)
+        public async Task<Calendar> CreateAsync(Calendar options, CancellationToken cancellationToken = default)
         {
             if (options == null)
             {
                 throw new ArgumentNullException("Calendar options is required.", nameof(options));
             }
 
-            await InitializeAsync(cancellationToken);
-
-            var insertCalendarRequest = _services.CalendarList.Insert(options);
+            var insertCalendarRequest = _services.Calendars.Insert(options);
             var calendarResult = await insertCalendarRequest.ExecuteAsync(cancellationToken);
 
             return calendarResult;
@@ -59,7 +50,6 @@ namespace Absencespot.Clients.GoogleCalendar
             {
                 throw new ArgumentNullException("Calendar Id is required.", nameof(options));
             }
-            await InitializeAsync(cancellationToken);
 
             var insertEventRequest = _services.Events.Insert(options, calendarId);
             var eventResult = await insertEventRequest.ExecuteAsync(cancellationToken);
@@ -73,8 +63,6 @@ namespace Absencespot.Clients.GoogleCalendar
             {
                 throw new ArgumentNullException("Calendar Id is required.", nameof(calendarId));
             }
-
-            await InitializeAsync(cancellationToken);
 
             var calendarRequest = _services.CalendarList.Delete(calendarId);
             await calendarRequest.ExecuteAsync(cancellationToken);
@@ -91,8 +79,6 @@ namespace Absencespot.Clients.GoogleCalendar
                 throw new ArgumentNullException("Event Id is required.", nameof(eventId));
             }
 
-            await InitializeAsync(cancellationToken);
-
             var insertEventRequest = _services.Events.Delete(calendarId, eventId);
             await insertEventRequest.ExecuteAsync(cancellationToken);
         }
@@ -103,8 +89,6 @@ namespace Absencespot.Clients.GoogleCalendar
             {
                 throw new ArgumentNullException("Calendar Id is required.", nameof(calendarId));
             }
-
-            await InitializeAsync(cancellationToken);
 
             var getCalendarRequest = _services.CalendarList.Get(calendarId);
             var calendarResult = await getCalendarRequest.ExecuteAsync(cancellationToken);
@@ -119,7 +103,7 @@ namespace Absencespot.Clients.GoogleCalendar
                 throw new ArgumentNullException("Calendar Id is required.", nameof(calendarId));
             }
 
-            await InitializeAsync(cancellationToken);
+
 
             var getCalendarRequest = _services.CalendarList.Get(calendarId);
             var calendarResult = await getCalendarRequest.ExecuteAsync(cancellationToken);
@@ -129,7 +113,7 @@ namespace Absencespot.Clients.GoogleCalendar
 
         public async Task<CalendarList> GetListAsync(CancellationToken cancellationToken = default)
         {
-            await InitializeAsync(cancellationToken);
+
 
             var getCalendarRequest = _services.CalendarList.List();
             var calendarResult = await getCalendarRequest.ExecuteAsync(cancellationToken);
@@ -144,7 +128,7 @@ namespace Absencespot.Clients.GoogleCalendar
                 throw new ArgumentNullException("Calendar options is required.", nameof(options));
             }
 
-            await InitializeAsync(cancellationToken);
+
 
             var insertCalendarRequest = _services.CalendarList.Update(options, calendarId);
             var calendarResult = await insertCalendarRequest.ExecuteAsync(cancellationToken);
@@ -164,7 +148,7 @@ namespace Absencespot.Clients.GoogleCalendar
                 throw new ArgumentNullException("Event Id is required.", nameof(eventId));
             }
 
-            await InitializeAsync(cancellationToken);
+
 
             var eventRequest = _services.Events.Update(options, calendarId, eventId);
             var eventResult = await eventRequest.ExecuteAsync(cancellationToken);
