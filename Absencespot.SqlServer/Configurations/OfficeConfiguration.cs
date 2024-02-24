@@ -16,6 +16,7 @@ namespace Absencespot.SqlServer.Configurations
         {
             builder.ToTable("Office");
             builder.Property(l => l.Name).HasMaxLength(256);
+            builder.Property(l => l.CalendarId);
             builder.Property(l => l.StartDate).IsRequired();
             builder.Property(l => l.IsEmployeeLeaveStartOnJobStartDate).IsRequired();
 

@@ -33,15 +33,16 @@ namespace Absencespot.SqlServer.Configurations
 
             // Limit the size of columns to use efficient database types
             builder.Property(u => u.UserName).HasMaxLength(256);
+            builder.Property(u => u.CalendarId);
             builder.Property(u => u.NormalizedUserName).HasMaxLength(256);
             builder.Property(u => u.Email).HasMaxLength(256);
             builder.Property(u => u.NormalizedEmail).HasMaxLength(256);
 
 
             builder.HasMany<UserTeam>(u => u.Teams)
-                    .WithOne(u => u.User)
-                    .HasForeignKey(o => o.UserId)
-                    .OnDelete(DeleteBehavior.Restrict);
+                 .WithOne(u => u.User)
+                 .HasForeignKey(o => o.UserId)
+                 .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasMany(u => u.Requests)
                 .WithOne(r => r.User)

@@ -1,11 +1,6 @@
 ﻿using Absencespot.Domain;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Absencespot.SqlServer.Configurations
 {
@@ -16,6 +11,7 @@ namespace Absencespot.SqlServer.Configurations
         {
             builder.ToTable("Team");
             builder.Property(l => l.Name).HasMaxLength(256).IsRequired();
+            builder.Property(l => l.CalendarId);
 
             builder.HasMany<UserTeam>(u => u.Users)
                     .WithOne(u => u.Team)
