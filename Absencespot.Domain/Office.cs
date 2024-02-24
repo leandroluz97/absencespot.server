@@ -12,6 +12,7 @@ namespace Absencespot.Domain
         public string Name { get; set; }
         public DateTime StartDate { get; set; }
         public bool IsEmployeeLeaveStartOnJobStartDate { get; set; }
+        public string CalendarId { get; set; }
         public Address Address { get; set; }
         public ICollection<OfficeLeave>? AvailableLeaves { get; set; }
         public ICollection<Absence>? Absences { get; set; }

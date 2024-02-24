@@ -14,6 +14,7 @@ namespace Absencespot.Domain
         public string? FirstName { get; set; }
         public string? LastName { get; set; }
         public string Position { get; set; }
+        public string CalendarId { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime? BirthDay { get; set; }
         public ICollection<TrackRecord> TrackRecords { get; set; }

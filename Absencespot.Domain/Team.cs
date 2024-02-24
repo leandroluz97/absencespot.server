@@ -6,6 +6,7 @@ namespace Absencespot.Domain
     {
         public string Name { get; set; }
         public string Description { get; set; }
+        public string CalendarId { get; set; }
         public bool IsAutoApproved { get; set; }
         public ICollection<UserTeam>? Users { get; set; }
 

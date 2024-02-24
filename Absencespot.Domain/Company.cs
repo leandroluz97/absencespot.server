@@ -9,10 +9,10 @@ namespace Absencespot.Domain
         public string? FiscalNumber { get; set; }  
         public string? EmailContact { get; set; }
         public string Industry { get; set; }
+        public string CalendarId { get; set; }
         public bool IsActive { get; set; }
         public string? CustomerId { get; set; }
         public Settings Settings { get; set; }
-
         public Subscription Subcription { get; set; }
         public ICollection<Integration> Integrations { get; set; }
         public ICollection<User> Users { get; set; }
