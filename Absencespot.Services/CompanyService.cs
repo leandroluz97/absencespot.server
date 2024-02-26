@@ -21,9 +21,9 @@ namespace Absencespot.Services
         private readonly IStripeClient _stripeClient;
         private readonly ICalendarClient _calendarClient;
         public CompanyService(
-            ILogger<CompanyService> logger, 
-            IUnitOfWork unitOfWork, 
-            IStripeClient stripeClient, 
+            ILogger<CompanyService> logger,
+            IUnitOfWork unitOfWork,
+            IStripeClient stripeClient,
             ICalendarClient calendarClient)
         {
             _unitOfWork = unitOfWork;
@@ -60,8 +60,16 @@ namespace Absencespot.Services
             };
             var stripeSubscription = await _stripeClient.CreateAsync(subscription);
 
+            var calendar = new Calendar()
+            {
+                Summary = $"{companyDto.Name} Calendar",
+                Description = companyDto.Name
+            };
+            var calendarResult = await _calendarClient.CreateAsync(calendar);
+
             var companyDomain = CompanyMapper.ToDomain(companyDto);
             companyDomain.CustomerId = stripeCustomer.Id;
+            companyDomain.CalendarId = calendarResult.Id;
             companyDomain = _unitOfWork.CompanyRepository.Add(companyDomain);
 
             SubscriptionType subscriptionType = SubscriptionType.Free;
@@ -111,13 +119,8 @@ namespace Absencespot.Services
                 throw new ArgumentNullException(nameof(companyId));
             }
 
-            var calendarEntry = new Calendar()
-            {
-                TimeZone = "Europe/Lisbon",
-                Summary = $"{companyId} calendar",
-                Description = "support@whistleway.com"
-            };
-            var calendar = await _calendarClient.CreateAsync(calendarEntry);
+            await _calendarClient.GetHolidays("en.portuguese");
+
             var companyDomain = await LoadByIdAsync(companyId, cancellationToken);
 
             _logger.LogInformation($"Found company Id:{companyId}");
