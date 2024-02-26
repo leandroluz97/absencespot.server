@@ -1,10 +1,13 @@
-﻿using Absencespot.Clients.GoogleCalendar.Options;
+﻿using Absencespot.Clients.GoogleCalendar.Model;
+using Absencespot.Clients.GoogleCalendar.Options;
 using Absencespot.Infrastructure.Abstractions.Clients.Calendar;
+using Absencespot.Utils.Constants;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Calendar.v3;
 using Google.Apis.Calendar.v3.Data;
 using Google.Apis.Services;
 using Microsoft.Extensions.Options;
+using System.Text.Json;
 
 namespace Absencespot.Clients.GoogleCalendar
 {
@@ -103,8 +106,6 @@ namespace Absencespot.Clients.GoogleCalendar
                 throw new ArgumentNullException("Calendar Id is required.", nameof(calendarId));
             }
 
-
-
             var getCalendarRequest = _services.CalendarList.Get(calendarId);
             var calendarResult = await getCalendarRequest.ExecuteAsync(cancellationToken);
 
@@ -113,8 +114,6 @@ namespace Absencespot.Clients.GoogleCalendar
 
         public async Task<CalendarList> GetListAsync(CancellationToken cancellationToken = default)
         {
-
-
             var getCalendarRequest = _services.CalendarList.List();
             var calendarResult = await getCalendarRequest.ExecuteAsync(cancellationToken);
 
@@ -127,8 +126,6 @@ namespace Absencespot.Clients.GoogleCalendar
             {
                 throw new ArgumentNullException("Calendar options is required.", nameof(options));
             }
-
-
 
             var insertCalendarRequest = _services.CalendarList.Update(options, calendarId);
             var calendarResult = await insertCalendarRequest.ExecuteAsync(cancellationToken);
@@ -148,11 +145,31 @@ namespace Absencespot.Clients.GoogleCalendar
                 throw new ArgumentNullException("Event Id is required.", nameof(eventId));
             }
 
-
-
             var eventRequest = _services.Events.Update(options, calendarId, eventId);
             var eventResult = await eventRequest.ExecuteAsync(cancellationToken);
 
+            return eventResult;
+        }
+
+        public async Task<Events?> GetHolidays(string country, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(country))
+            {
+                throw new ArgumentNullException($"Country is required.", nameof(country));
+            }
+            if (!Country.holidayEntries.Any(c => c == country))
+            {
+                throw new ArgumentException($"Country '{country}' is not valid.", nameof(country));
+            }
+
+            var baseURL = $"https://www.googleapis.com/calendar/v3/calendars/{country}%23holiday%40group.v.calendar.google.com/events";
+            var result = await _services.HttpClient.GetAsync(baseURL);
+
+            result.EnsureSuccessStatusCode();
+            var content = await result.Content.ReadAsStringAsync();
+
+            var eventResult = JsonSerializer.Deserialize<Events>(content);
+           
             return eventResult;
         }
     }
