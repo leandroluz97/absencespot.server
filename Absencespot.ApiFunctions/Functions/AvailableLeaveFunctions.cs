@@ -25,10 +25,12 @@ namespace Absencespot.ApiFunctions.Functions
         {
             _logger.LogInformation("C# HTTP trigger function processed a request.");
 
-            var result = await _availableLeaveService.GetAllAsync(companyId, new Guid("B0BB1E63-3688-4CEC-A592-2D9EBE3C88F2"));
+            var result = await _availableLeaveService.GetAllAsync(
+                companyId, new Guid("B0BB1E63-3688-4CEC-A592-2D9EBE3C88F2"),
+                req.FunctionContext.CancellationToken);
 
             var response = req.CreateResponse(HttpStatusCode.OK);
-            await response.WriteAsJsonAsync(result, _objectSerializer)
+            await response.WriteAsJsonAsync(result, _objectSerializer, req.FunctionContext.CancellationToken)
                           .ConfigureAwait(false);
             return response;
         }

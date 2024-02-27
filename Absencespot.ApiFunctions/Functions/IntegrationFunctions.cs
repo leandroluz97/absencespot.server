@@ -27,10 +27,10 @@ namespace Absencespot.ApiFunctions.Functions
             _logger.LogInformation("C# HTTP trigger function processed a request.");
 
             var integrationBody = JsonSerializer.Deserialize<Dtos.Integration>(req.Body, _jsonSerializerOptions);
-            var integrationResponse = await _integrationService.UpdateAsync(companyId, integrationBody);
+            var integrationResponse = await _integrationService.UpdateAsync(companyId, integrationBody, req.FunctionContext.CancellationToken);
 
             var response = req.CreateResponse(HttpStatusCode.Created);
-            await response.WriteAsJsonAsync(integrationResponse, _objectSerializer)
+            await response.WriteAsJsonAsync(integrationResponse, _objectSerializer, req.FunctionContext.CancellationToken)
                           .ConfigureAwait(false);
             return response;
         }

@@ -28,10 +28,10 @@ namespace Absencespot.ApiFunctions.Functions
             _logger.LogInformation("C# HTTP trigger function processed a request.");
 
             var officeBody = JsonSerializer.Deserialize<Dtos.Office>(req.Body, _jsonSerializerOptions);
-            var officeResponse = await _officeService.CreateAsync(companyId, officeBody);
+            var officeResponse = await _officeService.CreateAsync(companyId, officeBody, req.FunctionContext.CancellationToken);
 
             var response = req.CreateResponse(HttpStatusCode.Created);
-            await response.WriteAsJsonAsync(officeResponse, _objectSerializer)
+            await response.WriteAsJsonAsync(officeResponse, _objectSerializer, req.FunctionContext.CancellationToken)
                           .ConfigureAwait(false);
             return response;
         }
@@ -43,10 +43,10 @@ namespace Absencespot.ApiFunctions.Functions
         {
             _logger.LogInformation("C# HTTP trigger function processed a request.");
 
-            var result = await _officeService.GetByIdAsync(companyId, officeId);
+            var result = await _officeService.GetByIdAsync(companyId, officeId, req.FunctionContext.CancellationToken);
 
             var response = req.CreateResponse(HttpStatusCode.OK);
-            await response.WriteAsJsonAsync(result, _objectSerializer)
+            await response.WriteAsJsonAsync(result, _objectSerializer, req.FunctionContext.CancellationToken)
                           .ConfigureAwait(false);
             return response;
         }
@@ -56,10 +56,10 @@ namespace Absencespot.ApiFunctions.Functions
         {
             _logger.LogInformation("C# HTTP trigger function processed a request.");
 
-            var result = await _officeService.GetAllAsync(companyId);
+            var result = await _officeService.GetAllAsync(companyId, req.FunctionContext.CancellationToken);
 
             var response = req.CreateResponse(HttpStatusCode.OK);
-            await response.WriteAsJsonAsync(result, _objectSerializer)
+            await response.WriteAsJsonAsync(result, _objectSerializer, req.FunctionContext.CancellationToken)
                           .ConfigureAwait(false);
             return response;
         }
@@ -72,10 +72,10 @@ namespace Absencespot.ApiFunctions.Functions
             _logger.LogInformation("C# HTTP trigger function processed a request.");
 
             var officeBody = JsonSerializer.Deserialize<Dtos.Office>(req.Body, _jsonSerializerOptions);
-            var companyResponse = await _officeService.UpdateAsync(companyId, officeId, officeBody);
+            var companyResponse = await _officeService.UpdateAsync(companyId, officeId, officeBody, req.FunctionContext.CancellationToken);
 
             var response = req.CreateResponse(HttpStatusCode.OK);
-            await response.WriteAsJsonAsync(companyResponse, _objectSerializer)
+            await response.WriteAsJsonAsync(companyResponse, _objectSerializer, req.FunctionContext.CancellationToken)
                           .ConfigureAwait(false);
             return response;
         }
@@ -87,7 +87,7 @@ namespace Absencespot.ApiFunctions.Functions
         {
             _logger.LogInformation("C# HTTP trigger function processed a request.");
 
-           await _officeService.DeleteAsync(companyId, officeId);
+           await _officeService.DeleteAsync(companyId, officeId, req.FunctionContext.CancellationToken);
 
             var response = req.CreateResponse(HttpStatusCode.OK);
             return response;

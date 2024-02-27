@@ -28,10 +28,10 @@ namespace Absencespot.ApiFunctions.Functions
             _logger.LogInformation("C# HTTP trigger function processed a request.");
 
             var settingsBody = JsonSerializer.Deserialize<Dtos.Settings>(req.Body, _jsonSerializerOptions);
-            var trackRecordResponse = await _settingsService.UpdateAsync(companyId, settingsBody);
+            var trackRecordResponse = await _settingsService.UpdateAsync(companyId, settingsBody, req.FunctionContext.CancellationToken);
 
             var response = req.CreateResponse(HttpStatusCode.Created);
-            await response.WriteAsJsonAsync(trackRecordResponse, _objectSerializer)
+            await response.WriteAsJsonAsync(trackRecordResponse, _objectSerializer, req.FunctionContext.CancellationToken)
                           .ConfigureAwait(false);
             return response;
         }
@@ -43,7 +43,7 @@ namespace Absencespot.ApiFunctions.Functions
         {
             _logger.LogInformation("C# HTTP trigger function processed a request.");
 
-            var result = await _settingsService.GetByIdAsync(companyId);
+            var result = await _settingsService.GetByIdAsync(companyId, req.FunctionContext.CancellationToken);
 
             var response = req.CreateResponse(HttpStatusCode.OK);
             await response.WriteAsJsonAsync(result, _objectSerializer)

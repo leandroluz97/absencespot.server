@@ -27,10 +27,10 @@ namespace Absencespot.ApiFunctions.Functions
             _logger.LogInformation("C# HTTP trigger function processed a request.");
 
             var trackRecordBody = JsonSerializer.Deserialize<Dtos.TrackRecord>(req.Body, _jsonSerializerOptions);
-            var trackRecordResponse = await _trackRecordService.CreateAsync(companyId, trackRecordBody);
+            var trackRecordResponse = await _trackRecordService.CreateAsync(companyId, trackRecordBody, req.FunctionContext.CancellationToken);
 
             var response = req.CreateResponse(HttpStatusCode.Created);
-            await response.WriteAsJsonAsync(trackRecordResponse, _objectSerializer)
+            await response.WriteAsJsonAsync(trackRecordResponse, _objectSerializer, req.FunctionContext.CancellationToken)
                           .ConfigureAwait(false);
             return response;
         }
@@ -41,7 +41,10 @@ namespace Absencespot.ApiFunctions.Functions
         {
             _logger.LogInformation("C# HTTP trigger function processed a request.");
 
-            var trackRecordResponse = await _trackRecordService.GetMetricsByUserIdAsync(companyId, new Guid("B0BB1E63-3688-4CEC-A592-2D9EBE3C88F2"));
+            var trackRecordResponse = await _trackRecordService.GetMetricsByUserIdAsync(
+                companyId, 
+                new Guid("B0BB1E63-3688-4CEC-A592-2D9EBE3C88F2"), 
+                req.FunctionContext.CancellationToken);
 
             var response = req.CreateResponse(HttpStatusCode.OK);
             await response.WriteAsJsonAsync(trackRecordResponse, _objectSerializer)
@@ -56,7 +59,10 @@ namespace Absencespot.ApiFunctions.Functions
         {
             _logger.LogInformation("C# HTTP trigger function processed a request.");
 
-            var result = await _trackRecordService.GetByIdAsync(companyId, trackRecordId);
+            var result = await _trackRecordService.GetByIdAsync(
+                companyId, 
+                trackRecordId, 
+                req.FunctionContext.CancellationToken);
 
             var response = req.CreateResponse(HttpStatusCode.OK);
             await response.WriteAsJsonAsync(result, _objectSerializer)
@@ -69,10 +75,12 @@ namespace Absencespot.ApiFunctions.Functions
         {
             _logger.LogInformation("C# HTTP trigger function processed a request.");
 
-            var result = await _trackRecordService.GetAllAsync(companyId);
+            var result = await _trackRecordService.GetAllAsync(
+                companyId, 
+                cancellationToken: req.FunctionContext.CancellationToken);
 
             var response = req.CreateResponse(HttpStatusCode.OK);
-            await response.WriteAsJsonAsync(result, _objectSerializer)
+            await response.WriteAsJsonAsync(result, _objectSerializer, req.FunctionContext.CancellationToken)
                           .ConfigureAwait(false);
             return response;
         }
@@ -85,7 +93,11 @@ namespace Absencespot.ApiFunctions.Functions
             _logger.LogInformation("C# HTTP trigger function processed a request.");
 
             var trackRecordBody = JsonSerializer.Deserialize<Dtos.TrackRecord>(req.Body, _jsonSerializerOptions);
-            var trackRecordResponse = await _trackRecordService.UpdateAsync(companyId, trackRecordId, trackRecordBody);
+            var trackRecordResponse = await _trackRecordService.UpdateAsync(
+                companyId, 
+                trackRecordId, 
+                trackRecordBody, 
+                req.FunctionContext.CancellationToken);
 
             var response = req.CreateResponse(HttpStatusCode.OK);
             await response.WriteAsJsonAsync(trackRecordResponse, _objectSerializer)
@@ -100,7 +112,10 @@ namespace Absencespot.ApiFunctions.Functions
         {
             _logger.LogInformation("C# HTTP trigger function processed a request.");
 
-            await _trackRecordService.DeleteAsync(companyId, trackRecordId);
+            await _trackRecordService.DeleteAsync(
+                companyId, 
+                trackRecordId, 
+                req.FunctionContext.CancellationToken);
 
             var response = req.CreateResponse(HttpStatusCode.OK);
             return response;
