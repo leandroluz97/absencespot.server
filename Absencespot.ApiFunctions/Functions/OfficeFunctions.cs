@@ -56,7 +56,7 @@ namespace Absencespot.ApiFunctions.Functions
         {
             _logger.LogInformation("C# HTTP trigger function processed a request.");
 
-            var result = await _officeService.GetAllAsync(companyId, req.FunctionContext.CancellationToken);
+            var result = await _officeService.GetAllAsync(companyId, cancellationToken: req.FunctionContext.CancellationToken);
 
             var response = req.CreateResponse(HttpStatusCode.OK);
             await response.WriteAsJsonAsync(result, _objectSerializer, req.FunctionContext.CancellationToken)
