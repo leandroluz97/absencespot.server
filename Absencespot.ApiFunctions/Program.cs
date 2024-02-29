@@ -24,7 +24,7 @@ namespace Absencespot.ApiFunctions
                     builder.UseMiddleware<ExceptionHandlerMiddleware>();
                     builder.UseWhen<JwtAuthenticationMiddleware>((context) =>
                     {
-                        string[] allowedAnonymous = new string[] { "RegisterAsync", "LoginAsync" };
+                        string[] allowedAnonymous = new string[] { "RegisterAsync", "LoginAsync", "GetCalendarContent" };
                         return !allowedAnonymous.Contains(context.FunctionDefinition.Name);
                     });
                 })
