@@ -119,7 +119,8 @@ namespace Absencespot.Services
                 throw new ArgumentNullException(nameof(companyId));
             }
 
-            await _calendarClient.GetHolidays("en.portuguese");
+            //await _calendarClient.GetHolidays("en.portuguese");
+            var list = await _calendarClient.GetListAsync();
 
             var companyDomain = await LoadByIdAsync(companyId, cancellationToken);
 
