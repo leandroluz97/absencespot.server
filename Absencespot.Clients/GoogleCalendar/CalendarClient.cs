@@ -6,6 +6,7 @@ using Google.Apis.Auth.OAuth2;
 using Google.Apis.Calendar.v3;
 using Google.Apis.Calendar.v3.Data;
 using Google.Apis.Services;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Text.Json;
 
@@ -99,14 +100,14 @@ namespace Absencespot.Clients.GoogleCalendar
             return calendarResult;
         }
 
-        public async Task<CalendarListEntry> GetByOwnerId(string calendarId, CancellationToken cancellationToken = default)
+        public async Task<Calendar> GetByOwnerId(string calendarId, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(calendarId))
             {
                 throw new ArgumentNullException("Calendar Id is required.", nameof(calendarId));
             }
 
-            var getCalendarRequest = _services.CalendarList.Get(calendarId);
+            var getCalendarRequest = _services.Calendars.Get(calendarId);
             var calendarResult = await getCalendarRequest.ExecuteAsync(cancellationToken);
 
             return calendarResult;
@@ -169,7 +170,20 @@ namespace Absencespot.Clients.GoogleCalendar
             var content = await result.Content.ReadAsStringAsync();
 
             var eventResult = JsonSerializer.Deserialize<Events>(content);
-           
+
+            return eventResult;
+        }
+
+        public async Task<Events> GetEventListAsync(string calendarId, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(calendarId))
+            {
+                throw new ArgumentNullException("Calendar Id is required.", nameof(calendarId));
+            }
+
+            var eventRequest = _services.Events.List(calendarId);
+            var eventResult = await eventRequest.ExecuteAsync(cancellationToken);
+
             return eventResult;
         }
     }
