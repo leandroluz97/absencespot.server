@@ -72,6 +72,7 @@ namespace Absencespot.DependencyInjection
             services.AddScoped<ISettingsService, SettingsService>();
             services.AddScoped<IIntegrationService, IntegrationService>();
             services.AddScoped<ISubscriptionService, SubscriptionService>();
+            services.AddScoped<ICalendarService,CalendarService>();
             services.AddScoped<IStripeClient, StripeClient>();
             services.AddSingleton(x => new BlobServiceClient(configuration.GetConnectionString("BlobStorageConnection")));
             services.AddSingleton<BlobStorageClient>();
