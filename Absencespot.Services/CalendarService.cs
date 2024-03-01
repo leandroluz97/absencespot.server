@@ -39,7 +39,7 @@ namespace Absencespot.Services
                 },
 
             };
-            //eventCalendar = await _calendarClient.CreateEventAsync(id, eventCalendar);
+            eventCalendar = await _calendarClient.CreateEventAsync(id, eventCalendar);
 
             return calendar;
         }
