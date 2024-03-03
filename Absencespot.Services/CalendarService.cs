@@ -23,21 +23,19 @@ namespace Absencespot.Services
 
             var eventCalendar = new Event()
             {
-                
                 Summary = "Last day fev",
                 Location = "800 Howard St., San Francisco, CA 94103",
                 Description = "A chance to hear more about Google's developer products.",
                 Start = new EventDateTime()
                 {
-                    DateTime = DateTime.Parse("2024-02-29T00:00:00-00:00"),
+                    DateTime = DateTime.Parse("2024-03-29T00:00:00-00:00"),
                     TimeZone = "America/Los_Angeles",
                 },
                 End = new EventDateTime()
                 {
-                    DateTime = DateTime.Parse("2024-02-29T00:05:05-05:00"),
+                    DateTime = DateTime.Parse("2024-03-30T00:05:05-05:00"),
                     TimeZone = "America/Los_Angeles",
                 },
-
             };
             eventCalendar = await _calendarClient.CreateEventAsync(id, eventCalendar);
 
@@ -50,6 +48,13 @@ namespace Absencespot.Services
             {
                 throw new ArgumentNullException(nameof(id));
             }
+
+            //var calendar = new Calendar()
+            //{
+            //    Summary = $"public user Calendar",
+            //    Description = "Public User"
+            //};
+            //var calendarResult = await _calendarClient.CreateAsync(calendar);
 
             var eventsVC = await _calendarClient.GetByOwnerId(id, cancellationToken);
 
