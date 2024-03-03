@@ -9,6 +9,7 @@ using Google.Apis.Services;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Text.Json;
+using static Google.Apis.Calendar.v3.Data.AclRule;
 
 namespace Absencespot.Clients.GoogleCalendar
 {
@@ -25,8 +26,14 @@ namespace Absencespot.Clients.GoogleCalendar
 
         private CalendarService Initialize()
         {
+            string[] scopes = new string[]
+            {
+                CalendarService.Scope.Calendar,
+                CalendarService.Scope.CalendarEvents,
+                "https://www.google.com/calendar/feeds"
+            };
             var credential = GoogleCredential.FromFile(_options.KeyFilePath)
-                .CreateScoped(CalendarService.Scope.Calendar);
+                .CreateScoped(scopes);
 
             return new CalendarService(new BaseClientService.Initializer()
             {
@@ -45,6 +52,17 @@ namespace Absencespot.Clients.GoogleCalendar
             var insertCalendarRequest = _services.Calendars.Insert(options);
             var calendarResult = await insertCalendarRequest.ExecuteAsync(cancellationToken);
 
+            var acl = new AclRule()
+            {
+                Role = "reader",
+                Scope = new ScopeData()
+                {
+                    Type = "default"
+                }
+            };
+            var aclResult = _services.Acl.Insert(acl, calendarResult.Id);
+            await aclResult.ExecuteAsync(cancellationToken);
+
             return calendarResult;
         }
 
@@ -54,7 +72,7 @@ namespace Absencespot.Clients.GoogleCalendar
             {
                 throw new ArgumentNullException("Calendar Id is required.", nameof(options));
             }
-
+            
             var insertEventRequest = _services.Events.Insert(options, calendarId);
             var eventResult = await insertEventRequest.ExecuteAsync(cancellationToken);
 
