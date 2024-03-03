@@ -42,8 +42,9 @@ namespace Absencespot.ApiFunctions.Functions
         {
             _logger.LogInformation("C# HTTP trigger function processed a request.");
 
-            var calendarId = "f024a708d241bc8fb47ade295656ea22bca6913e39fcbe73c2756535e9e080fe@group.calendar.google.com";
-            var content = await _calendarService.GetEventsContent(calendarId, req.FunctionContext.CancellationToken);
+            var calendarId = "31cea3071fcfab61f3349200e6a65109c15f293f6c45745f9589d260ee9ea406@group.calendar.google.com";
+            //var content = await _calendarService.GetEventsContent(calendarId, req.FunctionContext.CancellationToken);
+            var content = await _calendarService.GetContent(calendarId, req.FunctionContext.CancellationToken);
 
             var response = req.CreateResponse(HttpStatusCode.OK);
             response.Headers.Add("Content-Type", "text/calendar;charset=utf-8");
