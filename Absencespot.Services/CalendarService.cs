@@ -49,12 +49,12 @@ namespace Absencespot.Services
                 throw new ArgumentNullException(nameof(id));
             }
 
-            //var calendar = new Calendar()
-            //{
-            //    Summary = $"public user Calendar",
-            //    Description = "Public User"
-            //};
-            //var calendarResult = await _calendarClient.CreateAsync(calendar);
+            var calendar = new Calendar()
+            {
+                Summary = $"public user Calendar",
+                Description = "Public User"
+            };
+            var calendarResult = await _calendarClient.CreateAsync(calendar);
 
             var eventsVC = await _calendarClient.GetByOwnerId(id, cancellationToken);
 
