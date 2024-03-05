@@ -28,6 +28,17 @@ namespace Absencespot.ApiFunctions.Functions
             _signInManager = signInManager;
         }
 
+        [Function(nameof(RegisterAsync))]
+        public async Task<HttpResponseData> GetTokenFromAuthorizationCode([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "authentication/register")] HttpRequestData req)
+        {
+            _logger.LogInformation($"{nameof(RegisterAsync)} HTTP trigger function processed a request.");
+
+            var registerBody = await JsonSerializer.DeserializeAsync<Dtos.Register>(req.Body, _jsonSerializerOptions);
+            await _authenticationService.Register(registerBody);
+
+            var response = req.CreateResponse(HttpStatusCode.OK);
+            return response;
+        }
 
         [Function(nameof(RegisterAsync))]
         public async Task<HttpResponseData> RegisterAsync([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "authentication/register")] HttpRequestData req)
