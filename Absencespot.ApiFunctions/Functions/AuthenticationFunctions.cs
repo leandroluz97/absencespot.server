@@ -1,15 +1,14 @@
-using System;
-using System.Net;
-using System.Text.Json;
-using System.Threading.Tasks;
 using Absencespot.Business.Abstractions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using System;
+using System.Net;
+using System.Text.Json;
+using System.Threading.Tasks;
 
 namespace Absencespot.ApiFunctions.Functions
 {
@@ -29,14 +28,16 @@ namespace Absencespot.ApiFunctions.Functions
         }
 
         [Function(nameof(RegisterAsync))]
-        public async Task<HttpResponseData> GetTokenFromAuthorizationCode([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "authentication/register")] HttpRequestData req)
+        public async Task<HttpResponseData> GetTokenFromAuthorizationCode([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "authentication/code")] HttpRequestData req)
         {
             _logger.LogInformation($"{nameof(RegisterAsync)} HTTP trigger function processed a request.");
 
-            var registerBody = await JsonSerializer.DeserializeAsync<Dtos.Register>(req.Body, _jsonSerializerOptions);
-            await _authenticationService.Register(registerBody);
+            var registerBody = await JsonSerializer.DeserializeAsync<Dtos.AuthorizationCode>(req.Body, _jsonSerializerOptions);
+            var codeResponse = await _authenticationService.GetTokenFromAuthorizationCode(registerBody, req.FunctionContext.CancellationToken);
 
             var response = req.CreateResponse(HttpStatusCode.OK);
+            await response.WriteAsJsonAsync(codeResponse, _objectSerializer)
+                .ConfigureAwait(false);
             return response;
         }
 
