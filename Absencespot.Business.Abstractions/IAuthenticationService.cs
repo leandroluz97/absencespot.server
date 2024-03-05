@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Absencespot.Dtos;
+using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,6 +11,7 @@ namespace Absencespot.Business.Abstractions
     public interface IAuthenticationService
     {
         Task Register(Dtos.Register register, CancellationToken cancellationToken = default);
+        Task<TokenResponse> GetTokenFromAuthorizationCode(Dtos.AuthorizationCode authorizationCode, CancellationToken cancellationToken = default);
         Task ConfirmEmail(Dtos.ConfirmEmail confirmEmail, CancellationToken cancellationToken = default);
         Task<Dtos.TokenResponse> Login(Dtos.LoginRequest login, CancellationToken cancellationToken = default);
         Task LoginWithGoogle();
