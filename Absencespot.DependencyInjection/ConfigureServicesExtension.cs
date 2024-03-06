@@ -72,7 +72,7 @@ namespace Absencespot.DependencyInjection
             services.AddScoped<ISettingsService, SettingsService>();
             services.AddScoped<IIntegrationService, IntegrationService>();
             services.AddScoped<ISubscriptionService, SubscriptionService>();
-            services.AddScoped<ICalendarService,CalendarService>();
+            services.AddScoped<ICalendarService, CalendarService>();
             services.AddScoped<IStripeClient, StripeClient>();
             services.AddSingleton(x => new BlobServiceClient(configuration.GetConnectionString("BlobStorageConnection")));
             services.AddSingleton<BlobStorageClient>();
@@ -87,10 +87,10 @@ namespace Absencespot.DependencyInjection
                 options.SignIn.RequireConfirmedEmail = true;
                 //options.SignIn.RequireConfirmedAccount = false;
             })
-                .AddEntityFrameworkStores<ApplicationDbContext>()
-                .AddDefaultTokenProviders()
-                .AddUserStore<UserStore<User, Role, ApplicationDbContext, int>>()
-                .AddRoleStore<RoleStore<Role, ApplicationDbContext, int>>();
+            .AddEntityFrameworkStores<ApplicationDbContext>()
+            .AddDefaultTokenProviders()
+            .AddUserStore<UserStore<User, Role, ApplicationDbContext, int>>()
+            .AddRoleStore<RoleStore<Role, ApplicationDbContext, int>>();
 
             services.Configure<DataProtectionTokenProviderOptions>(options =>
             {
@@ -103,37 +103,37 @@ namespace Absencespot.DependencyInjection
                 options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
 
                 //options.AddPolicy("TwoFactorEnabled", x => x.RequireClaim("amr", "mfa")); 
-            })
-            .AddJwtBearer(options =>
-            {
-                options.TokenValidationParameters = new TokenValidationParameters()
-                {
-                    ValidateAudience = true,
-                    ValidAudience = configuration["Jwt:Audience"],
-                    ValidateIssuer = true,
-                    ValidIssuer = configuration["Jwt:Issuer"],
-                    ValidateLifetime = true,
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(configuration["Jwt:SecretKey"]))
-                };
-            })
-            .AddCookie()
-            .AddGoogle(googleOptions =>
-            {
-                googleOptions.ClientId = configuration["GoogleAuth:ClientId"];
-                googleOptions.ClientSecret = configuration["GoogleAuth:ClientSecret"];
-                //googleOptions.SignInScheme = GoogleDefaults.AuthenticationScheme;
-                //googleOptions.AuthorizationEndpoint
+            });
+            // .AddJwtBearer(options =>
+            // {
+            //     options.TokenValidationParameters = new TokenValidationParameters()
+            //     {
+            //         ValidateAudience = true,
+            //         ValidAudience = configuration["Jwt:Audience"],
+            //         ValidateIssuer = true,
+            //         ValidIssuer = configuration["Jwt:Issuer"],
+            //         ValidateLifetime = true,
+            //         ValidateIssuerSigningKey = true,
+            //         IssuerSigningKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(configuration["Jwt:SecretKey"]))
+            //     };
+            // })
+            // .AddCookie()
+            // .AddGoogle(googleOptions =>
+            // {
+            //     googleOptions.ClientId = configuration["GoogleAuth:ClientId"];
+            //     googleOptions.ClientSecret = configuration["GoogleAuth:ClientSecret"];
+            //     //googleOptions.SignInScheme = GoogleDefaults.AuthenticationScheme;
+            //     //googleOptions.AuthorizationEndpoint
 
-                googleOptions.Scope.Add("profile");
-                googleOptions.SignInScheme = Microsoft.AspNetCore.Identity.IdentityConstants.ExternalScheme;
-            })
-            .AddMicrosoftAccount(options =>
-           {
-               options.ClientId = configuration["MicrosoftAuth:ClientId"];
-               options .ClientSecret = configuration["MicrosoftAuth:ClientSecret"];
-           });
-             
+            //     googleOptions.Scope.Add("profile");
+            //     googleOptions.SignInScheme = Microsoft.AspNetCore.Identity.IdentityConstants.ExternalScheme;
+            // })
+            // .AddMicrosoftAccount(options =>
+            //{
+            //    options.ClientId = configuration["MicrosoftAuth:ClientId"];
+            //    options .ClientSecret = configuration["MicrosoftAuth:ClientSecret"];
+            //});
+
             //services.Configure<CookiePolicyOptions>(options =>
             //{
             //    // This lambda determines whether user consent for non-essential cookies is needed for a given request.
