@@ -1,12 +1,16 @@
 ﻿using Absencespot.Business.Abstractions;
+using Absencespot.Clients.GoogleCalendar.Options;
 using Absencespot.Clients.Sendgrid;
 using Absencespot.Dtos;
 using Absencespot.Infrastructure.Abstractions.Clients;
 using Absencespot.Services.Exceptions;
 using Absencespot.Utils;
+using Google.Apis.Auth.OAuth2.Requests;
+using Google.Apis.Util;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
@@ -24,19 +28,22 @@ namespace Absencespot.Services
         private readonly UserManager<Domain.User> _userManager;
         private readonly SignInManager<Domain.User> _signInManager;
         private readonly IEmailClient _sendgridClient;
+        private readonly GoogleAuthOptions _googleAuthOptions;
 
         public AuthenticationService(
-            ILogger<AuthenticationService> logger, 
+            ILogger<AuthenticationService> logger,
             IConfiguration configuration,
             UserManager<Domain.User> userManager,
             SignInManager<Domain.User> signInManager,
-            IEmailClient sendgridClient)
+            IEmailClient sendgridClient,
+            IOptions<GoogleAuthOptions> googleAuthOptions)
         {
             _logger = logger;
             _configuration = configuration;
             _userManager = userManager;
             _signInManager = signInManager;
             _sendgridClient = sendgridClient;
+            _googleAuthOptions = googleAuthOptions.Value;
         }
 
 
@@ -310,7 +317,7 @@ namespace Absencespot.Services
 
             Claim[] claims = new Claim[] {
                 new Claim(JwtRegisteredClaimNames.Sub, user.GlobalId.ToString()),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()), 
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 new Claim(JwtRegisteredClaimNames.Iat, unixTimestamp, ClaimValueTypes.Integer64),
                 new Claim(ClaimTypes.NameIdentifier, user.GlobalId.ToString()),
             };
@@ -318,7 +325,7 @@ namespace Absencespot.Services
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:SecretKey"]!));
 
             var signingCredentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
-                
+
             JwtSecurityToken tokenGenerator = new JwtSecurityToken(
                 _configuration["Jwt:Issuer"],
                 _configuration["Jwt:Audience"],
@@ -331,6 +338,40 @@ namespace Absencespot.Services
             var token = tokenHandler.WriteToken(tokenGenerator);
 
             return new Dtos.TokenResponse() { Token = token };
+        }
+
+        public async Task<TokenResponse> GetTokenFromAuthorizationCode(AuthorizationCode authorizationCode, CancellationToken cancellationToken = default)
+        {
+            if (authorizationCode == null)
+            {
+                throw new ArgumentNullException("Authorization Code is required", nameof(authorizationCode));
+            }
+            authorizationCode.EnsureValidation();
+
+            var googleAuthorization = new AuthorizationCodeTokenRequest()
+            {
+                Code = authorizationCode.Code,
+                ClientId = _googleAuthOptions.ClientId,
+                ClientSecret = _googleAuthOptions.ClientSecret,
+                RedirectUri = "http://localhost:7071", // Must match the one used during authorization
+                GrantType = "authorization_code"
+            };
+
+            var httpClient = new HttpClient();
+            var tokenUrl = "https://oauth2.googleapis.com/token";
+
+            var tokenResponse = await googleAuthorization.ExecuteAsync(
+                httpClient,
+                tokenUrl, 
+                cancellationToken, 
+                SystemClock.Default);
+
+            return new TokenResponse()
+            {
+                IdToken = tokenResponse.IdToken,
+                Token = tokenResponse.AccessToken,
+                RefreshToken = tokenResponse.RefreshToken
+            };
         }
     }
 }
