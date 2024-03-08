@@ -2,6 +2,7 @@ using Absencespot.ApiFunctions.Middlewares;
 using Absencespot.ApiFunctions.Middlewares.JwtAuthentication;
 using Absencespot.Clients.GoogleCalendar.Options;
 using Absencespot.DependencyInjection;
+using Absencespot.Dtos;
 using Microsoft.Azure.Functions.Worker.Configuration;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -42,6 +43,8 @@ namespace Absencespot.ApiFunctions
                         .Bind(context.Configuration.GetSection("Jwt"));
                     services.AddOptions<GoogleAuthOptions>()
                         .Bind(context.Configuration.GetSection("GoogleAuth"));
+                    services.AddOptions<MicrosoftAuthOptions>()
+                        .Bind(context.Configuration.GetSection("MicrosoftAuth"));
 
                     services.AddPersistence(context.Configuration);
                     services.AddServices(context.Configuration);
