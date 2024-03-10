@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.Identity.Client;
 using Microsoft.IdentityModel.Tokens;
 using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
@@ -29,6 +30,7 @@ namespace Absencespot.Services
         private readonly SignInManager<Domain.User> _signInManager;
         private readonly IEmailClient _sendgridClient;
         private readonly GoogleAuthOptions _googleAuthOptions;
+        private readonly MicrosoftAuthOptions _microsoftAuthOptions;
 
         public AuthenticationService(
             ILogger<AuthenticationService> logger,
@@ -36,7 +38,8 @@ namespace Absencespot.Services
             UserManager<Domain.User> userManager,
             SignInManager<Domain.User> signInManager,
             IEmailClient sendgridClient,
-            IOptions<GoogleAuthOptions> googleAuthOptions)
+            IOptions<GoogleAuthOptions> googleAuthOptions,
+            IOptions<MicrosoftAuthOptions> microsoftAuthOptions)
         {
             _logger = logger;
             _configuration = configuration;
@@ -44,6 +47,7 @@ namespace Absencespot.Services
             _signInManager = signInManager;
             _sendgridClient = sendgridClient;
             _googleAuthOptions = googleAuthOptions.Value;
+            _microsoftAuthOptions = microsoftAuthOptions.Value;
         }
 
 
@@ -340,6 +344,40 @@ namespace Absencespot.Services
             return new Dtos.TokenResponse() { Token = token };
         }
 
+        //public async Task<TokenResponse> GetTokenFromAuthorizationCode(AuthorizationCode authorizationCode, CancellationToken cancellationToken = default)
+        //{
+        //    if (authorizationCode == null)
+        //    {
+        //        throw new ArgumentNullException("Authorization Code is required", nameof(authorizationCode));
+        //    }
+        //    authorizationCode.EnsureValidation();
+
+        //    var googleAuthorization = new AuthorizationCodeTokenRequest()
+        //    {
+        //        Code = authorizationCode.Code,
+        //        ClientId = _googleAuthOptions.ClientId,
+        //        ClientSecret = _googleAuthOptions.ClientSecret,
+        //        RedirectUri = "http://localhost:7071", // Must match the one used during authorization
+        //        GrantType = "authorization_code"
+        //    };
+
+        //    var httpClient = new HttpClient();
+        //    var tokenUrl = "https://oauth2.googleapis.com/token";
+
+        //    var tokenResponse = await googleAuthorization.ExecuteAsync(
+        //        httpClient,
+        //        tokenUrl, 
+        //        cancellationToken, 
+        //        SystemClock.Default);
+
+        //    return new TokenResponse()
+        //    {
+        //        IdToken = tokenResponse.IdToken,
+        //        Token = tokenResponse.AccessToken,
+        //        RefreshToken = tokenResponse.RefreshToken
+        //    };
+        //}
+
         public async Task<TokenResponse> GetTokenFromAuthorizationCode(AuthorizationCode authorizationCode, CancellationToken cancellationToken = default)
         {
             if (authorizationCode == null)
@@ -348,29 +386,24 @@ namespace Absencespot.Services
             }
             authorizationCode.EnsureValidation();
 
-            var googleAuthorization = new AuthorizationCodeTokenRequest()
-            {
-                Code = authorizationCode.Code,
-                ClientId = _googleAuthOptions.ClientId,
-                ClientSecret = _googleAuthOptions.ClientSecret,
-                RedirectUri = "http://localhost:7071", // Must match the one used during authorization
-                GrantType = "authorization_code"
-            };
+            var app = ConfidentialClientApplicationBuilder
+                .Create(_microsoftAuthOptions.ClientId)
+                .WithClientSecret(_microsoftAuthOptions.ClientSecret)
+                .WithRedirectUri(_microsoftAuthOptions.RedirectUri)
+                .WithAuthority(AadAuthorityAudience.AzureAdAndPersonalMicrosoftAccount)
+                .Build();
 
-            var httpClient = new HttpClient();
-            var tokenUrl = "https://oauth2.googleapis.com/token";
+            string[] scopes = _microsoftAuthOptions.Scopes.Split(" ");
 
-            var tokenResponse = await googleAuthorization.ExecuteAsync(
-                httpClient,
-                tokenUrl, 
-                cancellationToken, 
-                SystemClock.Default);
+            var result = await app.AcquireTokenByAuthorizationCode(scopes, authorizationCode.Code)
+                .WithPkceCodeVerifier(authorizationCode.State)
+                .ExecuteAsync(cancellationToken);
 
             return new TokenResponse()
             {
-                IdToken = tokenResponse.IdToken,
-                Token = tokenResponse.AccessToken,
-                RefreshToken = tokenResponse.RefreshToken
+                IdToken = result.IdToken,
+                Token = result.AccessToken,
+                RefreshToken = result.TokenType,
             };
         }
     }
