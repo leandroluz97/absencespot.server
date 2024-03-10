@@ -10,6 +10,8 @@ namespace Absencespot.Dtos
     {
         public string Code { get; set; }
         public string? State { get; set; }
+        public string? CodeVerifier { get; set; }
+        public string? IdentityProvider { get; set; }
 
         public void EnsureValidation()
         {
