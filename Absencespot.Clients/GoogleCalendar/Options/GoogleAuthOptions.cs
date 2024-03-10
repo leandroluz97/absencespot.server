@@ -14,5 +14,12 @@ namespace Absencespot.Clients.GoogleCalendar.Options
         public string User { get; set; } = null!;
         public string ApplicationName { get; set; } = null!;
         public string KeyFilePath { get; set; } = null!;
+
+        public string Issuer { get; set; } = null!;
+        public string Audience { get; set; } = null!;
+        public bool ValidateIssuer { get; set; }
+        public bool ValidateAudience { get; set; }
+        public bool ValidateLifetime { get; set; }
+        public bool ValidateIssuerSigningKey { get; set; }
     }
 }
