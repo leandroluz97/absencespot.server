@@ -11,5 +11,6 @@ namespace Absencespot.Dtos
         public string Token { get; set; }
         public string? RefreshToken { get; set; }
         public string? IdToken{ get; set; }
+        public string? Type{ get; set; }
     }
 }
