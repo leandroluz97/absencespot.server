@@ -4,9 +4,9 @@ using Microsoft.Azure.Functions.Worker.Middleware;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System;
-using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -15,7 +15,7 @@ namespace Absencespot.ApiFunctions.Middlewares.JwtAuthentication
     public class JwtAuthenticationMiddleware : IFunctionsWorkerMiddleware
     {
         private readonly JwtAuthenticationOptions _options;
-        public JwtAuthenticationMiddleware(IOptions<JwtAuthenticationOptions>  options)
+        public JwtAuthenticationMiddleware(IOptions<JwtAuthenticationOptions> options)
         {
             _options = options.Value;
         }
@@ -27,7 +27,10 @@ namespace Absencespot.ApiFunctions.Middlewares.JwtAuthentication
 
             if (string.IsNullOrWhiteSpace(token))
             {
-                throw new UnauthorizedAccessException("Header must have a Bearer token.");
+                var httpResponse = req.CreateResponse(HttpStatusCode.Unauthorized);
+                var invocationResult = context.GetInvocationResult();
+                invocationResult.Value = httpResponse;
+                return;
             }
 
             JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
@@ -43,16 +46,19 @@ namespace Absencespot.ApiFunctions.Middlewares.JwtAuthentication
             };
 
             TokenValidationResult result = await tokenHandler.ValidateTokenAsync(token, tokenValidationParameters);
-            if(!result.IsValid)
+            if (!result.IsValid)
             {
-                throw new UnauthorizedAccessException("Token is not valid.");
+                var httpResponse = req.CreateResponse(HttpStatusCode.Unauthorized);
+                var invocationResult = context.GetInvocationResult();
+                invocationResult.Value = httpResponse;
+                return;
             }
-            
+
             await next(context)
                 .ConfigureAwait(false);
         }
 
-        
+
         private string TryGetTokenFromHeaders(HttpRequestData req)
         {
             if (!req.Headers.TryGetValues("Authorization", out var authorizations))
