@@ -396,7 +396,7 @@ namespace Absencespot.Services
             string[] scopes = _microsoftAuthOptions.Scopes.Split(" ");
 
             var result = await app.AcquireTokenByAuthorizationCode(scopes, authorizationCode.Code)
-                .WithPkceCodeVerifier(authorizationCode.State)
+                .WithPkceCodeVerifier(authorizationCode.CodeVerifier)
                 .ExecuteAsync(cancellationToken);
 
             return new TokenResponse()
