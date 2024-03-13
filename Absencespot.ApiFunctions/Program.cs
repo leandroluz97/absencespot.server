@@ -1,5 +1,7 @@
 using Absencespot.ApiFunctions.Middlewares;
+using Absencespot.ApiFunctions.Middlewares.GoogleAuthentication;
 using Absencespot.ApiFunctions.Middlewares.JwtAuthentication;
+using Absencespot.ApiFunctions.Middlewares.MicrosoftAuthentication;
 using Absencespot.Clients.GoogleCalendar.Options;
 using Absencespot.DependencyInjection;
 using Absencespot.Dtos;
@@ -22,12 +24,20 @@ namespace Absencespot.ApiFunctions
             var host = new HostBuilder()
                 .ConfigureFunctionsWebApplication(builder =>
                 {
+                    string[] allowedAnonymous = new string[] { "RegisterAsync", "LoginAsync", "GetCalendarContent" };
                     builder.UseMiddleware<ExceptionHandlerMiddleware>();
-                    builder.UseWhen<JwtAuthenticationMiddleware>((context) =>
+                    //builder.UseWhen<JwtAuthenticationMiddleware>((context) =>
+                    //{
+                    //    return !allowedAnonymous.Contains(context.FunctionDefinition.Name);
+                    //});
+                    builder.UseWhen<MicrosoftAuthenticationMiddleware>((context) =>
                     {
-                        string[] allowedAnonymous = new string[] { "RegisterAsync", "LoginAsync", "GetCalendarContent" };
                         return !allowedAnonymous.Contains(context.FunctionDefinition.Name);
                     });
+                    //builder.UseWhen<GoogleAuthenticationMiddleware>((context) =>
+                    //{
+                    //    return !allowedAnonymous.Contains(context.FunctionDefinition.Name);
+                    //});
                 })
                 .ConfigureAppConfiguration((hostingContext, config) =>
                  {
