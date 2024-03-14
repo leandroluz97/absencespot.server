@@ -116,8 +116,6 @@ namespace Absencespot.ApiFunctions.Middlewares.GoogleAuthentication
             {
                 throw new Exception("Error while requesting 'GOOGLE KEYS'.");
             }
-
         }
-
     }
 }
