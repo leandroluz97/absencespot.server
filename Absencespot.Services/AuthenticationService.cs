@@ -344,41 +344,60 @@ namespace Absencespot.Services
             return new Dtos.TokenResponse() { Token = token };
         }
 
-        //public async Task<TokenResponse> GetTokenFromAuthorizationCode(AuthorizationCode authorizationCode, CancellationToken cancellationToken = default)
-        //{
-        //    if (authorizationCode == null)
-        //    {
-        //        throw new ArgumentNullException("Authorization Code is required", nameof(authorizationCode));
-        //    }
-        //    authorizationCode.EnsureValidation();
-
-        //    var googleAuthorization = new AuthorizationCodeTokenRequest()
-        //    {
-        //        Code = authorizationCode.Code,
-        //        ClientId = _googleAuthOptions.ClientId,
-        //        ClientSecret = _googleAuthOptions.ClientSecret,
-        //        RedirectUri = "http://localhost:7071", // Must match the one used during authorization
-        //        GrantType = "authorization_code"
-        //    };
-
-        //    var httpClient = new HttpClient();
-        //    var tokenUrl = "https://oauth2.googleapis.com/token";
-
-        //    var tokenResponse = await googleAuthorization.ExecuteAsync(
-        //        httpClient,
-        //        tokenUrl, 
-        //        cancellationToken, 
-        //        SystemClock.Default);
-
-        //    return new TokenResponse()
-        //    {
-        //        IdToken = tokenResponse.IdToken,
-        //        Token = tokenResponse.AccessToken,
-        //        RefreshToken = tokenResponse.RefreshToken
-        //    };
-        //}
-
         public async Task<TokenResponse> GetTokenFromAuthorizationCode(AuthorizationCode authorizationCode, CancellationToken cancellationToken = default)
+        {
+            if (authorizationCode == null)
+            {
+                throw new ArgumentNullException("Authorization Code is required", nameof(authorizationCode));
+            }
+            authorizationCode.EnsureValidation();
+
+            switch (authorizationCode.IdentityProvider)
+            {
+                case "google":
+                    return await GetGoogleTokenFromAuthorizationCode(authorizationCode, cancellationToken);
+                case "microsoft":
+                    return await GetMicrosoftTokenFromAuthorizationCode(authorizationCode, cancellationToken);
+                default:
+                    throw new ArgumentException("Invalid Identity Provider");
+            }
+        }
+
+        private async Task<TokenResponse> GetGoogleTokenFromAuthorizationCode(AuthorizationCode authorizationCode, CancellationToken cancellationToken = default)
+        {
+            if (authorizationCode == null)
+            {
+                throw new ArgumentNullException("Authorization Code is required", nameof(authorizationCode));
+            }
+            authorizationCode.EnsureValidation();
+
+            var googleAuthorization = new AuthorizationCodeTokenRequest()
+            {
+                Code = authorizationCode.Code,
+                ClientId = _googleAuthOptions.ClientId,
+                ClientSecret = _googleAuthOptions.ClientSecret,
+                RedirectUri = "http://localhost:3000", // Must match the one used during authorization
+                GrantType = "authorization_code"
+            };
+
+            var httpClient = new HttpClient();
+            var tokenUrl = "https://oauth2.googleapis.com/token";
+
+            var tokenResponse = await googleAuthorization.ExecuteAsync(
+                httpClient,
+                tokenUrl,
+                cancellationToken,
+                SystemClock.Default);
+
+            return new TokenResponse()
+            {
+                IdToken = tokenResponse.IdToken,
+                Token = tokenResponse.AccessToken,
+                RefreshToken = tokenResponse.RefreshToken
+            };
+        }
+
+        private async Task<TokenResponse> GetMicrosoftTokenFromAuthorizationCode(AuthorizationCode authorizationCode, CancellationToken cancellationToken = default)
         {
             if (authorizationCode == null)
             {
