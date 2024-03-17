@@ -11,8 +11,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Stripe;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace Absencespot.ApiFunctions
@@ -32,15 +34,24 @@ namespace Absencespot.ApiFunctions
                     //});
                     builder.UseWhen<MicrosoftAuthenticationMiddleware>((context) =>
                     {
-                        return !allowedAnonymous.Contains(context.FunctionDefinition.Name);
+                        string headers = context.BindingContext.BindingData["Headers"] as string;
+                        var deserializedHeader = JsonSerializer.Deserialize<Dictionary<string, string>>(headers);
+                        var hasXMicrosoftAuth = deserializedHeader.ContainsKey("X-MICROSOFT-AUTH");
+
+                        return !allowedAnonymous.Contains(context.FunctionDefinition.Name) && hasXMicrosoftAuth;
                     });
-                    //builder.UseWhen<GoogleAuthenticationMiddleware>((context) =>
-                    //{
-                    //    return !allowedAnonymous.Contains(context.FunctionDefinition.Name);
-                    //});
+                    builder.UseWhen<GoogleAuthenticationMiddleware>((context) =>
+                    {
+                        string headers = context.BindingContext.BindingData["Headers"] as string;
+                        var deserializedHeader =  JsonSerializer.Deserialize<Dictionary<string, string>>(headers);
+                        var hasXGoogleAuth = deserializedHeader.ContainsKey("X-GOOGLE-AUTH");
+
+                        return !allowedAnonymous.Contains(context.FunctionDefinition.Name) && hasXGoogleAuth;
+                    });
                 })
                 .ConfigureAppConfiguration((hostingContext, config) =>
                  {
+                     Microsoft.IdentityModel.Logging.IdentityModelEventSource.ShowPII = true;
                      config
                          .SetBasePath(Directory.GetCurrentDirectory())
                          .AddJsonFile("local.settings.json", optional: true, reloadOnChange: true)

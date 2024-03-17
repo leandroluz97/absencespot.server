@@ -9,9 +9,11 @@ using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 
 namespace Absencespot.ApiFunctions.Middlewares.MicrosoftAuthentication
@@ -19,6 +21,7 @@ namespace Absencespot.ApiFunctions.Middlewares.MicrosoftAuthentication
     public class MicrosoftAuthenticationMiddleware : IFunctionsWorkerMiddleware
     {
         private readonly MicrosoftAuthOptions _options;
+
 
         public MicrosoftAuthenticationMiddleware(IOptions<MicrosoftAuthOptions> options)
         {
@@ -39,6 +42,7 @@ namespace Absencespot.ApiFunctions.Middlewares.MicrosoftAuthentication
             }
 
             var microsoftAsymmetricsKey = await GetAsymmetricKeyAsync();
+            //var microsoftAsymmetricsKey = await IssuerSigningKeysAsync();
 
             JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
             TokenValidationParameters tokenValidationParameters = new()
@@ -49,7 +53,7 @@ namespace Absencespot.ApiFunctions.Middlewares.MicrosoftAuthentication
                 ValidateAudience = _options.ValidateAudience,
                 ValidateLifetime = _options.ValidateLifetime,
                 ValidateIssuerSigningKey = _options.ValidateIssuerSigningKey,
-                IssuerSigningKey = microsoftAsymmetricsKey,
+                IssuerSigningKeys = microsoftAsymmetricsKey,
             };
 
             TokenValidationResult result = await tokenHandler.ValidateTokenAsync(token, tokenValidationParameters);
@@ -82,17 +86,31 @@ namespace Absencespot.ApiFunctions.Middlewares.MicrosoftAuthentication
             return token;
         }
 
-        private async Task<SecurityKey> GetAsymmetricKeyAsync()
+        private async Task<IEnumerable<SecurityKey>> GetAsymmetricKeyAsync()
         {
-            string microsoftAuthority = "https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration";
+            string microsoftAuthority = "https://login.microsoftonline.com/ce66180d-cb09-4ddd-8b83-77c7ef72a60b/v2.0/.well-known/openid-configuration";
 
             var configurationManager = new ConfigurationManager<OpenIdConnectConfiguration>(microsoftAuthority, new OpenIdConnectConfigurationRetriever());
 
             var openIdConfig = await configurationManager.GetConfigurationAsync();
 
-            SecurityKey signingKey = openIdConfig.SigningKeys.FirstOrDefault();
+            return openIdConfig.SigningKeys;
+        }
 
-            return signingKey;
+        private async Task<IEnumerable<SecurityKey>> IssuerSigningKeysAsync()
+        {
+            //string jwksUri = "https://login.microsoftonline.com/common/discovery/v2.0/keys";
+            string jwksUri = "https://login.microsoftonline.com/ce66180d-cb09-4ddd-8b83-77c7ef72a60b/discovery/v2.0/keys";
+            using (HttpClient httpClient = new HttpClient())
+            {
+                var response = await httpClient.GetAsync(jwksUri);
+                response.EnsureSuccessStatusCode();
+
+                var jwksJson = await response.Content.ReadAsStringAsync();
+                var jwks = new JsonWebKeySet(jwksJson);
+
+                return jwks.Keys;
+            }
         }
     }
 }

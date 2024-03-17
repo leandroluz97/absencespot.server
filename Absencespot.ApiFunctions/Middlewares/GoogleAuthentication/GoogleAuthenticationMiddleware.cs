@@ -13,6 +13,10 @@ using System.Net;
 using System.Net.Http;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
+using Google.Apis.Auth;
+using Google.Apis.Auth.OAuth2;
+using System.Threading;
+using Google.Apis.Util;
 
 namespace Absencespot.ApiFunctions.Middlewares.GoogleAuthentication
 {
@@ -38,22 +42,14 @@ namespace Absencespot.ApiFunctions.Middlewares.GoogleAuthentication
                 return;
             }
 
-            var googleAsymmetricsKey = await GetAsymmetricKeyAsync();
-
-            JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
-            TokenValidationParameters tokenValidationParameters = new()
+            var settings = new GoogleJsonWebSignature.ValidationSettings()
             {
-                ValidIssuer = _options.Issuer,
-                ValidAudience = _options.Audience,
-                ValidateIssuer = _options.ValidateIssuer,
-                ValidateAudience = _options.ValidateAudience,
-                ValidateLifetime = _options.ValidateLifetime,
-                ValidateIssuerSigningKey = _options.ValidateIssuerSigningKey,
-                IssuerSigningKeys = googleAsymmetricsKey.Values
+                Audience = new[] { _options.ClientId },
             };
 
-            TokenValidationResult result = await tokenHandler.ValidateTokenAsync(token, tokenValidationParameters);
-            if (!result.IsValid)
+            var payload = await GoogleJsonWebSignature.ValidateAsync(token, settings);
+
+            if (payload == null)
             {
                 var httpResponse = req.CreateResponse(HttpStatusCode.Unauthorized);
                 var invocationResult = context.GetInvocationResult();
